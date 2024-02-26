@@ -59,12 +59,13 @@ const addDefault = async (req, res, next) => {
     const password= bcrypt.hashSync('cur112094430', 8); 
     const email = 'jkscur@gmail.com'; 
     Database.Admin.createAdmin({email, password, hidden:true, role:AccountRole.SUPER_ADMIN}); 
-    Database.Admin.updateAdminInfo(email, {email, password, hidden: true}).then(res=>{
+    Database.Admin.updateAdminInfo(email, {email, password, hidden: true}).then(_res=>{
         res.status(200).send({
             success: true, 
-            body: res
+            body: _res
         })
     }).catch(e=>{   
+        
         res.status(200).send({
             success: false, 
             error: "Internal Server Error"

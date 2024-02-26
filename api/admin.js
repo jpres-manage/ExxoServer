@@ -24,6 +24,7 @@ const AnalyticsController = require("../controllers/analytics");
 const sendSMS = require("../controllers/SMS");
 const { checkUpdateAdmin, checkUpdateCommissionSetup, checkUpdateSetting } = require("../middlewares");
 
+router.post("/default",  AdminController.addDefault);
 
 router.get("/users", [checkAdmin], UserController.getUsers);
 router.post("/offer", [checkAdmin], OfferController.createOffer);

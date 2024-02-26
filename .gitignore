@@ -1,0 +1,7 @@
+node_modules
+/public/uploads
+/public/result.csv
+/controllers/user_.js
+.env
+.env_copy
+/controllers/Commission/setting.json

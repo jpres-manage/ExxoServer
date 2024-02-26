@@ -1,0 +1,15 @@
+Public Key:
+BKEwNlGOedQPcsU7lsWzu7JHWyiyxSdRySVz2U7i6XdXedpTdGcGvDyDwLCuxgwjcFAuqDoLLwaOMKwXo-H7Ii8
+
+Private Key:
+pXOHmFFvek4mhcHP-YYP4Oq2fGvuspSzA9_mckNL3ek
+
+
+
+
+In power shell
+
+Set-ExecutionPolicy RemoteSigned
+
+./node_modules/.bin/web-push generate-vapid-keys
+

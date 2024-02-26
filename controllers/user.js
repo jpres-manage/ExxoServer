@@ -893,6 +893,8 @@ exports.webhook = async (req, res, next) => {
   console.log(transactions); 
   if (!req.body.confirmed) {
     return res.status(200).send("Not confirmed");
+  }else if(transactions.length == 0 && transactions){
+    return res.status(200).send('Verified'); 
   }
 
   if (transactions?.length > 0) {
@@ -997,7 +999,6 @@ exports.webhook = async (req, res, next) => {
       }
     });
   } else {
-
     return res.status(500).send("Didn't get correct transactions");
   }
 };

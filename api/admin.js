@@ -103,6 +103,7 @@ router.post("/admin", [checkAdmin, checkUpdateAdmin], AdminController.updateAdmi
 router.get("/admins", [checkAdmin, checkUpdateAdmin], AdminController.getAdmins );
 router.get("/admin/:id", [checkAdmin, checkUpdateAdmin], AdminController.getAdminById );
 
+
 router.get("/branches", [checkAdmin], BranchController.getBranches );
 router.get("/branch/:id", [checkAdmin], BranchController.getBranchDetailsByUuid );
 router.get("/branch/:id/offers", [checkAdmin], BranchController.getBranchAndOffersDetailsByUuid );

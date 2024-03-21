@@ -31,17 +31,7 @@ const User = mongoose.model(
     submittedAt:                {type: Date, default: Date.now},
     verification_status:        { type: String, default: KYCStatus.NEW },   //New, Pending, Approved, Rejected (KYC status)
     isEmailVerified:            { type: Boolean, default: false, required: true },
-    ibStatus:                   { type: String, default: IBStatus.NEW },
-    ibParentTradingAccountId:   { type: String, default: "" },    // Own IB trading account account to receive commission
-    ibParentTradingAccountUuid: { type: String, default: "" },
-    parentTradingAccountId:     String,                           // IB parents ib trading account
-    parentTradingAccountUuid:   String, 
-    IBLink:                     { type: String, default: "" },
-    IBDeclineReason:            { type: String, default: "" },
-    ibSubmittedAt:              {type: Date, default: Date.now},
-    ibCreatedAt:                Date,
-    ibNumber:                   Number,
-    ibCommissionType:           String, 
+   
     role:                       String,
     roleUuid:                   String, 
     leadInfo:                   {type: Object, default:{} },
@@ -56,7 +46,21 @@ const User = mongoose.model(
       type: Boolean, 
       default: true
     }, 
-    parentAccountUuid: String
+    parentAccountUuid:          String, 
+    ibStatus:                   { type: String, default: IBStatus.NEW },
+    ibParentTradingAccountId:   { type: String, default: "" },      // Own IB trading account account to receive commission
+    ibParentTradingAccountUuid: { type: String, default: "" },
+    parentTradingAccountId:     String,                             // IB parents ib trading account
+    parentTradingAccountUuid:   String, 
+    IBLink:                     { type: String, default: "" },      // For Affiliate link 
+    IBDeclineReason:            { type: String, default: "" },    
+    ibSubmittedAt:              {type: Date, default: Date.now},
+    ibCreatedAt:                Date,
+    ibNumber:                   Number,                             // created when setting as the IB user
+    ibCommissionType:           String, 
+    isQClient:                  { type: Boolean,  default: false},  // 
+    isQIB:                      { type: Boolean, default :false},   // Qulified IB user
+    ibRanking:                  String                              // Ranking labeld by commission setting.json
   })
 );
 

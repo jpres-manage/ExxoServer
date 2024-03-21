@@ -17,6 +17,17 @@ const getLastAccessTime = () => {
     return settings.accessTime;
 }
 
+const readSettings = () =>{
+    const absPath = path.resolve(__dirname + '/setting.json');
+    let settings = FileController.readJsonFile(absPath);
+    return settings; 
+}
+
+const writeSettings = (settings)=>{
+    const absPath = path.resolve(__dirname + '/setting.json');
+    FileController.writeJsonFile(absPath, {...settings}); 
+}
+
 const updateLastAccessTime = (time) => {
     const absPath = path.resolve(__dirname + '/setting.json');
     let settings = FileController.readJsonFile(absPath);
@@ -152,8 +163,77 @@ const _checkClosedPosition = async (req, res, next) => {
         })
     }
 }
+
+
+
+const startCheckRanking = async () =>{
+
+    const setting = readSettings(); 
+
+    let currentTime = new Date().getTime(); 
+    if(currentTime - setting.rankingResetTime < setting.rankingResetPeriod * 24* 60 * 60 *1000 ){
+        return; 
+    }
+
+    //// update the reset time for ranking reset
+    const oldResetTime = setting.rankingResetTime; 
+    
+    setting.rankingResetTime = currentTime; 
+    writeSettings(currentTime); 
+
+    await checkQualifiedClient(oldResetTime, currentTime); 
+    await checkQualifiedIB(); 
+
+
+
+}
+
+const checkQualifiedClient = async (start, end) =>{
+
+    const clients = await User.find({}); 
+    for(let client in clients){
+        let tradingAccounts =await Database.TradingAccount.getTradingAccountByEmail(client.email); 
+        let clientIds = tradingAccounts.map(tradingAccount=>{
+            if(!tradingAccount.isDemo){
+                return tradingAccount.tradingAccountId
+            }
+        }).filter(v=>!!v); 
+
+        let totalClosedVolume =await Database.Position.getTotalVolume(start, end, clientIds); 
+        if(totalClosedVolume >=1 ){
+            client.isQClient = true; 
+        }else{
+            client.isQClient = false; 
+        }
+        await client.save(); 
+    }
+}
+// QC_limit from Setting count of qualified clients for qualified ib client
+const checkQualifiedIB = async (QC_limit) =>{
+    try{
+        let ibClients = await Database.Account.getIBClients(); 
+        for(let ibClient in ibClients){
+            const parentTradingAccountId = ibClient.ibParentTradingAccountId;
+            const verification_status = KYCStatus.APPROVED;
+            const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
+            let countOfQClient = 0;
+            for( let ibOwnClient in ibOwnClients){
+                if(ibOwnClient.isQClient){
+                    countOfQClient ++; 
+                }
+            }
+            if(countOfQClient >=QC_limit){
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: true, ibRanking: "IB"}); 
+            } else{
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: false, ibRanking: "IB"}); 
+            }
+        }
+    }catch(e){
+        return; 
+    }
+}
 const CommissionController = {
-    startCommissionMonitor, checkClosedPosition, _checkClosedPosition
+    startCommissionMonitor, checkClosedPosition, _checkClosedPosition,  startCheckRanking, readSettings, writeSettings
 }
 
 module.exports = CommissionController; 

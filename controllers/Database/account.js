@@ -292,6 +292,9 @@ const getIBOwnClients = async (data) => {
                     ibStatus:1, 
                     ibParentTradingAccountId: 1, 
                     ibParentTradingAccountUuid:1, 
+                    isQClient: 1, 
+                    isQIB: 1, 
+                    ibRanking :1, 
                 }
             }
         ]);

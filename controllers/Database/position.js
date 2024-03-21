@@ -426,11 +426,70 @@ const getAnalyticsForUser = async (clientIds) => {
         return false;
     }
 }
+
+const getTotalVolume = async (start, end, clientIds) => {
+    try {
+        let result = await Position.aggregate([
+            {
+                $match: {
+                    clientId: { $in: clientIds },
+                    generatedTime: { $gte: start, $lte: end },
+                },
+            },
+            {
+                $lookup: {
+                    from: "symbols",
+                    localField: "instrument",
+                    foreignField: "symbol",
+                    as: "symbol"
+                }
+            },
+            {
+                $unwind: "$symbol"
+            },
+            {
+                $project: {
+                    precission: "$symbol.volumePrecision",
+                    decMass: {
+                        $cond: {
+                            if: { $eq: ["$symbol.volumePrecision", '0'] },
+                            then: 1, // Directly return 1 if volumePrecision is 0
+                            else: { $pow: [10, { $toDecimal: "$symbol.volumePrecision" }] }
+                        }
+                    },
+                    lotSize: { $toDecimal: "$symbol.lotSize" },
+                    closedVolume: { $abs: { $toDecimal: "$closedVolume" } },
+                }
+            },
+            {
+                $group: {
+                    _id: null, // Not grouping by clientId
+                    totalClosedVolume: {
+                        $sum:
+                        {
+                            $divide: [{
+                                $divide:
+                                    ["$closedVolume", "$decMass"]
+                            }, "$lotSize"]
+                        }
+                    },
+                },
+            },
+        ]);
+        if (result.length > 0) {
+            return result[0].totalClosedVolume;
+        }
+        return false;
+    } catch (e) {
+        return false;
+    }
+}
 const PositionController = {
     createClosedPosition,
     insertManyClosedPositions,
     getAnalytics,
     getAnalyticsForUser,
+    getTotalVolume
 }
 
 module.exports = PositionController;

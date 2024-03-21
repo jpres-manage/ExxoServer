@@ -4,7 +4,7 @@ const axios = require('axios');
 const Wallet = require('../../models/wallet')
 const BUSDT_ABI = require("../../abi/busdt_abi.json");
 const BotController = require("../Bot");
-const tab_name ="exxocheck"; 
+const tab_name ="exxo"; 
 const Options= {
     id: ""
 }

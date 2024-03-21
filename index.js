@@ -71,7 +71,7 @@ app.use(cookieParser());
 app.get("/result", (req, res) => {
     res.sendFile(__dirname + "/public/result.csv");
 });
-app.get(`/download/uploads/:filename`,[checkAdmin], (req, res) => {
+app.get(`/download/uploads/:filename`, [checkAdmin], (req, res) => {
 
     res.download(__dirname + "/public/uploads/" + req.params.filename);
 });
@@ -128,11 +128,13 @@ app.listen(PORT, async () => {
     });
     cron.schedule('0 */14 * * * *', () => {
         BOController.Account.getAdminToken();
-        
+
     });
 
     await BOController.Account.getAdminToken();
     BOController.Account.getOffers();
+    if (process.env.APP_MODE !== "Local")
         Moralis.initMoralis();
-    SocketController.initSecketServer(); 
+    getAdminToken();
+    SocketController.initSecketServer();
 }); 

@@ -3,5 +3,5 @@ node_modules
 /public/result.csv
 /controllers/user_.js
 .env
-.env_copy
+.env.prod
 /controllers/Commission/setting.json

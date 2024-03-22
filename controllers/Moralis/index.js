@@ -48,11 +48,11 @@ const createStream = async ( ) =>{
             abi: BUSDT_ABI,
             topic0: ["Transfer(address,address,uint256)"],
             webhookUrl: `${process.env.BACKEND_SERVER}/api/user/webhook`,
-            advancedOptions: {
+            advancedOptions: [{
                 topic0: "Transfer(address,address,uint256)",
                 filter: { "gt": ["value", "0000000000000000000"] },
                 includeNativeTxs: false
-            }
+            }]
         };
         const stream = await Moralis.Streams.add(options);
         const { id } = stream.toJSON();
@@ -60,7 +60,7 @@ const createStream = async ( ) =>{
         return id; 
         
     }catch(e){
-        BotController.errors("", "Failed to create stream"); 
+        BotController.errors( e.message, "Failed to create stream"); 
     }
 }
 

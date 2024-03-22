@@ -209,8 +209,9 @@ const startCheckRanking = async (bAuto=true) =>{
 const checkQualifiedClient = async (start, end) =>{
     const clients = await User.find({}); 
     for(let client in clients){
+        console.log({client})
         let totalClosedVolume = await getTotalUserClosedVolume(client.email);
-        console.log({totalClosedVolume, client})
+        console.log({totalClosedVolume})
         if(totalClosedVolume >=1 ){
             client.isQClient = true; 
         }else{

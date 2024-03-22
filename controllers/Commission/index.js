@@ -10,6 +10,7 @@ const ManagerApi = require('../Manager');
 const SymbolController = require('../Symbol');
 const { commissionTypes, DepositMode, KYCStatus } = require('../constant');
 const { userInfo } = require('os');
+const User = require('../../models/user');
 
 const commissionSetting = {
     setting: {}
@@ -179,25 +180,26 @@ const _checkClosedPosition = async (req, res, next) => {
 
 const evalRankingFromAdmin = async(req, res)=>{
 
-    await checkQualifiedClient(oldResetTime, currentTime); 
-    await checkQualifiedIB(); 
-    await checkIBRankings(setting);
+    await startCheckRanking(false);    // by admin
+    
+    return res.status(200).send("ok"); 
  
 }
 
-const startCheckRanking = async () =>{
+const startCheckRanking = async (bAuto=true) =>{
 
     const setting = readSettings(); 
 
     let currentTime = new Date().getTime(); 
-    if(currentTime - setting.rankingResetTime < setting.rankingResetPeriod * 24* 60 * 60 *1000 ){
+
+    if(bAuto && currentTime - setting.rankingResetTime < setting.rankingResetPeriod * 24* 60 * 60 *1000 ){
         return; 
     }
 
     //// update the reset time for ranking reset
     const oldResetTime = setting.rankingResetTime; 
     setting.rankingResetTime = currentTime; 
-    writeSettings(currentTime); 
+    if(bAuto) writeSettings(currentTime); 
 
     await checkQualifiedClient(oldResetTime, currentTime); 
     await checkQualifiedIB(); 

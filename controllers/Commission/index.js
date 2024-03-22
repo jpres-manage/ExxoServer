@@ -208,7 +208,7 @@ const startCheckRanking = async (bAuto=true) =>{
 
 const checkQualifiedClient = async (start, end) =>{
     const clients = await User.find({}); 
-    for(let client in clients){
+    for(let client of clients){
         console.log({client})
         let totalClosedVolume = await getTotalUserClosedVolume(client.email);
         console.log({totalClosedVolume})
@@ -237,13 +237,13 @@ const getTotalUserClosedVolume = async(email)=>{
 const checkQualifiedIB = async (QC_limit) =>{
     try{
         let ibClients = await Database.Account.getIBClients(); 
-        for(let ibClient in ibClients){
+        for(let ibClient of ibClients){
             const parentTradingAccountId = ibClient.ibParentTradingAccountId;
             const verification_status = KYCStatus.APPROVED;
             const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
             console.log({ibClient, ibOwnClients});
             let countOfQClient = 0;
-            for( let ibOwnClient in ibOwnClients){
+            for( let ibOwnClient of ibOwnClients){
                 if(ibOwnClient.isQClient){
                     countOfQClient ++; 
                 }
@@ -280,13 +280,13 @@ const checkIBRankings = async (setting)=>{
 const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber)=>{
     try{
         let ibClients = await Database.Account.getIBClients(); 
-        for(let ibClient in ibClients){
+        for(let ibClient of ibClients){
             const parentTradingAccountId = ibClient.ibParentTradingAccountId;
             const verification_status = KYCStatus.APPROVED;
             const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
             let countOfQClient = 0;
             let totalClosedVolume = 0; 
-            for( let ibOwnClient in ibOwnClients){
+            for( let ibOwnClient of ibOwnClients){
                 if(ibOwnClient.ibRanking === prevLevel){
                     countOfQClient ++; 
                 }

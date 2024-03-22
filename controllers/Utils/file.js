@@ -7,7 +7,6 @@ const readJsonFile =  (path) => {
         const data = fs.readFileSync(path, 'utf8');
         const jsonData = JSON.parse(data);
         return jsonData; 
-
     } catch (e) {
         BotController.errors(e, "readJsonFile")
         return false;

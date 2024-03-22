@@ -190,6 +190,9 @@ const getIBClients = async (data) => {
                     avatarUrl:1, 
                     adminUuid: "$branch.adminUuid", 
                     email: 1, 
+                    ibRanking: 1, 
+                    isQClient: 1, 
+                    isQIB: 1
                }
             }, 
             {

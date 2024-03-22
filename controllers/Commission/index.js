@@ -210,7 +210,7 @@ const checkQualifiedClient = async (start, end) =>{
     const clients = await User.find({}); 
     for(let client of clients){
         console.log({client})
-        let totalClosedVolume = await getTotalUserClosedVolume(client.email);
+        let totalClosedVolume = await getTotalUserClosedVolume(client.email, start, end);
         console.log({totalClosedVolume})
         if(totalClosedVolume >=1 ){
             client.isQClient = true; 
@@ -221,7 +221,7 @@ const checkQualifiedClient = async (start, end) =>{
     }
 }
 
-const getTotalUserClosedVolume = async(email)=>{
+const getTotalUserClosedVolume = async(email, start=0, end=new Date.getTime())=>{
     let tradingAccounts =await Database.TradingAccount.getTradingAccountByEmail(email); 
     let clientIds = tradingAccounts.map(tradingAccount=>{
         if(!tradingAccount.isDemo){

@@ -198,3 +198,10 @@ exports.ActionKind = {
     UPDATE_IBUSER:"Update IB user"
 }
 
+exports.offerNames = {
+    EXXO_IB: "Exxo IB", 
+    EXXO_CONDER: "Exxo Conder", 
+    EXXO_COMMET: "Exxo Comet", 
+    DEMO_CONDER:"Demo Conder", 
+    DEMO_COMET: "Demo Comet"
+}

@@ -8,6 +8,7 @@ const { update } = require('../../models/admin');
 const { getSyslogsForUser } = require('./syslogs');
 const { ObjectId } = require('mongodb');
 const { MakeSimpleEmail } = require('../Manager/utility/other');
+const Database = require('.');
 
 const createAccountSync = async (data) => {
     try {
@@ -304,34 +305,56 @@ const getIBOwnClients = async (data) => {
     }
 }
 
-const createIBClientTree = async (parentTradingAccountId) =>{
+const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, summary) =>{
     let ibUserTreeData = []; 
     const affiliateUsers  =await getIBOwnClients({parentTradingAccountId, verification_status:KYCStatus.APPROVED});
+    let totalIbs =0, totalQClients =0, totalVolume =0; 
     for( let i = 0; i< affiliateUsers.length; i++){
         let item = affiliateUsers[i]; 
-        if(item.ibStatus === IBStatus.APPROVED){
-            let data = {
-                text: MakeSimpleEmail(item.email), 
-                id: item.accountUuid, 
-                ...item, 
-                state: {
-                    opened: true,
-                }, 
-                children:  await createIBClientTree(item.ibParentTradingAccountId)
-            };
-            ibUserTreeData = [...ibUserTreeData, data ]
-        }else{
-            let data = {
-                text: MakeSimpleEmail(item.email), 
-                id: item.accountUuid, 
-                ...item, 
-                state: {
-                    opened: true,
-                }, 
+        let data ; 
+        if(ibDepth >= start){
+            if(item.ibStatus === IBStatus.APPROVED){
+                data = {
+                    text: MakeSimpleEmail(item.email), 
+                    id: item.accountUuid, 
+                    ...item, 
+                    state: {
+                        opened: true,
+                    }, 
+                    children: ibDepth+1<end &&  await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end) ||undefined
+                };
+            }else{
+                data = {
+                    text: MakeSimpleEmail(item.email), 
+                    id: item.accountUuid, 
+                    ...item, 
+                    state: {
+                        opened: true,
+                    }, 
+                }
             }
             ibUserTreeData = [...ibUserTreeData,data ]
+        }else {
+            if(item.ibStatus === IBStatus.APPROVED){
+                data = await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end, summary); 
+                ibUserTreeData = [...ibUserTreeData, ...data]
+            }
         }
+        if(item.isQClient)
+            totalQClients++; 
+
+        if(item.ibStatus === IBStatus.APPROVED) 
+            totalIbs++; 
+
+        const clientIds = await Database.TradingAccount.getTradingAccountsByUserId(item.accountUuid).filter(account=>!account.offer.demo).map(item=>item.tradingAccountId); 
+        totalVolume += await Database.Position.getTotalVolume(0, new Date().getTime(), [...clientIds]);
+
+        
     } 
+    summary.totalQClients += totalQClients; 
+    summary.totalIbs += totalIbs; 
+    summary.totalVolume += totalVolume; 
+
     return ibUserTreeData; 
 }
 

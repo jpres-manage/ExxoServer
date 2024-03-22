@@ -1,6 +1,7 @@
 const Database = require("./Database");
 const { IBStatus, KYCStatus, commissionTypeNames } = require("./constant");
 const BotController = require("./Bot");
+const { readSettings } = require("./Commission");
 
 const getIBClients = async (req, res, next) => {
 
@@ -43,15 +44,36 @@ const getIBOwnClients = async (req, res, next) => {
 
 const getIBOwnClientsTree = async (req, res, next) => {
 
+
     const id = req.params.id;
     const account = await Database.Account.getAccountDetailById(id);
     if (account) {
         const parentTradingAccountId = account.ibParentTradingAccountId;
         const verification_status = KYCStatus.APPROVED;
-        const _ibClients = await Database.Account.createIBClientTree(parentTradingAccountId);
+
+        /////////// Get setting for IB ranking
+        let start = 0, end = 10; 
+        const commissionSetting = readSettings(); 
+        const index = commissionSetting.rankingLabels.findIndex(item=>item == account.ibRanking); 
+        if(index == 0 || index == -1){
+            start = 0; 
+            end = commissionSetting.rankingCommissionLevels[0]; 
+        }else {
+            start = commissionSetting.rankingCommissionLevels[index-1]; 
+            end= commissionSetting.rankingCommissionLevels[index]; 
+        }
+
+        /////// get tree and summary info 
+        const summary = {
+            totalQClients:0, 
+            totalIbs:0, 
+            totalVolume:0
+        }
+        const _ibClients = await Database.Account.createIBClientTree(parentTradingAccountId, 0, start, end, summary);
         return res.status(200).send({
             success: true,
-            body: _ibClients
+            body: _ibClients, 
+            summary: summary
         })
     } else {
         return res.status(200).send({

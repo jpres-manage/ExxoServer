@@ -6,6 +6,7 @@ const LedgerController = require("../controllers/ledger");
 const PositionController = require("../controllers/position");
 const BranchController = require("../controllers/branch");
 const BalanceController = require("../controllers/balance");
+const UserValidation = require("../middlewares/user");
 
 router.get("/tradingAccounts",[authJwt.verifyToken ], AccountController.getTradingAccounts);
 router.get("/tradingAccounts/:userId",[authJwt.verifyToken ], AccountController.getTradingAccountsByUuid);
@@ -27,5 +28,5 @@ router.get("/closed-positions/:id",[authJwt.verifyToken ], LedgerController.getC
 router.get("/ledgers/:id",[authJwt.verifyToken ], LedgerController.getLedgersForTradingAccount);
 router.get("/offers/real",[authJwt.verifyToken], BranchController.getRealOffersByUser);
 router.get("/offers/demo",[authJwt.verifyToken], BranchController.getDemoOffersByUser);
-router.post("/withdrawMoney", [authJwt.verifyToken], BalanceController.requestWithdrawalAuto); 
+router.post("/withdrawMoney", [authJwt.verifyToken, UserValidation.validateWithdraw], BalanceController.requestWithdrawalAuto);  //user's withdraw request
 module.exports = router;

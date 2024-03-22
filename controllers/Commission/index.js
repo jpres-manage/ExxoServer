@@ -210,6 +210,7 @@ const checkQualifiedClient = async (start, end) =>{
     const clients = await User.find({}); 
     for(let client in clients){
         let totalClosedVolume = await getTotalUserClosedVolume(client.email);
+        console.log({totalClosedVolume, client})
         if(totalClosedVolume >=1 ){
             client.isQClient = true; 
         }else{
@@ -239,6 +240,7 @@ const checkQualifiedIB = async (QC_limit) =>{
             const parentTradingAccountId = ibClient.ibParentTradingAccountId;
             const verification_status = KYCStatus.APPROVED;
             const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
+            console.log({ibClient, ibOwnClients});
             let countOfQClient = 0;
             for( let ibOwnClient in ibOwnClients){
                 if(ibOwnClient.isQClient){

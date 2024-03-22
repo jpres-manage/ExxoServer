@@ -181,7 +181,6 @@ const _checkClosedPosition = async (req, res, next) => {
 const evalRankingFromAdmin = async(req, res)=>{
 
     await startCheckRanking(false);    // by admin
-    
     return res.status(200).send("ok"); 
  
 }
@@ -223,14 +222,17 @@ const checkQualifiedClient = async (start, end) =>{
 
 const getTotalUserClosedVolume = async(email, start=0, end=new Date.getTime())=>{
     let tradingAccounts =await Database.TradingAccount.getTradingAccountByEmail(email); 
-    let clientIds = tradingAccounts.map(tradingAccount=>{
-        if(!tradingAccount.isDemo){
-            return tradingAccount.tradingAccountId
-        }
-    }).filter(v=>!!v); 
-
-    let totalClosedVolume =await Database.Position.getTotalVolume(start, end, clientIds); 
-    return totalClosedVolume; 
+    if(tradingAccounts){
+        let clientIds = tradingAccounts.map(tradingAccount=>{
+            if(!tradingAccount.isDemo){
+                return tradingAccount.tradingAccountId
+            }
+        }).filter(v=>!!v); 
+    
+        let totalClosedVolume =await Database.Position.getTotalVolume(start, end, clientIds); 
+        return totalClosedVolume; 
+    }
+    return 0; 
 }
 
 // QC_limit from Setting count of qualified clients for qualified ib client

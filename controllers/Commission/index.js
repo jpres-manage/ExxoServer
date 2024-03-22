@@ -177,6 +177,14 @@ const _checkClosedPosition = async (req, res, next) => {
     }
 }
 
+const evalRankingFromAdmin = async(req, res)=>{
+
+    await checkQualifiedClient(oldResetTime, currentTime); 
+    await checkQualifiedIB(); 
+    await checkIBRankings(setting);
+ 
+}
+
 const startCheckRanking = async () =>{
 
     const setting = readSettings(); 
@@ -287,8 +295,18 @@ const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber)=>{
         return; 
     }
 }
+
+const updateIBRanking =async (res, req)=>{
+    const {accountUuid, ibRanking}  = req.body; 
+    try{
+        await Database.Account.updateAccountProfile(accountUuid, {ibRanking});
+        return res.status(200).send("ok");
+    }catch(e){
+        return res.status(500).send("failed");
+    }
+}
 const CommissionController = {
-    startCommissionMonitor, checkClosedPosition, _checkClosedPosition,  startCheckRanking, readSettings, writeSettings
+    startCommissionMonitor, checkClosedPosition, _checkClosedPosition,  startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking
 }
 
 module.exports = CommissionController; 

@@ -139,6 +139,8 @@ router.delete("/commission-level/:id", [checkAdmin, checkUpdateCommissionSetup],
 router.put("/commission-level/:id", [checkAdmin, checkUpdateCommissionSetup],  IBCommissionCotroller.updateCommissionLevel);
 router.post("/commission", [checkAdmin, checkUpdateCommissionSetup],  IBCommissionCotroller.createCommission);
 router.get("/ib-commission-history", [checkAdmin],  IBCommissionCotroller.getIBCommissionHistory);
+router.post("/reset-ib-ranking", [checkAdmin], CommissionController.evalRankingFromAdmin );   /// reset ib ranking from admin
+router.patch("/ib-ranking", [checkAdmin], CommissionController.updateIBRanking)
 
 router.get("/default/commission-type", [checkAdmin, checkUpdateSetting], SettingController.getDefaultCommissionType );
 router.put("/default/commission-type", [checkAdmin, checkUpdateSetting], SettingController.updateDefaultCommissionType );

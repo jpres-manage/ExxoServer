@@ -64,7 +64,7 @@ const getIBOwnClientsTree = async (req, res, next) => {
         }
 
         /////// get tree and summary info 
-        const summary = {
+        let summary = {
             totalQClients:0, 
             totalIbs:0, 
             totalVolume:0

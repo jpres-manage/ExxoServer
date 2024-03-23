@@ -319,7 +319,7 @@ const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, s
                         state: {
                             opened: true,
                         }, 
-                        children: ibDepth+1<end &&  await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end) ||undefined
+                        children: ibDepth+1<end &&  await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end, summary) ||undefined
                     };
                 }else{
                     data = {
@@ -344,7 +344,7 @@ const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, s
             if(item.ibStatus === IBStatus.APPROVED) 
                 totalIbs++; 
     
-            const clientIds = await  getTradingAccountsByUserId(item.accountUuid).filter(account=>!account.offer.demo).map(item=>item.tradingAccountId); 
+            const clientIds = (await  getTradingAccountsByUserId(item.accountUuid)).filter(account=>!account.offer.demo).map(item=>item.tradingAccountId); 
             totalVolume += await getTotalVolume(0, new Date().getTime(), [...clientIds]);
         } 
         summary.totalQClients += totalQClients; 

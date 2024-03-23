@@ -43,4 +43,3 @@ const Database = {
     Role
 }
 module.exports = Database;
-

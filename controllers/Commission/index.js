@@ -257,6 +257,7 @@ const checkQualifiedIB = async (QC_limit) =>{
             }
         }
     }catch(e){
+        console.log(e);
         return; 
     }
 }
@@ -303,7 +304,7 @@ const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber)=>{
     }
 }
 
-const updateIBRanking =async (res, req)=>{
+const updateIBRanking =async (req, res)=>{
     const {accountUuid, ibRanking}  = req.body; 
     try{
         await Database.Account.updateAccountProfile(accountUuid, {ibRanking});
@@ -312,8 +313,23 @@ const updateIBRanking =async (res, req)=>{
         return res.status(500).send("failed");
     }
 }
+
+const getRankingTypes =async (req, res)=>{
+    try{
+        let commissionSettings = readSettings(); 
+        let rankingLabels = commissionSettings.rankingLabels1; 
+        return res.status(200).send({
+            success: true, 
+            body:rankingLabels
+        })
+    }catch(e){
+        return res.status(200).send({
+            success: false, 
+        })
+    }
+}
 const CommissionController = {
-    startCommissionMonitor, checkClosedPosition, _checkClosedPosition,  startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking
+    startCommissionMonitor, checkClosedPosition, _checkClosedPosition,  startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking, getRankingTypes
 }
 
 module.exports = CommissionController; 

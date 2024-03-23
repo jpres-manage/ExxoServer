@@ -2,13 +2,13 @@ const Account = require('../../models/user');
 const uuid = require('uuid');
 const bcrypt = require('bcryptjs');
 const { IBStatus, AccountRole, KYCStatus } = require('../constant');
-const TradingAccountController = require('./trading_account');
 const BotController = require('../Bot');
 const { update } = require('../../models/admin');
 const { getSyslogsForUser } = require('./syslogs');
 const { ObjectId } = require('mongodb');
 const { MakeSimpleEmail } = require('../Manager/utility/other');
-const Database = require('.');
+const Position = require('../../models/position');
+const Wallet = require('../../models/wallet');
 
 const createAccountSync = async (data) => {
     try {
@@ -149,12 +149,6 @@ const getUserEmailsByIds = async (ids)=>{
 //  for admin actions
 const getIBClients = async (data) => {
     let match = {}; 
-    const {adminUuid, role} = data; 
-    // if(role === AccountRole.ADMIN){
-    //     match = {
-    //         adminUuid
-    //     }
-    // }
     const query = { ibStatus: { $in: [IBStatus.PENDING, IBStatus.APPROVED, IBStatus.DECLINED] } };
 
     try{
@@ -309,58 +303,160 @@ const getIBOwnClients = async (data) => {
 }
 
 const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, summary) =>{
-    let ibUserTreeData = []; 
-    const affiliateUsers  =await getIBOwnClients({parentTradingAccountId, verification_status:KYCStatus.APPROVED});
-    let totalIbs =0, totalQClients =0, totalVolume =0; 
-    for( let i = 0; i< affiliateUsers.length; i++){
-        let item = affiliateUsers[i]; 
-        let data ; 
-        if(ibDepth >= start){
-            if(item.ibStatus === IBStatus.APPROVED){
-                data = {
-                    text: MakeSimpleEmail(item.email), 
-                    id: item.accountUuid, 
-                    ...item, 
-                    state: {
-                        opened: true,
-                    }, 
-                    children: ibDepth+1<end &&  await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end) ||undefined
-                };
-            }else{
-                data = {
-                    text: MakeSimpleEmail(item.email), 
-                    id: item.accountUuid, 
-                    ...item, 
-                    state: {
-                        opened: true,
-                    }, 
+    try{
+        let ibUserTreeData = []; 
+        const affiliateUsers  =await getIBOwnClients({parentTradingAccountId, verification_status:KYCStatus.APPROVED});
+        let totalIbs =0, totalQClients =0, totalVolume =0; 
+        for( let i = 0; i< affiliateUsers.length; i++){
+            let item = affiliateUsers[i]; 
+            let data ; 
+            if(ibDepth >= start){
+                if(item.ibStatus === IBStatus.APPROVED){
+                    data = {
+                        text: MakeSimpleEmail(item.email), 
+                        id: item.accountUuid, 
+                        ...item, 
+                        state: {
+                            opened: true,
+                        }, 
+                        children: ibDepth+1<end &&  await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end) ||undefined
+                    };
+                }else{
+                    data = {
+                        text: MakeSimpleEmail(item.email), 
+                        id: item.accountUuid, 
+                        ...item, 
+                        state: {
+                            opened: true,
+                        }, 
+                    }
+                }
+                ibUserTreeData = [...ibUserTreeData,data ]
+            }else {
+                if(item.ibStatus === IBStatus.APPROVED){
+                    data = await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end, summary); 
+                    ibUserTreeData = [...ibUserTreeData, ...data]
                 }
             }
-            ibUserTreeData = [...ibUserTreeData,data ]
-        }else {
-            if(item.ibStatus === IBStatus.APPROVED){
-                data = await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end, summary); 
-                ibUserTreeData = [...ibUserTreeData, ...data]
-            }
-        }
-        if(item.isQClient)
-            totalQClients++; 
-
-        if(item.ibStatus === IBStatus.APPROVED) 
-            totalIbs++; 
-
-        const clientIds = await Database.TradingAccount.getTradingAccountsByUserId(item.accountUuid).filter(account=>!account.offer.demo).map(item=>item.tradingAccountId); 
-        totalVolume += await Database.Position.getTotalVolume(0, new Date().getTime(), [...clientIds]);
-
-        
-    } 
-    summary.totalQClients += totalQClients; 
-    summary.totalIbs += totalIbs; 
-    summary.totalVolume += totalVolume; 
-
-    return ibUserTreeData; 
+            if(item.isQClient)
+                totalQClients++; 
+    
+            if(item.ibStatus === IBStatus.APPROVED) 
+                totalIbs++; 
+    
+            const clientIds = await  getTradingAccountsByUserId(item.accountUuid).filter(account=>!account.offer.demo).map(item=>item.tradingAccountId); 
+            totalVolume += await getTotalVolume(0, new Date().getTime(), [...clientIds]);
+        } 
+        summary.totalQClients += totalQClients; 
+        summary.totalIbs += totalIbs; 
+        summary.totalVolume += totalVolume; 
+    
+        return ibUserTreeData; 
+    }catch(e){
+        return []
+    }
 }
 
+
+const getTotalVolume = async (start, end, clientIds) => {
+    try {
+        let result = await Position.aggregate([
+            {
+                $match: {
+                    clientId: { $in: clientIds },
+                    generatedTime: { $gte: start, $lte: end },
+                },
+            },
+            {
+                $lookup: {
+                    from: "symbols",
+                    localField: "instrument",
+                    foreignField: "symbol",
+                    as: "symbol"
+                }
+            },
+            {
+                $unwind: "$symbol"
+            },
+            {
+                $project: {
+                    precission: "$symbol.volumePrecision",
+                    decMass: {
+                        $cond: {
+                            if: { $eq: ["$symbol.volumePrecision", '0'] },
+                            then: 1, // Directly return 1 if volumePrecision is 0
+                            else: { $pow: [10, { $toDecimal: "$symbol.volumePrecision" }] }
+                        }
+                    },
+                    lotSize: { $toDecimal: "$symbol.lotSize" },
+                    closedVolume: { $abs: { $toDecimal: "$closedVolume" } },
+                }
+            },
+            {
+                $group: {
+                    _id: null, // Not grouping by clientId
+                    totalClosedVolume: {
+                        $sum:
+                        {
+                            $divide: [{
+                                $divide:
+                                    ["$closedVolume", "$decMass"]
+                            }, "$lotSize"]
+                        }
+                    },
+                },
+            },
+        ]);
+        if (result.length > 0) {
+            return result[0].totalClosedVolume;
+        }
+        return false;
+    } catch (e) {
+        return false;
+    }
+}
+const getTradingAccountsByUserId = async (clientUuid) => {
+    try {
+        let result = await Wallet.aggregate([
+            {
+                $lookup: {
+                    from: "offers",
+                    localField: "offerUuid",
+                    foreignField: "uuid",
+                    as: "offer"
+                }
+            },
+            {
+                $unwind: "$offer"
+            },
+            {
+                $match: {
+                    "clientUuid": clientUuid
+                }
+            },
+            {
+                $project: {
+                    "offer.name": 1,
+                    "tradingAccountId": 1,
+                    "clientUuid": 1,
+                    "tradingAccountUuid": 1,
+                    "balance": 1,
+                    "creditBalance": 1,
+                    "tronAddress": 1,
+                    "ethPrivateKey": 1,
+                    "ethAddress": 1,
+                    "offer.demo": 1,
+                    "offer.currency": 1
+                }
+            },
+        ]);
+        console.log(result);
+        return result;
+    } catch (e) {
+        console.log(e);
+        return false;
+    }
+}
 const getUserAnalytics = async (start = 0, end = new Date(), adminUuid, role) => {
 
     let match = {}; 

@@ -55,11 +55,11 @@ const validateWithdraw = async (req, res, next)=>{
     let data = req.body; 
     const tradingAccounts = await Database.TradingAccount.getTradingAccountByEmail(userInfo.email); 
     if(tradingAccounts){
-        if(tradingAccounts.findIndex((tradingAccount)=>tradingAccount.tradingAccountUuid === data.accountUuid) ==-1)
+        if(tradingAccounts.findIndex((tradingAccount)=>tradingAccount.tradingAccountId === data.tradingAccountId) ==-1)
             return res.status(403).send("Bad request"); 
 
-        let tradingAccount  =await Database.TradingAccount.getTradingAccountByTradingAccountUuid(data.accountUuid);
-        if(tradingAccount.offers.name === offerNames.EXXO_IB){
+        let tradingAccount  =await Database.TradingAccount.getTradingAccountByTradintAccountId(data.tradingAccountId);
+        if(tradingAccount.offer.name === offerNames.EXXO_IB){
             const commissoinSetting = readSettings();
             if(!commissoinSetting.rankingLabels.includes(userInfo.ibRanking)){
                 return res.status(403).send("Bad request"); 

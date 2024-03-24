@@ -12,10 +12,7 @@ const busdt_address = "0x55d398326f99059fF775485246999027B3197955"; ///BUSDT Con
 const bnb_address = "0x242a1ff6ee06f2131b7924cacb74c7f9e3a5edc9";
 
 
-// const providerUrl = "https://bsc-dataseed1.bnbchain.org";
-// const providerUrl =  "https://go.getblock.io/5875a9e132834114903af08f0c623336";
-// const providerUrl =  "https://go.getblock.io/acf52b3e18ef45f4811c38894eb6526f";
-const providerUrl =  "https://bsc-dataseed.binance.org/";
+const providerUrl =  "https://go.getblock.io/5875a9e132834114903af08f0c623336";
 const web3 = new Web3(new Web3.providers.HttpProvider(providerUrl));
 const BNBContract = new web3.eth.Contract(BNB_ABI, bnb_address);
 const BUSDTContract = new web3.eth.Contract(BUSDT_ABI, busdt_address);

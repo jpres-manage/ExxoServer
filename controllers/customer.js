@@ -362,10 +362,29 @@ const getIBOwnClients = async (req, res, next)=>{
     const user = await Database.Account.getAccountDetailByUuid(accountUuid); 
 
     if(user && user.ibStatus == IBStatus.APPROVED && user.ibParentTradingAccountId){
-        let result = await Database.Account.createIBClientTree(user.ibParentTradingAccountId); 
+        let start = 0, end = 10; 
+        const commissionSetting = readSettings(); 
+        const index = commissionSetting.rankingLabels.findIndex(item=>item == account.ibRanking); 
+        if(index == 0 || index == -1){
+            start = 0; 
+            end = commissionSetting.rankingCommissionLevels[0]; 
+        }else {
+            start = commissionSetting.rankingCommissionLevels[index-1]; 
+            end= commissionSetting.rankingCommissionLevels[index]; 
+        }
+
+        /////// get tree and summary info 
+        let summary = {
+            totalQClients:0, 
+            totalIbs:0, 
+            totalVolume:0
+        }
+
+        let result = await Database.Account.createIBClientTree(user.ibParentTradingAccountId, 0, start, end, summary); 
         return res.status(200).send({
             success: true, 
-            body: result
+            body: result, 
+            summary
         })
     }else{
         return res.status(200).send({

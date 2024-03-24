@@ -173,7 +173,7 @@ const getOffersByUser =async (req, res, next) =>{
             let _offers= branchInfo?.offers; 
             for( let i = 0; i<_offers.length; i++){
                 let offer = await Database.Offer.getOfferbyUuid(_offers[i]);
-                if(!offer) continue; 
+                if(!offer || offer.hidden) continue; 
                 offers.push({offerUuid: offer.uuid, name: offer.name, demo: offer.demo, currency: offer.currency});
             }
             return res.status(200).send({

@@ -10,6 +10,7 @@ const BotController = require("./Bot");
 const PositionController = require("./position");
 const { OAuth2Client } = require('google-auth-library');
 const { generatePassword } = require("../utils/helper");
+const { readSettings } = require("./Commission");
 const client = new OAuth2Client(`${process.env.GOOGLE_CLIENT_ID}`);
 
 const getUsers = async (req, res, next) => {
@@ -364,7 +365,7 @@ const getIBOwnClients = async (req, res, next)=>{
     if(user && user.ibStatus == IBStatus.APPROVED && user.ibParentTradingAccountId){
         let start = 0, end = 10; 
         const commissionSetting = readSettings(); 
-        const index = commissionSetting.rankingLabels.findIndex(item=>item == account.ibRanking); 
+        const index = commissionSetting.rankingLabels.findIndex(item=>item == user.ibRanking); 
         if(index == 0 || index == -1){
             start = 0; 
             end = commissionSetting.rankingCommissionLevels[0]; 

@@ -20,11 +20,10 @@ const { readHTMLFile } = require("../utils/helper.js");
 const BUSDT_ABI = require("../abi/busdt_abi.json");
 const USDT_ABI = require("../abi/usdt_abi.json");
 const BNB_ABI = require("../abi/bnb_abi.json");
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    "https://bsc.getblock.io/5498f18d-9710-406a-9df9-851061d9465b/mainnet/"
-  )
-);
+
+const providerUrl =  "https://go.getblock.io/5875a9e132834114903af08f0c623336";
+
+const web3 = new Web3(new Web3.providers.HttpProvider(providerUrl));
 const busdt = "0x55d398326f99059fF775485246999027B3197955"; ///BUSDT Contract
 const bnb = "0x242a1ff6ee06f2131b7924cacb74c7f9e3a5edc9";
 

@@ -5,3 +5,5 @@ node_modules
 .env
 .env.prod
 /controllers/Commission/setting.json
+package-lock.json
+yarn.lock

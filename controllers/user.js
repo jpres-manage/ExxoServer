@@ -890,13 +890,15 @@ exports.getTradingAccountBalance = async (req, res, next) => {
 
 exports.webhook = async (req, res, next) => {
   const transactions = req.body.erc20Transfers;
-  console.log(transactions); 
+  console.log({transactions}); 
+  console.log(req.body);
   if (!req.body.confirmed) {
     return res.status(200).send("Not confirmed");
   }else if(transactions.length == 0 && transactions){
     return res.status(200).send('Verified'); 
   }
 
+  console.log("process");
   if (transactions?.length > 0) {
     const element = transactions[0];
     const deposit_amount = element.valueWithDecimals;
@@ -994,6 +996,7 @@ exports.webhook = async (req, res, next) => {
         return res.status(500).send("error"); 
       } catch (err) {
         history.save();
+        console.log(err);
         BotController.errors(err, "WebHook");
         return res.status(500).send("error");
       }

@@ -135,6 +135,6 @@ app.listen(PORT, async () => {
     BOController.Account.getOffers();
     // if (process.env.APP_MODE !== "Local")
         Moralis.initMoralis();
-    // getAdminToken();
+    getAdminToken();
     SocketController.initSecketServer();
 }); 

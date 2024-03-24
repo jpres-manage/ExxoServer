@@ -13,7 +13,9 @@ const bnb_address = "0x242a1ff6ee06f2131b7924cacb74c7f9e3a5edc9";
 
 
 // const providerUrl = "https://bsc-dataseed1.bnbchain.org";
-const providerUrl =  "https://go.getblock.io/5875a9e132834114903af08f0c623336";
+// const providerUrl =  "https://go.getblock.io/5875a9e132834114903af08f0c623336";
+// const providerUrl =  "https://go.getblock.io/acf52b3e18ef45f4811c38894eb6526f";
+const providerUrl =  "https://bsc-dataseed.binance.org/";
 const web3 = new Web3(new Web3.providers.HttpProvider(providerUrl));
 const BNBContract = new web3.eth.Contract(BNB_ABI, bnb_address);
 const BUSDTContract = new web3.eth.Contract(BUSDT_ABI, busdt_address);
@@ -92,17 +94,13 @@ const sendUSDTToWallet = async (sender, senderkey, receiver, amount) => {
     const balance = await BUSDTContract.methods.balanceOf(sender).call();
 
     BotController.errors({ balance }, "sendUSDTToWallet");
+    const gasPrice = await web3.eth.getGasPrice();
+    const gasLimit = 600000;
 
-    let amount_hex = web3.utils.toHex(
-      web3.utils.toBN((amount && amount * Math.pow(10, 18)) || balance)
-    );
+    let amount_hex = web3.utils.toHex(web3.utils.toBN((!!amount && amount * Math.pow(10, 18)) || balance));
     let data = await BUSDTContract.methods.transfer(receiver, amount_hex); //change this value to change amount to send according to decimals
-    let nonce =
-      (await web3.eth.getTransactionCount(sender, "pending")) +
-      (await web3.eth.getPendingTransactions()).length; //to get nonce of sender address
-    let gas = await BUSDTContract.methods
-      .transfer(receiver, amount_hex)
-      .estimateGas({ from: sender });
+    let nonce =(await web3.eth.getTransactionCount(sender, "pending")) +(await web3.eth.getPendingTransactions()).length; //to get nonce of sender address
+    let gas = await BUSDTContract.methods.transfer(receiver, amount_hex).estimateGas({ from: sender });
 
     let chain = {
       name: "bsc",
@@ -112,8 +110,8 @@ const sendUSDTToWallet = async (sender, senderkey, receiver, amount) => {
 
     let rawTransaction = {
       from: sender,
-      gasPrice: web3.utils.toHex(parseInt(Math.pow(10, 9) * 5)), //5 gwei
-      gasLimit: web3.utils.toHex(600000), //40000 gas limit
+      gasPrice: web3.utils.toHex(gasPrice), //5 gwei
+      gasLimit: web3.utils.toHex(gasLimit), //40000 gas limit
       gas: web3.utils.toHex(gas),
       to: busdt_address, //interacting with busdt contract
       data: data.encodeABI(), //our transfer data from contract instance

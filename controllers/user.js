@@ -890,7 +890,7 @@ exports.getTradingAccountBalance = async (req, res, next) => {
 
 exports.webhook = async (req, res, next) => {
   const transactions = req.body.erc20Transfers;
-  console.log(transactions); 
+  console.log({transactions}); 
   console.log(req.body);
   if (!req.body.confirmed) {
     return res.status(200).send("Not confirmed");

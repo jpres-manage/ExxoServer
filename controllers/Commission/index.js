@@ -8,7 +8,7 @@ const BalanceController = require('../balance');
 const { min } = require('moment');
 const ManagerApi = require('../Manager');
 const SymbolController = require('../Symbol');
-const { commissionTypes, DepositMode, KYCStatus } = require('../constant');
+const { commissionTypes, DepositMode, KYCStatus, IBStatus } = require('../constant');
 const { userInfo } = require('os');
 const User = require('../../models/user');
 
@@ -190,17 +190,9 @@ const startCheckRanking = async (bAuto=true) =>{
     const setting = readSettings(); 
 
     let currentTime = new Date().getTime(); 
+    let prevTime = currentTime - setting.resetPeriod* 86400 * 1000; 
 
-    if(bAuto && currentTime - setting.rankingResetTime < setting.rankingResetPeriod * 24* 60 * 60 *1000 ){
-        return; 
-    }
-
-    //// update the reset time for ranking reset
-    const oldResetTime = setting.rankingResetTime; 
-    setting.rankingResetTime = currentTime; 
-    if(bAuto) writeSettings(currentTime); 
-
-    await checkQualifiedClient(oldResetTime, currentTime); 
+    await checkQualifiedClient(prevTime, currentTime); 
     await checkQualifiedIB(); 
     await checkIBRankings(setting); 
 }
@@ -208,9 +200,7 @@ const startCheckRanking = async (bAuto=true) =>{
 const checkQualifiedClient = async (start, end) =>{
     const clients = await User.find({}); 
     for(let client of clients){
-        console.log({client})
         let totalClosedVolume = await getTotalUserClosedVolume(client.email, start, end);
-        console.log({totalClosedVolume})
         if(totalClosedVolume >=1 ){
             client.isQClient = true; 
         }else{
@@ -243,7 +233,6 @@ const checkQualifiedIB = async (QC_limit) =>{
             const parentTradingAccountId = ibClient.ibParentTradingAccountId;
             const verification_status = KYCStatus.APPROVED;
             const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
-            console.log({ibClient, ibOwnClients});
             let countOfQClient = 0;
             for( let ibOwnClient of ibOwnClients){
                 if(ibOwnClient.isQClient){
@@ -251,9 +240,9 @@ const checkQualifiedIB = async (QC_limit) =>{
                 }
             }
             if(countOfQClient >=QC_limit){
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: true, ibRanking: "Q"}); 
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: true, ibRanking: 0}); 
             } else{
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: false, ibRanking: "IB"}); 
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: false, ibRanking: -1}); 
             }
         }
     }catch(e){
@@ -276,27 +265,56 @@ const checkIBRankings = async (setting)=>{
         let prevLevel = setting.rankingLabels[index-1]; 
         let curLevel = setting.rankingLabels[index]; 
         let minVolume = setting.rankingMinVolume[index]; 
-        let ownNumber = setting.rankingOwnNumbers[index]; 
-        await checkIBRankingLevel(prevLevel, curLevel, minVolume, ownNumber); 
+        let ownNumber = setting.rankingOwnNumbers[index];
+        
+        await checkIBRankingLevel(index-1, index, minVolume, ownNumber); 
     }
 }
-const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber)=>{
+
+const getLowRankingCounts = async (depth, ranking, parentTradingAccountId , IBMember) =>{
+    if(depth <= 0) return; 
+    const verification_status = KYCStatus.APPROVED;
+    const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
+    for( let ibOwnClient of ibOwnClients){
+        if( ibOwnClient.ibRanking === ranking){
+            IBMember.count ++; 
+        }
+        if(ibOwnClient.ibStatus === IBStatus.APPROVED){
+            await getLowRankingCounts(depth-1, ranking, ibOwnClient.ibParentTradingAccountId, IBMember); 
+        }
+    }
+}
+
+const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber )=>{  // rIndex: Ranking index in setting
+
+    const setting = readSettings(); 
     try{
         let ibClients = await Database.Account.getIBClients(); 
+        const currentTime  = (new Date()).getTime(); 
         for(let ibClient of ibClients){
+
+            // if raking is same or grater than checking ranking 
+            if(ibClient.ibRanking >= curLevel && currentTime < ibClient.ibRankingUpdated + setting.resetPeriod * 86400 * 1000)
+                continue; 
+
             const parentTradingAccountId = ibClient.ibParentTradingAccountId;
             const verification_status = KYCStatus.APPROVED;
             const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
-            let countOfQClient = 0;
             let totalClosedVolume = 0; 
+            let IBMember = {
+                count : 0
+            }
             for( let ibOwnClient of ibOwnClients){
                 if(ibOwnClient.ibRanking === prevLevel){
-                    countOfQClient ++; 
+                    IBMember.count ++; 
                 }
                 totalClosedVolume +=await getTotalUserClosedVolume(ibOwnClient.email);
+                if(ibOwnClient.ibStatus === IBStatus.APPROVED){
+                    await getLowRankingCounts( setting.rankingCommissionLevels[curLevel]-1  , curLevel, ibOwnClient.ibParentTradingAccountId, IBMember ); 
+                }
             }
-            if(countOfQClient >=ownNumber && totalClosedVolume>minVolume){
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: true, ibRanking: curLevel}); 
+            if(IBMember.count >= ownNumber && totalClosedVolume> minVolume){
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: true, ibRanking: curLevel, ibRankingUpdated: currentTime}); 
             } 
         }
     }catch(e){

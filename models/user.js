@@ -60,7 +60,10 @@ const User = mongoose.model(
     ibCommissionType:           String, 
     isQClient:                  { type: Boolean,  default: false},  // 
     isQIB:                      { type: Boolean, default :false},   // Qulified IB user
-    ibRanking:                  String                              // Ranking labeld by commission setting.json
+    ibRanking:                  Number,                               // Ranking labeld by commission setting.json, 
+    ibRankingUpdated:           Number, 
+    qClientUpdated:             Number
+
   })
 );
 

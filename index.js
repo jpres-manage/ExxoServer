@@ -48,6 +48,7 @@ const admin = require("./api/admin");
 const SymbolController = require("./controllers/Symbol");
 const { checkAdmin } = require("./middlewares");
 const SocketController = require("./controllers/Notification");
+const IBCommissionCotroller = require("./controllers/ibcommission.js");
 
 const app = express();
 const oneDay = 1000 * 60 * 60 * 24;
@@ -126,15 +127,22 @@ app.listen(PORT, async () => {
             BotController.errors(e, "ManagerApi.Register");
         })
     });
-    cron.schedule('0 */14 * * * *', () => {
-        BOController.Account.getAdminToken();
 
+    cron.schedule('0 0 0 *  * *', () => {
+        CommissionController.startCheckRanking(); 
     });
 
+    cron.schedule('0 */14 * * * *', () => {
+        BOController.Account.getAdminToken();
+    });
     await BOController.Account.getAdminToken();
-    BOController.Account.getOffers();
-    // if (process.env.APP_MODE !== "Local")
-        Moralis.initMoralis();
+    
     getAdminToken();
+
+    BOController.Account.getOffers();
+    Moralis.initMoralis();
+
     SocketController.initSecketServer();
+
+
 }); 

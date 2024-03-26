@@ -57,12 +57,11 @@ const validateWithdraw = async (req, res, next)=>{
     if(tradingAccounts){
         if(tradingAccounts.findIndex((tradingAccount)=>tradingAccount.tradingAccountId === data.tradingAccountId) ==-1)
             return res.status(403).send("Bad request"); 
-
         let tradingAccount  =await Database.TradingAccount.getTradingAccountByTradintAccountId(data.tradingAccountId);
         if(tradingAccount.offer.name === offerNames.EXXO_IB){
             const commissoinSetting = readSettings();
             if(!commissoinSetting.rankingLabels.includes(userInfo.ibRanking)){
-                return res.status(403).send("Bad request"); 
+                return res.status(403).send("Should be at least Qualified IB."); 
             }
             if(tradingAccount.balance <50) 
                 return res.status(403).send("Not enough to withdraw.");
@@ -70,7 +69,6 @@ const validateWithdraw = async (req, res, next)=>{
         next(); 
     }
 }
-
 
 const UserValidation = {
     kycApproved, ibApproved, socialApproved, validateWithdraw

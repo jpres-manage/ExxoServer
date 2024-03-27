@@ -323,6 +323,7 @@ const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber) =>
                 await Database.Account.updateAccountProfile(ibClient.accountUuid, { isQClient: true, ibRanking: curLevel, ibRankingUpdated: currentTime });
             }
         } catch (e) {
+            console.log(e);
             return;
         }
     }

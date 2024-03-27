@@ -241,10 +241,10 @@ const checkQualifiedIB = async (QC_limit) =>{
             }
             if(countOfQClient >=QC_limit){
                 console.log(ibClient.accountUuid, "QIB");
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: true, ibRanking: 0}); 
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQIB: true, ibRanking: 0}); 
             } else{
                 console.log(ibClient.accountUuid, "IB "+ QC_limit);
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: false, ibRanking: -1}); 
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQIB: false, ibRanking: -1}); 
             }
         }
     }catch(e){

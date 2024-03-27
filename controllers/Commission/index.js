@@ -193,7 +193,7 @@ const startCheckRanking = async (bAuto=true) =>{
     let prevTime = currentTime - setting.resetPeriod* 86400 * 1000; 
 
     await checkQualifiedClient(prevTime, currentTime); 
-    await checkQualifiedIB(); 
+    await checkQualifiedIB(setting.rankingOwnNumbers[0]); 
     await checkIBRankings(setting); 
 }
 
@@ -240,8 +240,10 @@ const checkQualifiedIB = async (QC_limit) =>{
                 }
             }
             if(countOfQClient >=QC_limit){
+                console.log(ibClient.accountUuid, "QIB");
                 await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: true, ibRanking: 0}); 
             } else{
+                console.log(ibClient.accountUuid, "IB "+ QC_limit);
                 await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: false, ibRanking: -1}); 
             }
         }

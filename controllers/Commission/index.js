@@ -241,10 +241,10 @@ const checkQualifiedIB = async (QC_limit) =>{
             }
             if(countOfQClient >=QC_limit){
                 console.log(ibClient.accountUuid, "QIB");
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQIB: true, ibRanking: 0}); 
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQIB: true, ibRanking: 1}); 
             } else{
                 console.log(ibClient.accountUuid, "IB "+ QC_limit);
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQIB: false, ibRanking: -1}); 
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQIB: false, ibRanking: 0}); 
             }
         }
     }catch(e){
@@ -262,7 +262,7 @@ const checkQualifiedIB = async (QC_limit) =>{
 const checkIBRankings = async (setting)=>{
 
     const rankingCount = setting.rankingLabels.length; 
-    for(let index = 1; index<rankingCount; index++){
+    for(let index = 2; index<rankingCount; index++){
 
         let prevLevel = setting.rankingLabels[index-1]; 
         let curLevel = setting.rankingLabels[index]; 
@@ -340,7 +340,7 @@ const updateIBRanking =async (req, res)=>{
 const getRankingTypes =async (req, res)=>{
     try{
         let commissionSettings = readSettings(); 
-        let rankingLabels = commissionSettings.rankingLabels1; 
+        let rankingLabels = commissionSettings.rankingLabels; 
         return res.status(200).send({
             success: true, 
             body:rankingLabels

@@ -210,7 +210,7 @@ const checkQualifiedClient = async (start, end) => {
     }
 }
 
-const getTotalUserClosedVolume = async (email, start = 0, end = new Date.getTime()) => {
+const getTotalUserClosedVolume = async (email, start = 0, end = (new Date()).getTime()) => {
     let tradingAccounts = await Database.TradingAccount.getTradingAccountByEmail(email);
     if (tradingAccounts) {
         let clientIds = tradingAccounts.map(tradingAccount => {

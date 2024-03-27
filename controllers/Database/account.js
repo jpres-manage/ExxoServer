@@ -349,7 +349,7 @@ const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, s
         } 
         summary.totalQClients += totalQClients; 
         summary.totalIbs += totalIbs; 
-        summary.totalVolume += totalVolume; 
+        summary.totalVolume += totalVolume ; 
     
         return ibUserTreeData; 
     }catch(e){

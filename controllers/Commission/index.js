@@ -318,6 +318,7 @@ const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber )=>
                     await getLowRankingCounts( setting.rankingCommissionLevels[curLevel]-1  , curLevel, ibOwnClient.ibParentTradingAccountId, IBMember ); 
                 }
             }
+            console.log({IBMember}, "checked ranking " + curLevel);
             if(IBMember.count >= ownNumber && totalClosedVolume> minVolume){
                 await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: true, ibRanking: curLevel, ibRankingUpdated: currentTime}); 
             } 

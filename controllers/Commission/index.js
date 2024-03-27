@@ -275,8 +275,11 @@ const checkIBRankings = async (setting)=>{
 
 const getLowRankingCounts = async (depth, ranking, parentTradingAccountId , IBMember) =>{
     if(depth <= 0) return; 
+
+    console.log({IBMember, depth});
     const verification_status = KYCStatus.APPROVED;
-    const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
+    const ibStatus = IBStatus.APPROVED; 
+    const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status, ibStatus });
     for( let ibOwnClient of ibOwnClients){
         if( ibOwnClient.ibRanking === ranking){
             IBMember.count ++; 

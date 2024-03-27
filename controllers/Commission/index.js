@@ -22,15 +22,15 @@ const getLastAccessTime = () => {
     return settings.accessTime;
 }
 
-const readSettings = () =>{
+const readSettings = () => {
     const absPath = path.resolve(__dirname + '/setting.json');
     let settings = FileController.readJsonFile(absPath);
-    return settings; 
+    return settings;
 }
 
-const writeSettings = (settings)=>{
+const writeSettings = (settings) => {
     const absPath = path.resolve(__dirname + '/setting.json');
-    FileController.writeJsonFile(absPath, {...settings}); 
+    FileController.writeJsonFile(absPath, { ...settings });
 }
 
 const updateLastAccessTime = (time) => {
@@ -62,7 +62,7 @@ const getCommissionLevel = async (tradingAccountId) => {
 
 const checkClosedPosition = async () => {
     try {
-        commissionSetting.setting = readSettings(); 
+        commissionSetting.setting = readSettings();
 
         const _tradingAccounts = await Database.TradingAccount.getAllTradingAccounts();
         const rangeEnd = (new Date()).getTime();
@@ -94,11 +94,11 @@ const handleIBCommission = async (ibDepth, position, userInfo) => {
         if (ibDepth > 0) {
             console.log(ibDepth, "ibDepth");
 
-            const ibRanking = userInfo.ibRanking; 
-            let index = commissionSetting.setting.rankingLabels.findIndex(item=>item === ibRanking); 
-            if(index == -1 ) index = 0; 
-            if(commissionSetting.setting.rankingCommissionLevels[index]<ibDepth){
-                return; 
+            const ibRanking = userInfo.ibRanking;
+            let index = commissionSetting.setting.rankingLabels.findIndex(item => item === ibRanking);
+            if (index == -1) index = 0;
+            if (commissionSetting.setting.rankingCommissionLevels[index] < ibDepth) {
+                return;
             }
             const ibTradingAccountId = userInfo.ibParentTradingAccountId;
             const ibCommissionAmount = await getIBCommissionAmout(ibDepth, position, userInfo);
@@ -136,16 +136,16 @@ const getIBCommissionAmout = async (ibDepth, position, userInfo) => {
         if (levels.length) {
             _comUnit = Number(levels[Math.min(ibDepth, levels.length) - 1]);
         }
-        BotController.errors(_comUnit, "levels"); 
+        BotController.errors(_comUnit, "levels");
 
-        console.log(levels, _comUnit, ibDepth, position, userInfo, symbolInfo); 
+        console.log(levels, _comUnit, ibDepth, position, userInfo, symbolInfo);
 
         if (userInfo.ibCommissionType === commissionTypes.COM_100K) {
             const _tradingAmount = Math.abs(Number(closedVolume)) * Number(contractSize) * (Number(closedAvgOpenPrice) + Number(closedAvgOpenPrice)) / (2 * DecMass * DecMass)
-            return _tradingAmount * _comUnit *10/ 1000000
+            return _tradingAmount * _comUnit * 10 / 1000000
         } else if (userInfo.ibCommissionType === commissionTypes.COM_LOT) {
             console.log(Math.abs((closedVolume / DecMass) / lotSize), "real voloume");
-            return Math.abs((closedVolume / DecMass) / lotSize) * _comUnit*10/10;
+            return Math.abs((closedVolume / DecMass) / lotSize) * _comUnit * 10 / 10;
         } else if (userInfo.ibCommissionType === commissionTypes.COM_MEDIUM) {
 
         }
@@ -178,78 +178,78 @@ const _checkClosedPosition = async (req, res, next) => {
     }
 }
 
-const evalRankingFromAdmin = async(req, res)=>{
+const evalRankingFromAdmin = async (req, res) => {
 
     await startCheckRanking(false);    // by admin
-    return res.status(200).send("ok"); 
- 
+    return res.status(200).send("ok");
+
 }
 
-const startCheckRanking = async (bAuto=true) =>{
+const startCheckRanking = async (bAuto = true) => {
 
-    const setting = readSettings(); 
+    const setting = readSettings();
 
-    let currentTime = new Date().getTime(); 
-    let prevTime = currentTime - setting.resetPeriod* 86400 * 1000; 
+    let currentTime = new Date().getTime();
+    let prevTime = currentTime - setting.resetPeriod * 86400 * 1000;
 
-    await checkQualifiedClient(prevTime, currentTime); 
-    await checkQualifiedIB(setting.rankingOwnNumbers[0]); 
-    await checkIBRankings(setting); 
+    await checkQualifiedClient(prevTime, currentTime);
+    await checkQualifiedIB(setting.rankingOwnNumbers[0]);
+    await checkIBRankings(setting);
 }
 
-const checkQualifiedClient = async (start, end) =>{
-    const clients = await User.find({}); 
-    for(let client of clients){
+const checkQualifiedClient = async (start, end) => {
+    const clients = await User.find({});
+    for (let client of clients) {
         let totalClosedVolume = await getTotalUserClosedVolume(client.email, start, end);
-        if(totalClosedVolume >=1 ){
-            client.isQClient = true; 
-        }else{
-            client.isQClient = false; 
+        if (totalClosedVolume >= 1) {
+            client.isQClient = true;
+        } else {
+            client.isQClient = false;
         }
-        await client.save(); 
+        await client.save();
     }
 }
 
-const getTotalUserClosedVolume = async(email, start=0, end=new Date.getTime())=>{
-    let tradingAccounts =await Database.TradingAccount.getTradingAccountByEmail(email); 
-    if(tradingAccounts){
-        let clientIds = tradingAccounts.map(tradingAccount=>{
-            if(!tradingAccount.isDemo){
+const getTotalUserClosedVolume = async (email, start = 0, end = new Date.getTime()) => {
+    let tradingAccounts = await Database.TradingAccount.getTradingAccountByEmail(email);
+    if (tradingAccounts) {
+        let clientIds = tradingAccounts.map(tradingAccount => {
+            if (!tradingAccount.isDemo) {
                 return tradingAccount.tradingAccountId
             }
-        }).filter(v=>!!v); 
-    
-        let totalClosedVolume =await Database.Position.getTotalVolume(start, end, clientIds); 
-        return totalClosedVolume; 
+        }).filter(v => !!v);
+
+        let totalClosedVolume = await Database.Position.getTotalVolume(start, end, clientIds);
+        return totalClosedVolume;
     }
-    return 0; 
+    return 0;
 }
 
 // QC_limit from Setting count of qualified clients for qualified ib client
-const checkQualifiedIB = async (QC_limit) =>{
-    try{
-        let ibClients = await Database.Account.getIBClients(); 
-        for(let ibClient of ibClients){
+const checkQualifiedIB = async (QC_limit) => {
+    try {
+        let ibClients = await Database.Account.getIBClients();
+        for (let ibClient of ibClients) {
             const parentTradingAccountId = ibClient.ibParentTradingAccountId;
             const verification_status = KYCStatus.APPROVED;
             const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
             let countOfQClient = 0;
-            for( let ibOwnClient of ibOwnClients){
-                if(ibOwnClient.isQClient){
-                    countOfQClient ++; 
+            for (let ibOwnClient of ibOwnClients) {
+                if (ibOwnClient.isQClient) {
+                    countOfQClient++;
                 }
             }
-            if(countOfQClient >=QC_limit){
+            if (countOfQClient >= QC_limit) {
                 console.log(ibClient.accountUuid, "QIB");
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQIB: true, ibRanking: 1}); 
-            } else{
-                console.log(ibClient.accountUuid, "IB "+ QC_limit);
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQIB: false, ibRanking: 0}); 
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, { isQIB: true, ibRanking: 1 });
+            } else {
+                console.log(ibClient.accountUuid, "IB " + QC_limit);
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, { isQIB: false, ibRanking: 0 });
             }
         }
-    }catch(e){
+    } catch (e) {
         console.log(e);
-        return; 
+        return;
     }
 }
 
@@ -259,104 +259,104 @@ const checkQualifiedIB = async (QC_limit) =>{
 // "rankingMinVolume":[0, 100, 300, 600, 1000], 
 // "rankingOwnNumbers":[3, 3, 3, 3, 3], 
 // "resetPeriod":90
-const checkIBRankings = async (setting)=>{
+const checkIBRankings = async (setting) => {
 
-    const rankingCount = setting.rankingLabels.length; 
-    for(let index = 2; index<rankingCount; index++){
+    const rankingCount = setting.rankingLabels.length;
+    for (let index = 2; index < rankingCount; index++) {
 
-        let prevLevel = setting.rankingLabels[index-1]; 
-        let curLevel = setting.rankingLabels[index]; 
-        let minVolume = setting.rankingMinVolume[index]; 
+        let prevLevel = setting.rankingLabels[index - 1];
+        let curLevel = setting.rankingLabels[index];
+        let minVolume = setting.rankingMinVolume[index];
         let ownNumber = setting.rankingOwnNumbers[index];
-        
-        await checkIBRankingLevel(index-1, index, minVolume, ownNumber); 
+
+        await checkIBRankingLevel(index - 1, index, minVolume, ownNumber);
     }
 }
 
-const getLowRankingCounts = async (depth, ranking, parentTradingAccountId , IBMember) =>{
-    if(depth <= 0) return; 
+const getLowRankingCounts = async (depth, ranking, parentTradingAccountId, IBMember) => {
+    if (depth <= 0) return;
 
-    console.log({IBMember, depth});
+    console.log({ IBMember, depth });
     const verification_status = KYCStatus.APPROVED;
-    const ibStatus = IBStatus.APPROVED; 
+    const ibStatus = IBStatus.APPROVED;
     const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status, ibStatus });
-    for( let ibOwnClient of ibOwnClients){
-        if( ibOwnClient.ibRanking === ranking){
-            IBMember.count ++; 
+    for (let ibOwnClient of ibOwnClients) {
+        if (ibOwnClient.ibRanking === ranking) {
+            IBMember.count++;
         }
-        if(ibOwnClient.ibStatus === IBStatus.APPROVED){
-            await getLowRankingCounts(depth-1, ranking, ibOwnClient.ibParentTradingAccountId, IBMember); 
+        if (ibOwnClient.ibStatus === IBStatus.APPROVED) {
+            await getLowRankingCounts(depth - 1, ranking, ibOwnClient.ibParentTradingAccountId, IBMember);
         }
     }
 }
 
-const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber )=>{  // rIndex: Ranking index in setting
+const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber) => {  // rIndex: Ranking index in setting
 
-    const setting = readSettings(); 
-    try{
-        let ibClients = await Database.Account.getIBClients(); 
-        const currentTime  = (new Date()).getTime(); 
-        for(let ibClient of ibClients){
+    const setting = readSettings();
+    let ibClients = await Database.Account.getIBClients();
+    const currentTime = (new Date()).getTime();
+    for (let ibClient of ibClients) {
+        try {
 
             // if raking is same or grater than checking ranking 
-            if(ibClient.ibRanking >= curLevel && currentTime < ibClient.ibRankingUpdated + setting.resetPeriod * 86400 * 1000)
-                continue; 
+            if (ibClient.ibRanking >= curLevel && currentTime < ibClient.ibRankingUpdated + setting.resetPeriod * 86400 * 1000)
+                continue;
 
             const parentTradingAccountId = ibClient.ibParentTradingAccountId;
             const verification_status = KYCStatus.APPROVED;
             const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
-            let totalClosedVolume = 0; 
+            let totalClosedVolume = 0;
             let IBMember = {
-                count : 0
+                count: 0
             }
-            for( let ibOwnClient of ibOwnClients){
-                if(ibOwnClient.ibRanking === prevLevel){
-                    IBMember.count ++; 
+            for (let ibOwnClient of ibOwnClients) {
+                if (ibOwnClient.ibRanking === prevLevel) {
+                    IBMember.count++;
                 }
-                totalClosedVolume +=await getTotalUserClosedVolume(ibOwnClient.email);
-                if(ibOwnClient.ibStatus === IBStatus.APPROVED){
-                    await getLowRankingCounts( setting.rankingCommissionLevels[curLevel]-1  , curLevel, ibOwnClient.ibParentTradingAccountId, IBMember ); 
+                totalClosedVolume += await getTotalUserClosedVolume(ibOwnClient.email);
+                if (ibOwnClient.ibStatus === IBStatus.APPROVED) {
+                    await getLowRankingCounts(setting.rankingCommissionLevels[curLevel] - 1, curLevel, ibOwnClient.ibParentTradingAccountId, IBMember);
                 }
             }
-            console.log({IBMember}, "checked ranking " + curLevel);
-            if(IBMember.count >= ownNumber && totalClosedVolume> minVolume){
-                await Database.Account.updateAccountProfile(ibClient.accountUuid, {isQClient: true, ibRanking: curLevel, ibRankingUpdated: currentTime}); 
-            } 
+            console.log({ IBMember }, "checked ranking " + curLevel);
+            if (IBMember.count >= ownNumber && totalClosedVolume > minVolume) {
+                await Database.Account.updateAccountProfile(ibClient.accountUuid, { isQClient: true, ibRanking: curLevel, ibRankingUpdated: currentTime });
+            }
+        } catch (e) {
+            return;
         }
-    }catch(e){
-        return; 
     }
 }
 
-const updateIBRanking =async (req, res)=>{
-    const {accountUuid, ibRanking}  = req.body; 
-    try{
-        const result = await Database.Account.updateAccountProfile(accountUuid, {ibRanking});
+const updateIBRanking = async (req, res) => {
+    const { accountUuid, ibRanking } = req.body;
+    try {
+        const result = await Database.Account.updateAccountProfile(accountUuid, { ibRanking });
         return res.status(200).send({
-            success: true, 
+            success: true,
             body: result
         });
-    }catch(e){
+    } catch (e) {
         return res.status(500).send("failed");
     }
 }
 
-const getRankingTypes =async (req, res)=>{
-    try{
-        let commissionSettings = readSettings(); 
-        let rankingLabels = commissionSettings.rankingLabels; 
+const getRankingTypes = async (req, res) => {
+    try {
+        let commissionSettings = readSettings();
+        let rankingLabels = commissionSettings.rankingLabels;
         return res.status(200).send({
-            success: true, 
-            body:rankingLabels
+            success: true,
+            body: rankingLabels
         })
-    }catch(e){
+    } catch (e) {
         return res.status(200).send({
-            success: false, 
+            success: false,
         })
     }
 }
 const CommissionController = {
-    startCommissionMonitor, checkClosedPosition, _checkClosedPosition,  startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking, getRankingTypes
+    startCommissionMonitor, checkClosedPosition, _checkClosedPosition, startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking, getRankingTypes
 }
 
 module.exports = CommissionController; 

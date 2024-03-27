@@ -330,8 +330,11 @@ const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber )=>
 const updateIBRanking =async (req, res)=>{
     const {accountUuid, ibRanking}  = req.body; 
     try{
-        await Database.Account.updateAccountProfile(accountUuid, {ibRanking});
-        return res.status(200).send("ok");
+        const result = await Database.Account.updateAccountProfile(accountUuid, {ibRanking});
+        return res.status(200).send({
+            success: true, 
+            body: result
+        });
     }catch(e){
         return res.status(500).send("failed");
     }

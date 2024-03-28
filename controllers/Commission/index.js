@@ -356,8 +356,16 @@ const getRankingTypes = async (req, res) => {
         })
     }
 }
+
+const getIBRankingName = (ibRanking)=>{
+    const setting  = readSettings(); 
+    let rankingName = setting.rankingLabels[ibRanking]; 
+    if(ibRanking>0)  rankingName = "IB_" + rankingName; 
+    console.log({rankingName})
+    return rankingName; 
+}
 const CommissionController = {
-    startCommissionMonitor, checkClosedPosition, _checkClosedPosition, startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking, getRankingTypes
+    startCommissionMonitor, checkClosedPosition, _checkClosedPosition, startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking, getRankingTypes, getIBRankingName
 }
 
 module.exports = CommissionController; 

@@ -16,6 +16,7 @@ const BotController = require("./Bot");
 const EmailController = require("./Email");
 const speakeasy = require('speakeasy');
 const { KYCStatus } = require("./constant");
+const CommissionController = require("./Commission/index.js");
 
 /*
     Here we are configuring our SMTP Server details.
@@ -231,6 +232,7 @@ exports.signin = async (req, res) => {
           body: {
             ...user._doc,
             accessToken: token,
+            ibRanking: CommissionController.getIBRankingName(user.ibRanking)
           }
         });
     }

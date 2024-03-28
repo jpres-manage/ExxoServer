@@ -3,6 +3,7 @@ const { authJwt, verifySignUp, checkAdmin, checkAdminWithout2FA, checkSuperAdmin
 const controller = require("../controllers/auth");
 const UserController = require("../controllers/customer");
 const Database = require("../controllers/Database");
+const CommissionController = require("../controllers/Commission");
 
 router.get("/admins",[checkSuperAdmin] ,controller.getAdmins);
 router.post("/admin",  [verifySignUp.checkDuplicateAdminNameOrEmail],  controller.updateAdmin);
@@ -33,7 +34,8 @@ router.post("/signinWithToken",[authJwt.verifyToken], async (req, res, next)=>{
         body: {
          ...user._doc,
          password: undefined, 
-         oneTimeToken: undefined
+         oneTimeToken: undefined, 
+         ibRanking: CommissionController.getIBRankingName(user.ibRanking)
         }
     });
 });

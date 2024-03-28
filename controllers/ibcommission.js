@@ -55,7 +55,7 @@ const getIBOwnClientsTree = async (req, res, next) => {
         let start = 0, end = 10; 
         const commissionSetting = readSettings(); 
         const index = account.ibRanking;
-        if(index == 0 || index == -1){
+        if(index == 0 || index == 1){
             start = 0; 
             end = commissionSetting.rankingCommissionLevels[0]; 
         }else {

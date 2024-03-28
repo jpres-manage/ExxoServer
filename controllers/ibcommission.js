@@ -67,7 +67,7 @@ const getIBOwnClientsTree = async (req, res, next) => {
         let summary = {
             totalQClients:0, 
             totalIbs:0, 
-            totalVolume:0
+            totalVolume: 0
         }
         const _ibClients = await Database.Account.createIBClientTree(parentTradingAccountId, 0, start, end, summary);
         return res.status(200).send({

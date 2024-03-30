@@ -44,6 +44,7 @@ router.get("/ib-client-detail", [authJwt.verifyToken], IBClientDetail);
 router.get("/ib-clients", [authJwt.verifyToken], UserController.getIBOwnClients);
 router.get("/ib-commissions", [authJwt.verifyToken], IBCommissionCotroller.getIBCommissionsForUser);
 
+
 router.get("/social-account-info", [authJwt.verifyToken], getSocialTradingAccountInfo);
 router.get("/social-account-info-with-id", [authJwt.verifyToken], getSocialTradingAccountInfoWithId);
 router.put("/social-account-info", [authJwt.verifyToken], registerSocialTradingFeed);

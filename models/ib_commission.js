@@ -10,7 +10,8 @@ const IBCommission = mongoose.model(
     commissionAmount: Number, 
     comment: String, 
     positionID: String, 
-    ibTradingAccountId: String
+    ibTradingAccountId: String, 
+    email: String
   })
 );
 

@@ -2,6 +2,7 @@ const Database = require("./Database");
 const { IBStatus, KYCStatus, commissionTypeNames } = require("./constant");
 const BotController = require("./Bot");
 const { readSettings } = require("./Commission");
+const IBCommission = require("../models/ib_commission");
 
 const getIBClients = async (req, res, next) => {
 
@@ -371,19 +372,19 @@ const getIBCommissionsForUser =async (req, res, next ) =>{
     try{
         const {email, accountUuid}= req; 
         const _user = await Database.Account.getAccountDetailByEmail(email); 
-        const ibCommissions =await Database.Deposit.getData({
-            status: "OPERATION_SUCCESS",
-            depositMode: "IB Commission",
+        const ibCommissions =await IBCommission.find({
             email
         }); 
+
         return res.status(200).send({
             success: true, 
-            body: ibCommissions
+            body: ibCommissions, 
         })
     }catch(e){
         BotController.errors(JSON.stringify(e), "getIBCommissions")
     }
 }
+
 const IBCommissionCotroller = {
     getIBClients,
     getIBOwnClients,

@@ -114,7 +114,8 @@ const handleIBCommission = async (ibDepth, position, userInfo) => {
                 commissionAmount: ibCommissionAmount, 
                 positionID: position.uid,
                 ibTradingAccountId, 
-                comment
+                comment, 
+                email: userInfo.email,
             })
             await ibCommissionLog.save(); 
                 

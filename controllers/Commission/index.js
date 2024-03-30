@@ -11,6 +11,7 @@ const SymbolController = require('../Symbol');
 const { commissionTypes, DepositMode, KYCStatus, IBStatus } = require('../constant');
 const { userInfo } = require('os');
 const User = require('../../models/user');
+const IBCommission = require('../../models/ib_commission');
 
 const commissionSetting = {
     setting: {}
@@ -101,10 +102,22 @@ const handleIBCommission = async (ibDepth, position, userInfo) => {
                 return;
             }
             const ibTradingAccountId = userInfo.ibParentTradingAccountId;
-            const ibCommissionAmount = await getIBCommissionAmout(ibDepth, position, userInfo);
+            const {ibCommissionAmount, closedVolume} = await getIBCommissionAmout(ibDepth, position, userInfo);
             const comment = `IB Commission from ${position.closedClOrdId} : ${"#".repeat(ibDepth - 1)}`;
             const result = await BalanceController._depositToTradingAccountId(ibCommissionAmount, ibCommissionAmount, DepositMode.IB_COMMISSION, ibTradingAccountId, "USD",
                 comment, "System", userInfo.email, userInfo.accountUuid, 0, position.clientId);
+            
+            let ibCommissionLog = new IBCommission({
+                from: position.clientId, 
+                closedVolume, 
+                createdAt: new Date().getTime(), 
+                commissionAmount: ibCommissionAmount, 
+                positionID: position.uid,
+                ibTradingAccountId, 
+                comment
+            })
+            await ibCommissionLog.save(); 
+                
         }
     } catch (e) {
         BotController.errors(e, "handleIBCommission");
@@ -140,12 +153,14 @@ const getIBCommissionAmout = async (ibDepth, position, userInfo) => {
 
         console.log(levels, _comUnit, ibDepth, position, userInfo, symbolInfo);
 
+        const volumeLot =  Math.abs((closedVolume / DecMass) / lotSize); 
+
         if (userInfo.ibCommissionType === commissionTypes.COM_100K) {
             const _tradingAmount = Math.abs(Number(closedVolume)) * Number(contractSize) * (Number(closedAvgOpenPrice) + Number(closedAvgOpenPrice)) / (2 * DecMass * DecMass)
-            return _tradingAmount * _comUnit * 10 / 1000000
+            return {ibCommissionAmount:_tradingAmount * _comUnit * 10 / 1000000, closedVolume:volumeLot }
         } else if (userInfo.ibCommissionType === commissionTypes.COM_LOT) {
             console.log(Math.abs((closedVolume / DecMass) / lotSize), "real voloume");
-            return Math.abs((closedVolume / DecMass) / lotSize) * _comUnit * 10 / 10;
+            return{ ibCommissionAmount: volumeLot * _comUnit * 10 / 10, closedVolume: volumeLot};
         } else if (userInfo.ibCommissionType === commissionTypes.COM_MEDIUM) {
 
         }

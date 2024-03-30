@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const Symbol= mongoose.model(
   "Symbol",
   new mongoose.Schema({
-   
     symbolId: String,
     symbol: String,
     baseCurrency: String,

@@ -60,7 +60,7 @@ const validateWithdraw = async (req, res, next)=>{
         let tradingAccount  =await Database.TradingAccount.getTradingAccountByTradintAccountId(data.tradingAccountId);
         if(tradingAccount.offer.name === offerNames.EXXO_IB){
             const commissoinSetting = readSettings();
-            if(!commissoinSetting.rankingLabels.includes(userInfo.ibRanking)){
+            if(userInfo.ibRanking <1){
                 return res.status(403).send("Should be at least Qualified IB."); 
             }
             if(tradingAccount.balance <50) 

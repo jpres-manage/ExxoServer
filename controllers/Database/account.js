@@ -346,7 +346,9 @@ const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, s
     
             const clientIds = (await  getTradingAccountsByUserId(item.accountUuid)).filter(account=>!account.offer.demo).map(item=>item.tradingAccountId); 
             totalVolume += await getTotalVolume(0, new Date().getTime(), [...clientIds]);
+
         } 
+        console.log({totalVolume});
         summary.totalQClients += totalQClients; 
         summary.totalIbs += totalIbs; 
         summary.totalVolume += Number(totalVolume) ; 

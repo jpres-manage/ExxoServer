@@ -407,6 +407,7 @@ const getTotalVolume = async (start, end, clientIds) => {
                 },
             },
         ]);
+        console.log(clientIds, result[0].totalClosedVolume);
         if (result.length > 0) {
             return result[0].totalClosedVolume;
         }

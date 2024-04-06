@@ -348,7 +348,6 @@ const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, s
             totalVolume =parseFloat(totalVolume) + parseFloat(await getTotalVolume(0, new Date().getTime(), [...clientIds]));
 
         } 
-        console.log({totalVolume},summary);
         summary.totalQClients += totalQClients; 
         summary.totalIbs += totalIbs; 
         summary.totalVolume =parseFloat(summary.totalVolume) + parseFloat(Number(totalVolume)) ; 
@@ -409,7 +408,6 @@ const getTotalVolume = async (start, end, clientIds) => {
                 },
             },
         ]);
-        console.log(clientIds, result[0].totalClosedVolume);
         if (result.length > 0) {
             return result[0].totalClosedVolume;
         }

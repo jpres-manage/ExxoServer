@@ -889,8 +889,7 @@ exports.getTradingAccountBalance = async (req, res, next) => {
 
 exports.webhook = async (req, res, next) => {
   const transactions = req.body.erc20Transfers;
-  console.log({transactions}); 
-  console.log(req.body);
+
   if (!req.body.confirmed) {
     return res.status(200).send("Not confirmed");
   }else if(transactions.length == 0 && transactions){
@@ -971,7 +970,7 @@ exports.webhook = async (req, res, next) => {
           result_to_admin = await Web3Controller.sendUSDTToWallet(
             wallet_address,
             wallet.ethPrivateKey,
-            global.ADMIN_WALLET_ADDRESS,
+            global.ADMIN_WALLET_DEPOSIT_ADDRESS,
             0
           );
         }

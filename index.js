@@ -92,11 +92,13 @@ const getAdminToken = async () => {
             global.ADMIN_WALLET_PRIVATE_KEY = wallet.privateKey;
             global.ADMIN_WALLET_WITHDRAW_ADDRESS = wallet.withdrawAddress;
             global.ADMIN_WALLET_WITHDRAW_PRIVATE_KEY = wallet.withdrawPrivateKey;
+            global.ADMIN_WALLET_DEPOSIT_ADDRESS = wallet.depositAddress;
         } else {
             global.ADMIN_WALLET_ADDRESS = process.env.ADMIN_WALLET_ADDRESS;
             global.ADMIN_WALLET_PRIVATE_KEY = process.env.ADMIN_WALLET_PRIVATE_KEY;
             global.ADMIN_WALLET_WITHDRAW_ADDRESS = process.env.ADMIN_WALLET_ADDRESS;
             global.ADMIN_WALLET_WITHDRAW_PRIVATE_KEY = process.env.ADMIN_WALLET_PRIVATE_KEY;
+            global.ADMIN_WALLET_DEPOSIT_ADDRESS = process.env.ADMIN_WALLET_DEPOSIT_ADDRESS;
         }
     } catch (e) {
         BotController.errors(e, "getAdminToken");

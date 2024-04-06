@@ -141,18 +141,22 @@ exports.updateSetting = async (req, res, next) => {
         privateKey: admin_wallet.privateKey,
         withdrawAddress: admin_wallet.withdrawAddress,
         withdrawPrivateKey: admin_wallet.withdrawPrivateKey,
+        depositAddress: admin_wallet.depositAddress
       });
     } else {
       adminWallet.address = admin_wallet.address;
       adminWallet.privateKey = admin_wallet.privateKey;
       adminWallet.withdrawAddress = admin_wallet.withdrawAddress;
       adminWallet.withdrawPrivateKey = admin_wallet.withdrawPrivateKey;
+      adminWallet.depositAddress= admin_wallet.depositAddress
+
     }
     await adminWallet.save();
     global.ADMIN_WALLET_ADDRESS = admin_wallet.address;
     global.ADMIN_WALLET_PRIVATE_KEY = admin_wallet.privateKey;
     global.ADMIN_WALLET_WITHDRAW_ADDRESS = admin_wallet.withdrawAddress;
     global.ADMIN_WALLET_WITHDRAW_PRIVATE_KEY = admin_wallet.withdrawPrivateKey;
+    global.ADMIN_WALLET_DEPOSIT_PRIVATE_KEY = admin_wallet.depositAddress;
 
     let payment = await PaymentMethod.findOne({ name: "usdt" });
     if (!payment) {

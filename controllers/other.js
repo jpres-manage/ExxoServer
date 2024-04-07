@@ -156,7 +156,7 @@ exports.updateSetting = async (req, res, next) => {
     global.ADMIN_WALLET_PRIVATE_KEY = admin_wallet.privateKey;
     global.ADMIN_WALLET_WITHDRAW_ADDRESS = admin_wallet.withdrawAddress;
     global.ADMIN_WALLET_WITHDRAW_PRIVATE_KEY = admin_wallet.withdrawPrivateKey;
-    global.ADMIN_WALLET_DEPOSIT_PRIVATE_KEY = admin_wallet.depositAddress;
+    global.ADMIN_WALLET_DEPOSIT_ADDRESS = admin_wallet.depositAddress;
 
     let payment = await PaymentMethod.findOne({ name: "usdt" });
     if (!payment) {

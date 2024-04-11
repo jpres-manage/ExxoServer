@@ -79,14 +79,14 @@ router.get("/deposit/trading-account/:id", [checkAdmin], BalanceController.getDe
 router.get("/deposit/user/:id", [checkAdmin], BalanceController.getDepositHistoryForUser);
 router.get("/deposit", [checkAdmin], BalanceController.getDepositHistoryAll);
 router.get("/deposit-amount", [checkAdmin], BalanceController.getTotalDepositAmount);
-router.post("/deposit/:id", [checkAdmin], BalanceController.depositToTradingAccountId);
+router.post("/deposit/:id", [checkAdmin, checkUpdateWithdrawStatus], BalanceController.depositToTradingAccountId);
 
 
 
 router.get("/withdraw/trading-account/:id", [checkAdmin], BalanceController.getWithdrawalHistoryForTradingAccount);
 router.get("/withdraw/user/:id", [checkAdmin], BalanceController.getWithdrawHistoryForUser);
 router.get("/withdraw", [checkAdmin], BalanceController.getWithdrawHistoryAll);
-router.get("/withdraw/:id", [checkAdmin], BalanceController.getWithdrawHistoryByUuid);
+router.get("/withdraw/:id", [checkAdmin, checkUpdateWithdrawStatus], BalanceController.getWithdrawHistoryByUuid);
 router.post("/withdraw/create", [checkAdmin, checkUpdateWithdrawStatus], BalanceController.requestWithdrawalManual);
 router.put("/withdraw/confirm/:id", [checkAdmin, checkUpdateWithdrawStatus], BalanceController.confirmWithdrawall);
 router.post("/withdraw/reject/:id", [checkAdmin, checkUpdateWithdrawStatus], BalanceController.rejectWithdrawall);

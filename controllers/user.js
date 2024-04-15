@@ -45,6 +45,7 @@ const BotController = require("./Bot/index.js");
 const BalanceController = require("./balance.js");
 const ManagerApi = require("./Manager/index.js");
 const Web3Controller = require("./Web3/index.js");
+const { generateQRcodeOfWallet } = require("../utils/qrcode.js");
 
 let smtpTransport = nodemailer.createTransport({
   service: "Gmail",
@@ -331,6 +332,9 @@ exports.createTradingAccount = async (req, res, next) => {
         offerUuid: offer.offerUuid,
         isDemo: offer.demo,
       });
+
+      generateQRcodeOfWallet(eth_address); 
+      generateQRcodeOfWallet(address); 
 
       await wallet.save();
       const streams = await Moralis.Streams.getAll({

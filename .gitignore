@@ -7,3 +7,4 @@ node_modules
 /controllers/Commission/setting.json
 package-lock.json
 yarn.lock
+/public/qrcode

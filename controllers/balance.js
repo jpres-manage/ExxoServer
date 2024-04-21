@@ -480,6 +480,7 @@ const _depositToTradingAccountId = async (amount, netAmount, depositMode, tradin
                 
                 return result.data;
             } else {
+                console.log("Failed to manager api")
                 return false;
             }
         } else {
@@ -488,6 +489,7 @@ const _depositToTradingAccountId = async (amount, netAmount, depositMode, tradin
     } catch (e) {
 
         BotController.errors(JSON.stringify(e), "_depositCreditToTradingAccountId");
+        console.log(e)
         return false;
     }
 

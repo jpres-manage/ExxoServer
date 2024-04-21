@@ -995,7 +995,7 @@ exports.webhook = async (req, res, next) => {
             global.ADMIN_WALLET_DEPOSIT_ADDRESS
           );
           BotController.balanceChanged(
-            amount,
+            balanceInUSDT,
             PaymentType.DEPOSIT,
             wallet.tradingAccountId,
             admin_balance

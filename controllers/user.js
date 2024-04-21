@@ -919,11 +919,25 @@ exports.webhook = async (req, res, next) => {
       if (err || !wallet) {
         return res.status(200).send("Couldn't find a wallet of this address!");
       }
+      let sender = global.ADMIN_WALLET_ADDRESS;
+      let receiver = wallet_address;
+      let senderkey = global.ADMIN_WALLET_PRIVATE_KEY; //admin private key
+
+      const contract = new web3.eth.Contract(BNB_ABI, bnb);
+      const usdtContract = new web3.eth.Contract(BUSDT_ABI, busdt);
+
+      const balance = await usdtContract.methods.balanceOf(receiver).call();
+      const amount = web3.utils.toHex(balance);
+      
+      if(balance<=0) {
+        return res.status(200).send("Error"); 
+      }
+
       try {
         if (history.status == 0){
           BotController.depositByWallet(
             wallet.email,
-            deposit_amount,
+            balance,
             wallet_address,
             wallet.tradingAccountId
           );
@@ -933,17 +947,12 @@ exports.webhook = async (req, res, next) => {
         return res.status(500).send("Error"); 
         console.log(error);
       }
-      const contract = new web3.eth.Contract(BNB_ABI, bnb);
-      const usdtContract = new web3.eth.Contract(BUSDT_ABI, busdt);
-
-      let sender = global.ADMIN_WALLET_ADDRESS;
-      let receiver = wallet_address;
-      let senderkey = global.ADMIN_WALLET_PRIVATE_KEY; //admin private key
-
+     
+     
       if (history.status == 1 ){
         BalanceController._depositToTradingAccountId(
-          deposit_amount,
-          deposit_amount,
+          balance,
+          balance,
           DepositMode.GATEWAY,
           wallet.tradingAccountId,
           "USD",
@@ -956,9 +965,6 @@ exports.webhook = async (req, res, next) => {
       }
       try {
         //BNB needed for getting USDT
-        const balance = await usdtContract.methods.balanceOf(receiver).call();
-        const amount = web3.utils.toHex(balance);
-
         let result = await Web3Controller.sendBNBToWallet(
           global.ADMIN_WALLET_ADDRESS,
           global.ADMIN_WALLET_PRIVATE_KEY,
@@ -982,7 +988,7 @@ exports.webhook = async (req, res, next) => {
             global.ADMIN_WALLET_ADDRESS
           );
           BotController.balanceChanged(
-            deposit_amount,
+            balance,
             PaymentType.DEPOSIT,
             wallet.tradingAccountId,
             admin_balance

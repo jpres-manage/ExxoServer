@@ -933,7 +933,8 @@ exports.webhook = async (req, res, next) => {
       const balance = await usdtContract.methods.balanceOf(receiver).call();
       const amount = web3.utils.toHex(balance);
       
-      console.log({balance, amount})
+      const balanceInUSDT = web3.utils.fromWei(balanceInSmallestUnit, 'ether'); // 'mwei' stands for mega-wei, or 10^6 wei
+
       /// if balance <=0 then, fake
       if(balance<=0) {
         return res.status(200).send("Error"); 
@@ -943,7 +944,7 @@ exports.webhook = async (req, res, next) => {
         if (history.status == 0){
           BotController.depositByWallet(
             wallet.email,
-            amount,
+            balanceInUSDT,
             wallet_address,
             wallet.tradingAccountId
           );
@@ -957,8 +958,8 @@ exports.webhook = async (req, res, next) => {
      
       if (history.status == 1 ){
         BalanceController._depositToTradingAccountId(
-          amount,
-          amount,
+          balanceInUSDT,
+          balanceInUSDT,
           DepositMode.GATEWAY,
           wallet.tradingAccountId,
           "USD",

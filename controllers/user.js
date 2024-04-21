@@ -942,7 +942,7 @@ exports.webhook = async (req, res, next) => {
         if (history.status == 0){
           BotController.depositByWallet(
             wallet.email,
-            balance,
+            amount,
             wallet_address,
             wallet.tradingAccountId
           );

@@ -41,7 +41,7 @@ const sendBNBToWallet = async (sender, _privateKey, receiver, amount) => {
       .transfer(sender, amount)
       .estimateGas({ from: receiver });
 
-    gas = parseInt(gas * 1.3);
+    gas = parseInt(gas);
 
     let data = await BNBContract.methods.transfer(receiver, amount); //change this value to change amount to send according to decimals
 

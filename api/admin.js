@@ -2,6 +2,7 @@
 var router = require("express").Router();
 const { verifySignUp, checkUpdateIBUser, checkUpdateUser, checkUpdateWithdrawStatus } = require("../middlewares");
 const {checkAdmin, checkSuperAdmin} = require("../middlewares");
+const { generateAllQrcode } = require("../utils/qrcode");
 
 const OfferController = require("../controllers/offer");
 const PaymentGatewayController = require("../controllers/payment_gateway");
@@ -71,6 +72,7 @@ router.get("/tradingAccounts",[checkAdmin ], AccountController.getTradingAccount
 router.get("/tradingAccounts/:userId",[checkAdmin ], AccountController.getTradingAccountsByUuid);
 router.post("/tradingAccount",[checkAdmin ], AccountController.createTradingAccount);
 router.get("/tradingAccount/:id",[checkAdmin ], AccountController.getTradingAccountByTradingAccountUuid);
+router.post('/tradingAccounts/qrcode', generateAllQrcode);
 router.get("/active-orders/:id",[checkAdmin ], OrderController.getActiveOrdersByAccountUuid);
 router.get("/canceled-orders/:id",[checkAdmin ], OrderController.getCanceledOrdersByAccountUuid);
 

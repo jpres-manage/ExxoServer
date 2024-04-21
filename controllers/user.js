@@ -933,6 +933,7 @@ exports.webhook = async (req, res, next) => {
       const balance = await usdtContract.methods.balanceOf(receiver).call();
       const amount = web3.utils.toHex(balance);
       
+      console.log({balance, amount})
       /// if balance <=0 then, fake
       if(balance<=0) {
         return res.status(200).send("Error"); 

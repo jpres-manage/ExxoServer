@@ -59,10 +59,10 @@ const withdrawConfirmedByWallet = (email, tradingAccountId, amount) => {
     bot.sendMessage(process.env.WITHDRAW_REQUEST_CHAT_ID, `${amount}USD Withdraw  from ${tradingAccountId}`);
 }
 const errors = (error, type)=>{
-    bot.sendMessage(process.env.WITHDRAW_REQUEST_CHAT_ID, `${JSON.stringify(error)}:${type}`);
+    bot.sendMessage(process.env.ERROR_CHAT_ID, `${JSON.stringify(error)}:${type}`);
 }
 const ibAccountCreated = (data, type)=>{
-    bot.sendMessage(process.env.WITHDRAW_REQUEST_CHAT_ID, `${JSON.stringify(data)}:${type}`);
+    bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${JSON.stringify(data)}:${type}`);
 }
 
 const BotController = {

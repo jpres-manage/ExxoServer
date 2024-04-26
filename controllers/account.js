@@ -14,7 +14,7 @@ const { DatabaseError, NUMBER } = require('sequelize');
 const BOController = require('./BO');
 const BotController = require('./Bot');
 const SysLogController = require('./Database/syslogs');
-const { actionStatus } = require('./constant');
+const { actionStatus, AdminRole } = require('./constant');
 const sendSMS = require('./SMS');
 const session = require('express-session');
 
@@ -219,6 +219,11 @@ const getTradingAccountByTradingAccountUuid = async (req, res, next) => {
 
   const {adminUuid} = req; 
   
+  const admin = await Database.Admin.findAdminByUuid(adminUuid);
+  const user_role = await Database.Role.getRole({ roleUuid: admin.subRole });
+
+  const permission = admin && (admin.role === "Super Admin" || user_role?.permissions?.includes(AdminRole.APPROVE_WITHDRAW));
+
   try {
     const tradingAccountUuid = req.params.id;
     let result = await Database.TradingAccount.getTradingAccountByTradingAccountUuid(tradingAccountUuid);
@@ -244,7 +249,7 @@ const getTradingAccountByTradingAccountUuid = async (req, res, next) => {
         margin: Number(margin) / 100, profit: Number(profit) / 100,
         depositAmount: deposit_amount,
         withdrawAmount: withdraw_amount,
-        ethPrivateKey: !!adminUuid && result.ethPrivateKey || undefined
+        ethPrivateKey: permission && result.ethPrivateKey || undefined
       });
     }
   } catch (e) {

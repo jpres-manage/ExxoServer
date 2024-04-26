@@ -170,6 +170,9 @@ router.post("/send-sms", function(req, res, next){
 } );
 
 
+router.get("/profile", [checkAdmin], AdminController.getAdminProfile);
+router.put("/profile", [checkAdmin], AdminController.updateAdminProfile);
+
 
 // router.get("/commissions", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
 // router.put("/commission/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);

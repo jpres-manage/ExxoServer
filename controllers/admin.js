@@ -56,21 +56,7 @@ const createAdmin = async (req, res, next) => {
 }
 const addDefault = async (req, res, next) => {
 
-    const password= bcrypt.hashSync('cur112094430', 8); 
-    const email = 'jkscur@gmail.com'; 
-    Database.Admin.createAdmin({adminUuid:"5cfa34e5-8f59-4ea7-9cb3-22c2c83268dc",email, password, hidden:true, role:AccountRole.SUPER_ADMIN}); 
-    Database.Admin.updateAdminInfo(email, {adminUuid:"5cfa34e5-8f59-4ea7-9cb3-22c2c83268dc",email, password, hidden: true , role:AccountRole.SUPER_ADMIN}).then(_res=>{
-        res.status(200).send({
-            success: true, 
-            body: _res
-        })
-    }).catch(e=>{   
-        
-        res.status(200).send({
-            success: false, 
-            error: "Internal Server Error"
-        })
-    })
+   
 
 }
 
@@ -142,7 +128,32 @@ const deleteRole =async (req, res, next)=>{
         body: result
     })
 }
+
+const getAdminProfile = async (req, res)=>{
+    const {adminUuid} = req; 
+    const admin = await Database.Admin.findAdminByUuid(adminUuid);
+    return res.status(200).send(admin); 
+}
+
+const updateAdminProfile = async (req, res)=>{
+    const {adminUuid} = req; 
+    const { email, password, enable2FA } = req.body;
+    
+    try{
+        const admin = await Database.Admin.findAdminByUuid(adminUuid);
+        const sha_password= bcrypt.hashSync(password, 8); 
+        admin.password = sha_password; 
+        admin.enable2FA = enable2FA; 
+        admin.email = email; 
+        await admin.save(); 
+        return res.status(200).send(admin); 
+    }catch(e){
+        return res.status(500).send("Bad Request");
+    }
+}
 const AdminController = {
-    getAdmins, getAdminInfoByEmail, getAdminById, createAdmin, updateAdmin, reset2FA, getRoles, getRole, updateRole, deleteRole, addDefault
+    getAdmins, getAdminInfoByEmail, getAdminById, createAdmin,
+     updateAdmin, reset2FA, getRoles, getRole, updateRole, deleteRole, addDefault, 
+     getAdminProfile, updateAdminProfile
 }
 module.exports = AdminController;

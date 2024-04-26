@@ -144,9 +144,17 @@ const updateAdminProfile = async (req, res)=>{
         const sha_password= bcrypt.hashSync(password, 8); 
         admin.password = sha_password; 
         admin.enable2FA = enable2FA; 
+
+        if (enable2FA) {
+            let secret_2fa = Database.Admin.generateSecret(admin.email);
+            EmailController.sendTFACode(user.email, secret_2fa);
+            admin.secret = secret_2fa;
+        }
+        
         admin.email = email; 
         await admin.save(); 
         return res.status(200).send(admin); 
+        
     }catch(e){
         return res.status(500).send("Bad Request");
     }

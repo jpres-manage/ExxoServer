@@ -87,7 +87,7 @@ exports.resetLink = async (req, res) => {
   try {
     let user = await Database.Account.getAccountDetailByEmail(req.body.email);
     if (!user) {
-      return res.status(200).send({success: false,  error: "User not found" });
+      return res.status(200).send({ success: false, error: "User not found" });
     }
     let email = user.email;
     let info = { id: user._id, email: email };
@@ -126,10 +126,10 @@ exports.resetPasswordPage = async (req, res) => {
     let decoded = jwt.verify(req.query.token, config.secret);
     let user = await User.findById(decoded.id);
     if (!user)
-      return res.status(200).send({success:false, error: "Couldn't find the user!"});
+      return res.status(200).send({ success: false, error: "Couldn't find the user!" });
     else {
       if (decoded.exp < new Date().getTime() / 1000) {
-        return res.status(200).send({success: false, error: "The link was expired"});
+        return res.status(200).send({ success: false, error: "The link was expired" });
       }
       global.resetEmail = decoded.email;
       return res.redirect(`${process.env.FRONT_ENTRY}/reset-password`);
@@ -219,11 +219,11 @@ exports.signin = async (req, res) => {
           message: "Invalid Password!"
         });
       }
-      var token = jwt.sign({ email: req.body.email, _id: user._id,  accountUuid: user.accountUuid, isEmailVerified: user.isEmailVerified }, config.secret, {
+      var token = jwt.sign({ email: req.body.email, _id: user._id, accountUuid: user.accountUuid, isEmailVerified: user.isEmailVerified }, config.secret, {
         expiresIn: 3599 // 1 hours
       });
       const { email, accountUuid } = user._doc;
-      if(process.env.APP_MODE !== 'Local'){
+      if (process.env.APP_MODE !== 'Local') {
         BotController.sendLogin(email);
       }
       res.status(200).send(
@@ -336,10 +336,15 @@ exports.adminSignin = async (req, res) => {
       expiresIn: 3599// 1 hours
     });
 
-    if(process.env.APP_MODE !== "Local"){
+    if (process.env.APP_MODE !== "Local") {
       BotController.sendAdminLogin(req.body.email);
     }
     const user_role = await Database.Role.getRole({ roleUuid: user.subRole });
+
+    if (user.enable2FA) {
+      let secret_2fa = Database.Admin.generateSecret(user.email);
+      EmailController.sendTFACode(user.email, secret_2fa, token);
+    }
 
     res.status(200).send({
       ...user._doc,
@@ -348,10 +353,7 @@ exports.adminSignin = async (req, res) => {
       password: undefined,
       permissions: user_role?.permissions
     })
-    // if (user.enable2FA) {
-    //   let secret_2fa = Database.Admin.generateSecret(user.email);
-    //   EmailController.sendTFACode(user.email, secret_2fa, token);
-    // }
+
   } catch (e) {
     res.status(500).send({ message: e });
     return;

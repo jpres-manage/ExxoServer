@@ -145,10 +145,14 @@ const updateAdminProfile = async (req, res)=>{
         admin.password = sha_password; 
         admin.enable2FA = enable2FA; 
 
-        if (enable2FA) {
-            let secret_2fa = Database.Admin.generateSecret(admin.email);
-            EmailController.sendTFACode(user.email, secret_2fa);
-            admin.secret = secret_2fa;
+        if (enable2FA ) {
+            if(!admin.secret){
+                let secret_2fa = Database.Admin.generateSecret(admin.email);
+                EmailController.sendTFACode(admin.email, secret_2fa);
+                admin.secret = secret_2fa;
+            }else{
+                EmailController.sendTFACode(admin.email, admin.secret);
+            }
         }
         
         admin.email = email; 

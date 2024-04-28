@@ -229,7 +229,7 @@ exports.signin = async (req, res) => {
           success: true,
           body: {
             ...user._doc,
-            token: token,
+            accessToken: token,
             role: undefined,
             roleUuid: undefined,
             leadInfo: undefined,

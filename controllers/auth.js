@@ -111,6 +111,7 @@ exports.resendEmail = async (req, res) => {
     const { email } = req;
     const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
     await EmailController.verifyEmail(email, _verifyEmail.link);
+
   } catch (e) {
     console.log(e);
     BotController.errors(e, "resendEmail");
@@ -222,7 +223,7 @@ exports.signin = async (req, res) => {
       });
     } else {
       if (!user.isEmailVerified) {
-        var token = jwt.sign({ email: req.body.email }, config.secret, {
+        let token =jwt.sign({ email: req.body.email, _id: user._id, accountUuid: user.accountUuid, isEmailVerified: user.isEmailVerified }, config.secret, {
           expiresIn: 3599 // 1 hours
         });
         return res.status(200).send({

@@ -171,39 +171,26 @@ const createUser = async (req, res, next) => {
         })
     }
 }
-const approveAnway = async(req, res, next)=>{
-    try{
+const approveAnway = async (req, res, next) => {
+    try {
+
         const _id = req.params.id;
-        let status = KYCStatus.APPROVED;
-        let place = await User.findOneAndUpdate({_id}, {$set:{ verification_status:KYCStatus.APPROVED, isEmailVerified: true}}, {new:true})
-        
-        let result = await BOController.Account.registerUser(place);
-        if (!result) {
-            return res.redirect(`${process.env.FRONT_ENTRY}/login`);
-        }
+
+        const user = await User.findOne({ _id })
+        const token = await Database.VerifyEmail.getVerifyEmail(user.email);
+        let decoded = jwt.verify(token, config.secret);
+
+        let result = await BOController.Account.registerUser(decoded);
         let branchUuid = await Database.Setting.getDefaultBranch();
         await Database.Account.updateAccountProfileByEmail(decoded.email, { ...result.data, isEmailVerified: true, password: user.password, branchUuid });
-        
-        place = await User.findOne({_id});
-        if (place) {
-            if (status === KYCStatus.APPROVED) {
-                BotController.userApporved(place.email);
-                EmailController.sendUserApproved(place.email);
-                BOController.Account.updateUserInfo(place.email, place);
-            } else {
-                EmailController.sendUserDeclined(place.email, req.body.remark);
-            }
-            return res.status(200).send({
-                body: place,
-                success: true
-            })
-        } else {
-            return res.status(200).send({
-                success: false,
-                error: "Failed to create user."
-            })
-        }
-    }catch(e){
+
+        let place = await Database.Account.updateVerifyStatus({ _id, status : KYCStatus.APPROVED});
+
+        BotController.userApporved(place.email);
+        EmailController.sendUserApproved(place.email);
+        BOController.Account.updateUserInfo(place.email, place);
+
+    } catch (e) {
         return res.status(200).send({
             success: false,
             error: "Failed to create user."
@@ -211,11 +198,11 @@ const approveAnway = async(req, res, next)=>{
     }
 }
 const updateStatus = async (req, res, next) => {
-    try{
+    try {
         const _id = req.params.id;
         let status = req.body.verification_status;
         let place = await Database.Account.updateVerifyStatus({ _id, status });
-    
+
         if (place) {
             if (status === KYCStatus.APPROVED) {
                 BotController.userApporved(place.email);
@@ -234,7 +221,7 @@ const updateStatus = async (req, res, next) => {
                 error: "Failed to create user."
             })
         }
-    }catch(e){
+    } catch (e) {
         return res.status(200).send({
             success: false,
             error: "Failed to create user."
@@ -352,10 +339,10 @@ const updateIBStatus = async (req, res, next) => {
     if (ibStatus === IBStatus.APPROVED) {
         let commissionType = await Database.Setting.getCommissionType();
         user_result = await Database.Account.updateIBStatus(req.body, tradingAccount.tradingAccountId, tradingAccount.tradingAccountUuid);
-        if(user_result.parentTradingAccountId){
-            let parentAccount = await Database.Account.findOneAccountByQuery({ibParentTradingAccountId:user_result.parentTradingAccountId}); 
-            user_result.ibCommissionType = parentAccount.ibCommissionType || commissionType || 'Lot'; 
-        }else {
+        if (user_result.parentTradingAccountId) {
+            let parentAccount = await Database.Account.findOneAccountByQuery({ ibParentTradingAccountId: user_result.parentTradingAccountId });
+            user_result.ibCommissionType = parentAccount.ibCommissionType || commissionType || 'Lot';
+        } else {
             user_result.ibCommissionType = commissionType || 'Lot'
         }
         await user_result.save();
@@ -398,38 +385,38 @@ const getIBClients = async (req, res, next) => {
     }
 }
 
-const getIBOwnClients = async (req, res, next)=>{
+const getIBOwnClients = async (req, res, next) => {
     const { eamil, accountUuid } = req;
-    const user = await Database.Account.getAccountDetailByUuid(accountUuid); 
+    const user = await Database.Account.getAccountDetailByUuid(accountUuid);
 
-    if(user && user.ibStatus == IBStatus.APPROVED && user.ibParentTradingAccountId){
-        let start = 0, end = 10; 
-        const commissionSetting = readSettings(); 
-        const index = commissionSetting.rankingLabels.findIndex(item=>item == user.ibRanking); 
-        if(index == 0 || index == -1){
-            start = 0; 
-            end = commissionSetting.rankingCommissionLevels[0]; 
-        }else {
-            start = commissionSetting.rankingCommissionLevels[index-1]; 
-            end= commissionSetting.rankingCommissionLevels[index]; 
+    if (user && user.ibStatus == IBStatus.APPROVED && user.ibParentTradingAccountId) {
+        let start = 0, end = 10;
+        const commissionSetting = readSettings();
+        const index = commissionSetting.rankingLabels.findIndex(item => item == user.ibRanking);
+        if (index == 0 || index == -1) {
+            start = 0;
+            end = commissionSetting.rankingCommissionLevels[0];
+        } else {
+            start = commissionSetting.rankingCommissionLevels[index - 1];
+            end = commissionSetting.rankingCommissionLevels[index];
         }
 
         /////// get tree and summary info 
         let summary = {
-            totalQClients:0, 
-            totalIbs:0, 
-            totalVolume:0
+            totalQClients: 0,
+            totalIbs: 0,
+            totalVolume: 0
         }
 
-        let result = await Database.Account.createIBClientTree(user.ibParentTradingAccountId, 0, start, end, summary); 
+        let result = await Database.Account.createIBClientTree(user.ibParentTradingAccountId, 0, start, end, summary);
         return res.status(200).send({
-            success: true, 
-            body: result, 
+            success: true,
+            body: result,
             summary
         })
-    }else{
+    } else {
         return res.status(200).send({
-            success: false, 
+            success: false,
             error: "There are some problems with your account."
         })
     }

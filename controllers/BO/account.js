@@ -171,8 +171,37 @@ const checkEmailFromBO = async (email) => {
     };
     try {
         let userInfo = await axios.request(config);
+        console.log(userInfo.data); 
         if (userInfo) {
-            return userInfo;
+            return userInfo.data;
+        } else {
+            return false;
+        }
+    } catch (e) {
+        BotController.errors(JSON.stringify(e), "Check Email from BO 167");
+        return false;
+        console.log(e);
+    }
+}
+
+const GetAllUsers = async () => {
+
+    const partnerId = global.partnerId;
+    let config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${process.env.API_SERVER}/documentation/account/api/accounts?partnerId=317`,
+        headers: {
+            ...global.mySpecialVariable,
+            "Cookie": process.env.AUTH_COOKIE,
+            "Content-Type": "application/json"
+        }
+    };
+    try {
+        let userInfo = await axios.request(config);
+        console.log(userInfo.data); 
+        if (userInfo) {
+            return userInfo.data;
         } else {
             return false;
         }
@@ -190,6 +219,7 @@ const AccountController = {
     getOffers,
     createPassword,
     updateUserInfo,
-    checkEmailFromBO
+    checkEmailFromBO, 
+    GetAllUsers
 }
 module.exports = AccountController; 

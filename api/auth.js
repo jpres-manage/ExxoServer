@@ -60,4 +60,13 @@ router.post("/bo/user", async(req, res)=>{
     console.log({userInfo})
     return res.status(200).send(userInfo);
 })
+
+router.get("/bo/users", async(req, res)=>{
+
+    const userInfo =await BOController.Account.GetAllUsers()
+
+    console.log({userInfo})
+    return res.status(200).send(userInfo);
+})
+
 module.exports = router;

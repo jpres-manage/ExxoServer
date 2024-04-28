@@ -124,9 +124,13 @@ exports.resendAllEmail = async (req, res) => {
   try {
     const unverifiedUsers = await User.find({verification_status: KYCStatus.NEW}); 
     for(let unVerifiedUser of unverifiedUsers){
-      const { email } = unVerifiedUser;
-      const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
-      await EmailController.verifyEmail(email, _verifyEmail.link);
+      try{
+        const { email } = unVerifiedUser;
+        const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
+        await EmailController.verifyEmail(email, _verifyEmail.link);
+      }catch(e){
+        console.log(e)
+      }
     }
 
   } catch (e) {

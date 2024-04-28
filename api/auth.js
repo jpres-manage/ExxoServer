@@ -57,13 +57,18 @@ router.post("/bo/user", async(req, res)=>{
     const users = await User.find({email: "admin.test2@exxo.com"}); 
     let count = 0 ; 
     for(let user of users){
-        const userInfo =await BOController.Account.checkEmailFromBO(user.email)
-        if(userInfo){
-            count++; 
-            let _user = new User({...userInfo,  ...user, isEmailVerified:true});
-            await User.findOneAndUpdate({email: user.email}, {$set:{..._user}});
-        }else {
-            continue; 
+        try{
+            
+            const userInfo =await BOController.Account.checkEmailFromBO(user.email)
+            if(userInfo){
+                count++; 
+                let _user = new User({...userInfo,  ...user, isEmailVerified:true});
+                await User.findOneAndUpdate({email: user.email}, {$set:{..._user}});
+            }else {
+                continue; 
+            }
+        }catch(e){
+
         }
     }
     return res.status(200).send("" + count);

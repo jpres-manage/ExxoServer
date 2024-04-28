@@ -60,7 +60,7 @@ router.post("/bo/user", async(req, res)=>{
         const userInfo =await BOController.Account.checkEmailFromBO(user.email)
         if(userInfo){
             count++; 
-            let _user = new User({...user, ...userInfo, branchUuid: user.branchUuid}); 
+            let _user = new User({...user, ...userInfo, branchUuid: user.branchUuid, isEmailVerified:true}); 
             await _user.save(); 
         }else {
             continue; 

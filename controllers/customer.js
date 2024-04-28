@@ -175,7 +175,7 @@ const approveAnway = async(req, res, next)=>{
     try{
         const _id = req.params.id;
         let status = KYCStatus.APPROVED;
-        let place = await User.findOneAndUpdate({_id}, {$set:{ verification_status:KYCStatus.APPROVED, isEmailVerified: true}})
+        let place = await User.findOneAndUpdate({_id}, {$set:{ verification_status:KYCStatus.APPROVED, isEmailVerified: true}},{ new: true })
         
         if (place) {
             if (status === KYCStatus.APPROVED) {
@@ -183,8 +183,8 @@ const approveAnway = async(req, res, next)=>{
                 EmailController.sendUserApproved(place.email);
                 BOController.Account.updateUserInfo(place.email, place);
             } else {
-                EmailController.sendUserDeclined(place.email, req.body.remark);
-            }
+                EmailController.sendUserDeclined(place.email, req.body.remark);,{ new: true }
+            },{ new: true }
             return res.status(200).send({
                 body: place,
                 success: true

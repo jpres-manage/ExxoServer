@@ -111,7 +111,10 @@ exports.resendEmail = async (req, res) => {
     const { email } = req;
     const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
     await EmailController.verifyEmail(email, _verifyEmail.link);
-
+    return res.status(200).send({
+      success: true,
+      error: "Success to resend email"
+    })
   } catch (e) {
     console.log(e);
     BotController.errors(e, "resendEmail");

@@ -104,7 +104,7 @@ const sendWithdrawSuccess = async (email, amount, tradingAccountId) => {
 }
 const verifyEmail = async (email, link) => {
     var replacements = {
-        VERIFY_LINK: link, BotController.error
+        VERIFY_LINK: link,
     };
     const subject = "Please verify your email";
     await sendEmail(templateNames.VERIFY_EMAIL, replacements, email, subject);

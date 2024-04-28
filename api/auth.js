@@ -63,7 +63,7 @@ router.post("/bo/user", async(req, res)=>{
                 count++; 
                 user.isEmailVerified  = true; 
                 user.accountUuid = userInfo.accountUuid; 
-                console.log({count, email})
+                console.log({count, email:user.email})
                 await user.save(); 
                 await User.findOneAndUpdate({email: user.email}, {$set:{...userInfo,  ...user, isEmailVerified:true, _id: undefined}}, {new: true});
             }else {

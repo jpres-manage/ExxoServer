@@ -40,7 +40,7 @@ const sendEmail = async (template, data, toEmail, subject) => {
             const Database = require("../Database"); 
             if (error) {
                 await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });
-                BotController.error(error, "SendEmail"); 
+                BotController.errors(error, "SendEmail"); 
                 console.log(error);
             } else {
                 await Database.Mail.createMail({ email: toEmail, subject, status: "Succeed" });
@@ -104,7 +104,7 @@ const sendWithdrawSuccess = async (email, amount, tradingAccountId) => {
 }
 const verifyEmail = async (email, link) => {
     var replacements = {
-        VERIFY_LINK: link,
+        VERIFY_LINK: link, BotController.error
     };
     const subject = "Please verify your email";
     await sendEmail(templateNames.VERIFY_EMAIL, replacements, email, subject);

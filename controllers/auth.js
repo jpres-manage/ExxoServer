@@ -108,7 +108,7 @@ exports.resetLink = async (req, res) => {
 
 exports.resendEmail = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email } = req;
     const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
     await EmailController.verifyEmail(email, _verifyEmail.link);
   } catch (e) {
@@ -125,14 +125,14 @@ function sleep(ms) {
 }
 exports.resendAllEmail = async (req, res) => {
   try {
-    const unverifiedUsers = await User.find({verification_status: KYCStatus.NEW}); 
-    for(let unVerifiedUser of unverifiedUsers){
-      try{
+    const unverifiedUsers = await User.find({ verification_status: KYCStatus.NEW });
+    for (let unVerifiedUser of unverifiedUsers) {
+      try {
         const { email } = unVerifiedUser;
         const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
         await EmailController.verifyEmail(email, _verifyEmail.link);
         await sleep(1300)
-      }catch(e){
+      } catch (e) {
         console.log(e)
       }
 
@@ -222,10 +222,20 @@ exports.signin = async (req, res) => {
       });
     } else {
       if (!user.isEmailVerified) {
+        var token = jwt.sign({ email: req.body.email }, config.secret, {
+          expiresIn: 3599 // 1 hours
+        });
         return res.status(200).send({
           success: true,
           body: {
-            ...user._doc
+            ...user._doc,
+            token: token,
+            role: undefined,
+            roleUuid: undefined,
+            leadInfo: undefined,
+            oneTimeToken: undefined,
+            branchInfo: undefined,
+            branchUuid:  undefined      
           }
         }
         );

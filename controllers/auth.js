@@ -108,7 +108,7 @@ exports.resetLink = async (req, res) => {
 
 exports.resendEmail = async (req, res) => {
   try {
-    const { email } = req;
+    const { email } = req.body;
     const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
     await EmailController.verifyEmail(email, _verifyEmail.link);
 

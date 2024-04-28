@@ -43,7 +43,7 @@ router.patch("/user/profile/:id", [checkAdmin], UserController.updateProfileFrom
 router.delete("/user/:id", [checkAdmin], UserController.deleteUser )
 router.get("/user/:id", [checkAdmin], UserController.getUserProfile);
 router.post("/user/status/:id", [checkAdmin, checkUpdateUser], UserController.updateStatus);
-router.post("/user/approveA//:id", [checkAdmin, checkUpdateUser], UserController.approveAnway);
+router.post("/user/approveA/:id", [checkAdmin, checkUpdateUser], UserController.approveAnway);
 
 
 router.put("/user/branch/:id", [checkSuperAdmin], UserController.updateUserBranch);

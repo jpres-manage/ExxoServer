@@ -108,8 +108,25 @@ exports.resetLink = async (req, res) => {
 
 exports.resendEmail = async (req, res) => {
   try {
-    const { email } = req;
+    const { email } = req.body;
+    const user = await Database.Account.getAccountDetailByEmail(email); 
+    if(user.isEmailVerified){
+      return res.status(403).send("Forbidden request.")
+    }
     const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
+
+    if(!_verifyEmail)
+      return res.status(403).send("Forbidden request.");
+    
+    const timeDiff = (new Date()).getTime() - (new Date(_verifyEmail.updatedAt)).getTime(); 
+
+    if(timeDiff< 10 * 60*1000){
+      return res.status(403).send("Forbidden request.");
+    }
+
+    _verifyEmail.updatedAt = new Date(); 
+    await _verifyEmail.save(); 
+
     await EmailController.verifyEmail(email, _verifyEmail.link);
     return res.status(200).send({
       success: true,

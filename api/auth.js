@@ -4,6 +4,7 @@ const controller = require("../controllers/auth");
 const UserController = require("../controllers/customer");
 const Database = require("../controllers/Database");
 const CommissionController = require("../controllers/Commission");
+const EmailController = require("../controllers/Email");
 
 router.get("/admins",[checkSuperAdmin] ,controller.getAdmins);
 router.post("/admin",  [verifySignUp.checkDuplicateAdminNameOrEmail],  controller.updateAdmin);
@@ -16,7 +17,8 @@ router.post("/signin", controller.signin);
 router.post("/google-signin", UserController.googleSignIn);
 router.get("/verify", UserController.verifyEmail);
 router.post("/reset-link", controller.resetLink);
-router.post("/resend-email",[authJwt.verifyToken] ,controller.resendEmail);
+router.post("/resend-email",controller.resendEmail);
+// router.post("/resend-email",[authJwt.verifyToken] ,controller.resendEmail);
 router.post("/resend-all-email", controller.resendAllEmail);
 router.get("/reset-password", controller.resetPasswordPage);
 router.post("/reset-password", UserController.changePasswordFP);
@@ -40,5 +42,12 @@ router.post("/signinWithToken",[authJwt.verifyToken], async (req, res, next)=>{
         }
     });
 });
+
+router.post("/test/email",async (req, res)=>{
+
+    const {email} = req.body; 
+    await EmailController.sendAccountCreated("sigma2.trading@outlook.com");
+    return res.status(200).send("true")
+})
 
 module.exports = router;

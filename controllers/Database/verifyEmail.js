@@ -4,7 +4,7 @@ const BotController = require("../Bot");
 const createVerifyEmail = async (email, link) => {
     try {
         const _verifyEmail = new VerifyEmail({
-            email, link
+            email, link, updatedAt: new Date
         })
         const data =await _verifyEmail.save(); 
         return data; 
@@ -32,6 +32,8 @@ const deleteVerifyEmail = async (email) => {
         return false; 
     }
 }
+
+
 
 const VerifyEmailController = {
     createVerifyEmail, getVerifyEmail, deleteVerifyEmail

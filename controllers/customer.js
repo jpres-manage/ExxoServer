@@ -160,15 +160,22 @@ const createUser = async (req, res, next) => {
             link = process.env.BACKEND_SERVER + "/api/auth/verify?token=" + token;
             await EmailController.verifyEmail(req.body.email, link);
             await Database.VerifyEmail.createVerifyEmail(req.body.email, link);
+            return res.status(200).send({
+                success: true,
+                body: {
+                    ...result, 
+                    accessToken: token
+                }
+            })
         } catch (e) {
             console.log(e);
+            return res.status(200).send({
+                success: false,
+                body: {
+                    ...result, 
+                }
+            })
         }
-        return res.status(200).send({
-            success: true,
-            body: {
-                ...result
-            }
-        })
     }
 }
 const approveAnway = async (req, res, next) => {

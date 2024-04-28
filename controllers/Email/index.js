@@ -4,7 +4,10 @@ const { templateNames, replaceData, messageContent } = require('./constant.js')
 const handlebars = require('handlebars');
 const nodemailer = require("nodemailer");
 
-
+const password4 = `${process.env.MAIL_PASSWORD_1}`
+const mailSetting = {
+    accountSelector: 0
+}
 let smtpTransport = nodemailer.createTransport({
     service: "smtp",
     host: process.env.MAIL_HOST,
@@ -15,6 +18,46 @@ let smtpTransport = nodemailer.createTransport({
         pass: process.env.MAIL_PASSWORD
     }
 });
+
+let smtpTransport_1 = nodemailer.createTransport({
+    host: process.env.MAIL_HOST, // Replace with Mail250's SMTP server
+    port: process.env.MAIL_PORT, // Common port for SMTP
+    secure: true, // True if port is 465, false for other ports like 587
+    auth: {
+        user: process.env.MAIL_USERNAME_1, // Replace with your SMTP username
+        pass: password4 // Replace with your SMTP password
+    }
+})
+
+let smtpTransport_2 = nodemailer.createTransport({
+    host: process.env.MAIL_HOST, // Replace with Mail250's SMTP server
+    port: process.env.MAIL_PORT, // Common port for SMTP
+    secure: true, // True if port is 465, false for other ports like 587
+    auth: {
+        user: process.env.MAIL_USERNAME_2, // Replace with your SMTP username
+        pass: process.env.MAIL_PASSWORD_2 // Replace with your SMTP password
+    }
+})
+
+let smtpTransport_3 = nodemailer.createTransport({
+    host: process.env.MAIL_HOST, // Replace with Mail250's SMTP server
+    port: process.env.MAIL_PORT, // Common port for SMTP
+    secure: true, // True if port is 465, false for other ports like 587
+    auth: {
+        user: process.env.MAIL_USERNAME_3, // Replace with your SMTP username
+        pass: process.env.MAIL_PASSWORD_3 // Replace with your SMTP password
+    }
+})
+
+let smtpTransport_4 = nodemailer.createTransport({
+    host: process.env.MAIL_HOST, // Replace with Mail250's SMTP server
+    port: process.env.MAIL_PORT, // Common port for SMTP
+    secure: true, // True if port is 465, false for other ports like 587
+    auth: {
+        user: process.env.MAIL_USERNAME_4, // Replace with your SMTP username
+        pass: process.env.MAIL_PASSWORD_4 // Replace with your SMTP password
+    }
+})
 
 const sendEmail = async (template, data, toEmail, subject) => {
     const path = `${__dirname}/../../public/email_template/${template}`;
@@ -36,32 +79,95 @@ const sendEmail = async (template, data, toEmail, subject) => {
             subject: subject,
             html: htmlToSend
         };
-       smtpTransport.sendMail(mailOptions, async (error, response) => {
-            const Database = require("../Database"); 
-            if (error) {
-                await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });
-                BotController.errors(error, "SendEmail"); 
-                console.log(error);
-            } else {
-                await Database.Mail.createMail({ email: toEmail, subject, status: "Succeed" });
-                console.log("Message sent: " + response.response);
-            }
-        });
+        mailSetting.accountSelector++;
+        if(mailSetting.accountSelector>4) mailSetting.accountSelector = 0; 
+        if (mailSetting.accountSelector === 0) {
+            smtpTransport.sendMail(mailOptions, async (error, response) => {
+                const Database = require("../Database");
+                if (error) {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });
+                    BotController.errors(error, "SendEmail");
+                    console.log(error);
+                } else {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Succeed" });
+                    console.log("Message sent: " + response.response);
+                }
+            });
+        } else if (mailSetting.accountSelector === 1) {
+
+            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_1}>`
+
+            smtpTransport_1.sendMail(mailOptions, async (error, response) => {
+                const Database = require("../Database");
+                if (error) {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });
+                    BotController.errors(error, "SendEmail");
+                    console.log(error);
+                } else {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Succeed" });
+                    console.log("Message sent: " + response.response);
+                }
+            });
+        } else if (mailSetting.accountSelector === 2) {
+
+            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_2}>`
+
+            smtpTransport_2.sendMail(mailOptions, async (error, response) => {
+                const Database = require("../Database");
+                if (error) {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });
+                    BotController.errors(error, "SendEmail");
+                    console.log(error);
+                } else {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Succeed" });
+                    console.log("Message sent: " + response.response);
+                }
+            });
+        } else if (mailSetting.accountSelector === 3) {
+
+            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_3}>`
+            smtpTransport_3.sendMail(mailOptions, async (error, response) => {
+                const Database = require("../Database");
+                if (error) {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });
+                    BotController.errors(error, "SendEmail");
+                    console.log(error);
+                } else {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Succeed" });
+                    console.log("Message sent: " + response.response);
+                }
+            });
+        } else if (mailSetting.accountSelector === 4) {
+
+            mailSetting.accountSelector =0; 
+            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_4}>`
+            smtpTransport_4.sendMail(mailOptions, async (error, response) => {
+                const Database = require("../Database");
+                if (error) {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });
+                    BotController.errors(error, "SendEmail");
+                    console.log(error);
+                } else {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Succeed" });
+                    console.log("Message sent: " + response.response);
+                }
+            });
+        }
     });
 }
 
 const sendUserApproved = async (email) => {
     const subject = "Your profile is approved.";
-    const replacements ={}
+    const replacements = {}
     await sendEmail(templateNames.KYC_APPROVED, replacements, email, subject);
 }
 const sendUserDeclined = async (email, remark) => {
-    var replacements =  { REMARK: remark };
+    var replacements = { REMARK: remark };
     const subject = "Your Profile was declined";
     await sendEmail(templateNames.KYC_DECLINED, replacements, email, subject);
 }
 const sendIBApproved = async (email) => {
-    var replacements =  { };
+    var replacements = {};
     const subject = "Your IB request was approved.";
     await sendEmail(templateNames.IB_REQUEST_APPROVE, replacements, email, subject);
 }
@@ -125,14 +231,14 @@ const sendDepositSuccess = async (email, deposit_amount) => {
     await sendEmail(templateNames.DEPOSIT_SUCCESS, replacements, email, subject);
 }
 
-const sendTFACode =async (email, secret)=>{
+const sendTFACode = async (email, secret) => {
     var replacements = {
         SECRET: secret,
     };
     const subject = "Please verify TOTP using app.";
     await sendEmail(templateNames.TFA_VERIFY_CODE, replacements, email, subject);
 }
-const addAdmin =async (email, password)=>{
+const addAdmin = async (email, password) => {
     var replacements = {
         PASSWORD: password,
         EMAIL: email
@@ -140,45 +246,45 @@ const addAdmin =async (email, password)=>{
     const subject = "Simga added you as admin.";
     await sendEmail(templateNames.ADMIN_INVIATE, replacements, email, subject);
 }
-const sendNotification =async (email, data)=>{
-    let replacements = {    
+const sendNotification = async (email, data) => {
+    let replacements = {
         SUBJECT: data.subject,
         CONTENT: data.content
     }
-    const subject = data.subject; 
+    const subject = data.subject;
     await sendEmail(templateNames.ADMIN_NOTIFICATION, replacements, email, subject);
 }
-const sendWithdrawVerifyCode =async (email, code)=>{
-    let replacements = {    
+const sendWithdrawVerifyCode = async (email, code) => {
+    let replacements = {
         VERIFY_CODE: code,
     }
-    const subject = "Your verification code for withdraw is "; 
+    const subject = "Your verification code for withdraw is ";
     await sendEmail(templateNames.VERIFY_CODE, replacements, email, subject);
 }
-const sendKYCRecieved =async (email)=>{
-    const replacements ={}
-    const subject = "Your documents are well received."; 
+const sendKYCRecieved = async (email) => {
+    const replacements = {}
+    const subject = "Your documents are well received.";
     await sendEmail(templateNames.KYC_RECEIVED, replacements, email, subject);
 }
-const sendSocialAccountApproved = async (email)=>{
-    const replacements ={}
-    const subject = "Your application for social trading account is approved. "; 
+const sendSocialAccountApproved = async (email) => {
+    const replacements = {}
+    const subject = "Your application for social trading account is approved. ";
     await sendEmail(templateNames.SOCIAL_ACCOUNT_APPROVE, replacements, email, subject);
 }
-const sendSocialAccountDeclined = async (email, reason)=>{
-    const replacements ={REMARK: reason}
-    const subject = "Your application for social trading account is declined."; 
-    await sendEmail(templateNames.SOCIAL_ACCOUNT_DECLINE,  replacements, email, subject);
+const sendSocialAccountDeclined = async (email, reason) => {
+    const replacements = { REMARK: reason }
+    const subject = "Your application for social trading account is declined.";
+    await sendEmail(templateNames.SOCIAL_ACCOUNT_DECLINE, replacements, email, subject);
 }
-const sendAccountCreated = async (email)=>{
-    const replacements ={}
-    const subject = "New trading account was created."; 
-    await sendEmail(templateNames.OPEN_LIVE_ACCOUNT,  replacements, email, subject);
+const sendAccountCreated = async (email) => {
+    const replacements = {}
+    const subject = "New trading account was created.";
+    await sendEmail(templateNames.OPEN_LIVE_ACCOUNT, replacements, email, subject);
 }
-const sendDemoAccountCreated = async (email)=>{
-    const replacements ={}
-    const subject = "New trading account was created."; 
-    await sendEmail(templateNames.OPEN_DEMO_ACCOUNT,  replacements, email, subject);
+const sendDemoAccountCreated = async (email) => {
+    const replacements = {}
+    const subject = "New trading account was created.";
+    await sendEmail(templateNames.OPEN_DEMO_ACCOUNT, replacements, email, subject);
 }
 
 const EmailController = {
@@ -194,12 +300,12 @@ const EmailController = {
     verifyEmail,
     forgotPassword,
     sendDepositSuccess,
-    sendIBDecliend, 
+    sendIBDecliend,
     sendIBApproved,
-    sendTFACode, 
+    sendTFACode,
     addAdmin,
-    sendNotification, 
-    sendKYCRecieved, 
+    sendNotification,
+    sendKYCRecieved,
     sendSocialAccountApproved,
     sendSocialAccountDeclined,
     sendAccountCreated,

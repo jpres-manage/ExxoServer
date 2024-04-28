@@ -6,6 +6,7 @@ const Database = require("../controllers/Database");
 const CommissionController = require("../controllers/Commission");
 const EmailController = require("../controllers/Email");
 const BOController = require("../controllers/BO");
+const User = require("../models/user");
 
 router.get("/admins",[checkSuperAdmin] ,controller.getAdmins);
 router.post("/admin",  [verifySignUp.checkDuplicateAdminNameOrEmail],  controller.updateAdmin);
@@ -53,12 +54,19 @@ router.post("/test/email",async (req, res)=>{
 })
 
 router.post("/bo/user", async(req, res)=>{
-    const {email} = req.body; 
-
-    const userInfo =await BOController.Account.checkEmailFromBO(email)
-
-    console.log({userInfo})
-    return res.status(200).send(userInfo);
+    const users = await User.find({isEmailVerified: false}); 
+    let count = 0 ; 
+    for(let user of users){
+        const userInfo =await BOController.Account.checkEmailFromBO(user.email)
+        if(userInfo){
+            count++; 
+            let _user = new User({...user, ...userInfo, branchUuid: user.branchUuid}); 
+            await _user.save(); 
+        }else {
+            continue; 
+        }
+    }
+    return res.status(200).send("" + count);
 })
 
 router.get("/bo/users", async(req, res)=>{

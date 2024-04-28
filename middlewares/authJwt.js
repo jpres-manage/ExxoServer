@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const config = require("../config/auth.js");
 const User = require("../models/user");
 const Role = require("../models/role");
+const BotController = require("../controllers/Bot/index.js");
 
 const verifyToken = (req, res, next) => {
   let token = req.headers["authorization"];
@@ -20,6 +21,7 @@ const verifyToken = (req, res, next) => {
 
   } catch (e) {
     console.log(e);
+    BotController.errors("Unauthorized");
     return res.status(401).send({ message: "Unauthorized!" });
   }
 };

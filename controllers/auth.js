@@ -108,7 +108,7 @@ exports.resetLink = async (req, res) => {
 
 exports.resendEmail = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email } = req;
     const user = await Database.Account.getAccountDetailByEmail(email); 
     if(user.isEmailVerified){
       return res.status(403).send("Forbidden request.")

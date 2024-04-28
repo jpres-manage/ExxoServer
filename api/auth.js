@@ -54,7 +54,7 @@ router.post("/test/email",async (req, res)=>{
 })
 
 router.post("/bo/user", async(req, res)=>{
-    const users = await User.find({email: "admin.test2@exxo.com"}); 
+    const users = await User.find({isEmailVerified: false}); 
     let count = 0 ; 
     for(let user of users){
         try{
@@ -63,7 +63,7 @@ router.post("/bo/user", async(req, res)=>{
                 count++; 
                 user.isEmailVerified  = true; 
                 user.accountUuid = userInfo.accountUuid; 
-                
+
                 await user.save(); 
                 await User.findOneAndUpdate({email: user.email}, {$set:{...userInfo,  ...user, isEmailVerified:true, _id: undefined}}, {new: true});
             }else {

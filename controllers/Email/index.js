@@ -36,7 +36,7 @@ const sendEmail = async (template, data, toEmail, subject) => {
             subject: subject,
             html: htmlToSend
         };
-        smtpTransport.sendMail(mailOptions, async (error, response) => {
+       smtpTransport.sendMail(mailOptions, async (error, response) => {
             const Database = require("../Database"); 
             if (error) {
                 await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });

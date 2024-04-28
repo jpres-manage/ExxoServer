@@ -120,6 +120,9 @@ exports.resendEmail = async (req, res) => {
     })
   }
 }
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 exports.resendAllEmail = async (req, res) => {
   try {
     const unverifiedUsers = await User.find({verification_status: KYCStatus.NEW}); 
@@ -128,9 +131,11 @@ exports.resendAllEmail = async (req, res) => {
         const { email } = unVerifiedUser;
         const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
         await EmailController.verifyEmail(email, _verifyEmail.link);
+        await sleep(300)
       }catch(e){
         console.log(e)
       }
+
     }
 
   } catch (e) {

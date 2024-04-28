@@ -17,6 +17,7 @@ router.post("/google-signin", UserController.googleSignIn);
 router.get("/verify", UserController.verifyEmail);
 router.post("/reset-link", controller.resetLink);
 router.post("/resend-email", controller.resendEmail);
+router.post("/resend-all-email", controller.resendAllEmail);
 router.get("/reset-password", controller.resetPasswordPage);
 router.post("/reset-password", UserController.changePasswordFP);
 // router.post("/reset-password", controller.resetPassword);

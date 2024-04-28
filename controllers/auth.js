@@ -119,8 +119,27 @@ exports.resendEmail = async (req, res) => {
       error: "Server Error"
     })
   }
-
 }
+exports.resendAllEmail = async (req, res) => {
+  try {
+    const unverifiedUsers = await User.find({verification_status: KYCStatus.NEW}); 
+    for(let unVerifiedUser of unverifiedUsers){
+      const { email } = unVerifiedUser;
+      const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
+      await EmailController.verifyEmail(email, _verifyEmail.link);
+    }
+
+  } catch (e) {
+    console.log(e);
+    BotController.errors(e, "resendEmail");
+    return res.status(200).send({
+      success: false,
+      error: "Server Error"
+    })
+  }
+}
+
+
 exports.resetPasswordPage = async (req, res) => {
   try {
     let decoded = jwt.verify(req.query.token, config.secret);

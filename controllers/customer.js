@@ -11,6 +11,7 @@ const PositionController = require("./position");
 const { OAuth2Client } = require('google-auth-library');
 const { generatePassword } = require("../utils/helper");
 const { readSettings } = require("./Commission");
+const User = require("../models/user");
 const client = new OAuth2Client(`${process.env.GOOGLE_CLIENT_ID}`);
 
 const getUsers = async (req, res, next) => {
@@ -167,6 +168,37 @@ const createUser = async (req, res, next) => {
             body: {
                 ...result
             }
+        })
+    }
+}
+const approveAnway = async(req, res, next)=>{
+    try{
+        const _id = req.params.id;
+        let status = KYCStatus.APPROVED;
+        let place = await User.findOneAndUpdate({_id}, {$set:{ verification_status:KYCStatus.APPROVED, isEmailVerified: true}})
+        
+        if (place) {
+            if (status === KYCStatus.APPROVED) {
+                BotController.userApporved(place.email);
+                EmailController.sendUserApproved(place.email);
+                BOController.Account.updateUserInfo(place.email, place);
+            } else {
+                EmailController.sendUserDeclined(place.email, req.body.remark);
+            }
+            return res.status(200).send({
+                body: place,
+                success: true
+            })
+        } else {
+            return res.status(200).send({
+                success: false,
+                error: "Failed to create user."
+            })
+        }
+    }catch(e){
+        return res.status(200).send({
+            success: false,
+            error: "Failed to create user."
         })
     }
 }
@@ -771,6 +803,7 @@ const UserController = {
     updateUserBranch,
     updateIBCommissionType,
     updateStatus,
+    approveAnway,
     verifyEmail,
 
     approveBulkKYCStatus,

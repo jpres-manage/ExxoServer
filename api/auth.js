@@ -19,6 +19,7 @@ router.get("/verify", UserController.verifyEmail);
 router.post("/reset-link", controller.resetLink);
 // router.post("/resend-email",controller.resendEmail);
 router.post("/resend-email",[authJwt.verifyToken] ,controller.resendEmail);
+router.get("/resend-email-point",[authJwt.verifyToken] ,controller.getResetEmailPoint);
 router.post("/resend-all-email", controller.resendAllEmail);
 router.get("/reset-password", controller.resetPasswordPage);
 router.post("/reset-password", UserController.changePasswordFP);

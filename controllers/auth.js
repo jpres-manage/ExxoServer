@@ -105,7 +105,12 @@ exports.resetLink = async (req, res) => {
     res.status(500).send("User register failed.");
   }
 };
+exports.getResetEmailPoint =async (req, res)=>{
+  const {email }= req; 
+  
+  const verifyEmail =await Database.VerifyEmail.getVerifyEmail(email)
 
+}
 exports.resendEmail = async (req, res) => {
   try {
     const { email } = req;

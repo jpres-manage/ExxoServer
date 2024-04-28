@@ -177,6 +177,12 @@ const approveAnway = async(req, res, next)=>{
         let status = KYCStatus.APPROVED;
         let place = await User.findOneAndUpdate({_id}, {$set:{ verification_status:KYCStatus.APPROVED, isEmailVerified: true}}, {new:true})
         
+        let result = await BOController.Account.registerUser(place);
+        if (!result) {
+            return res.redirect(`${process.env.FRONT_ENTRY}/login`);
+        }
+        let branchUuid = await Database.Setting.getDefaultBranch();
+        await Database.Account.updateAccountProfileByEmail(decoded.email, { ...result.data, isEmailVerified: true, password: user.password, branchUuid });
         if (place) {
             if (status === KYCStatus.APPROVED) {
                 BotController.userApporved(place.email);

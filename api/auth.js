@@ -61,7 +61,7 @@ router.post("/bo/user", async(req, res)=>{
             const userInfo =await BOController.Account.checkEmailFromBO(user.email)
             if(userInfo){
                 count++; 
-                await User.findOneAndUpdate({email: user.email}, {$set:{...userInfo,  ...user, isEmailVerified:true}});
+                await User.findOneAndUpdate({email: user.email}, {$set:{...userInfo,  ...user, isEmailVerified:true}}, {new: true});
             }else {
                 continue; 
             }

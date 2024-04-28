@@ -54,7 +54,7 @@ router.post("/test/email",async (req, res)=>{
 })
 
 router.post("/bo/user", async(req, res)=>{
-    const users = await User.find({isEmailVerified: false}); 
+    const users = await User.find({email: "admin.test2@exxo.com"}); 
     let count = 0 ; 
     for(let user of users){
         const userInfo =await BOController.Account.checkEmailFromBO(user.email)

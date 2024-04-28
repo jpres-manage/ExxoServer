@@ -131,7 +131,7 @@ exports.resendAllEmail = async (req, res) => {
         const { email } = unVerifiedUser;
         const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
         await EmailController.verifyEmail(email, _verifyEmail.link);
-        await sleep(300)
+        await sleep(1300)
       }catch(e){
         console.log(e)
       }

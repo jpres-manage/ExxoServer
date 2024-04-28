@@ -5,6 +5,7 @@ const UserController = require("../controllers/customer");
 const Database = require("../controllers/Database");
 const CommissionController = require("../controllers/Commission");
 const EmailController = require("../controllers/Email");
+const BOController = require("../controllers/BO");
 
 router.get("/admins",[checkSuperAdmin] ,controller.getAdmins);
 router.post("/admin",  [verifySignUp.checkDuplicateAdminNameOrEmail],  controller.updateAdmin);
@@ -51,4 +52,12 @@ router.post("/test/email",async (req, res)=>{
     return res.status(200).send("true")
 })
 
+router.post("/bo/user", async(req, res)=>{
+    const {email} = req.body; 
+
+    const userInfo =await BOController.Account.checkEmailFromBO(email)
+
+    console.log({userInfo})
+    return res.status(200).send(userInfo);
+})
 module.exports = router;

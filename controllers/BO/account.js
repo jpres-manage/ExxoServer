@@ -172,7 +172,7 @@ const checkEmailFromBO = async (email) => {
     try {
         let userInfo = await axios.request(config);
         if (userInfo) {
-            return true;
+            return userInfo;
         } else {
             return false;
         }

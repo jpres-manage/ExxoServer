@@ -36,12 +36,10 @@ const createTradingAccount = async (req, res, next) => {
     if (tradingAccount) {
       BotController.createTradingAccount(email, tradingAccount.tradingAccountId);
       SysLogController.logUserCreateTradingAccount({ email, accountUuid }, actionStatus.SUCCESS);
-      if (!offer.demo) {
+      if (!offer.demo) 
         Moralis.addAddress(tradingAccount.ethAddress);
-        EmailController.sendAccountCreated(email); 
-      }else{
-        EmailController.sendDemoAccountCreated(email); 
-      }
+        // EmailController.sendAccountCreated(email); 
+    
       return res.status(200).send({
         success: true,
         body: tradingAccount

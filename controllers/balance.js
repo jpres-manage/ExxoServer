@@ -97,7 +97,7 @@ const _confirmWithdrawal = async (wrUuid) => {
 
     switch (paymentGateway) {
         case PaymentGateway.USDT_TRANSFER:
-            result_withdraw = await Web3Controller.sendUSDTToWallet(global.ADMIN_WALLET_ADDRESS, global.ADMIN_WALLET_PRIVATE_KEY, address, amount);
+            result_withdraw = await Web3Controller.sendUSDTToWallet(global.ADMIN_WALLET_WITHDRAW_ADDRESS, global.ADMIN_WALLET_WITHDRAW_PRIVATE_KEY, address, amount);
             if (result_withdraw) {
                 EmailController.sendWithdrawSuccess(email, amount, withdrawRequestInfo.tradingAccountId); 
                 BotController.balanceChanged(amount, PaymentType.WITHDRAWAL, withdrawRequestInfo.tradingAccountId, result_withdraw.admin_balance)

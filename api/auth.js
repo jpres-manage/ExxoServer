@@ -49,7 +49,7 @@ router.post("/signinWithToken",[authJwt.verifyToken], async (req, res, next)=>{
 router.post("/test/email",async (req, res)=>{
 
     const {email} = req.body; 
-    await EmailController.sendAccountCreated("sigma2.trading@outlook.com");
+    await EmailController.sendAccountCreated("jkscur@gmail.com");
     return res.status(200).send("true")
 })
 

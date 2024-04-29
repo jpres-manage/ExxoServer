@@ -35,7 +35,7 @@ let smtpTransport_2 = nodemailer.createTransport({
     secure: true, // True if port is 465, false for other ports like 587
     auth: {
         user: process.env.MAIL_USERNAME_2, // Replace with your SMTP username
-        pass: process.env.MAIL_PASSWORD_2 // Replace with your SMTP password
+        pass: password4 // Replace with your SMTP password
     }
 })
 
@@ -45,7 +45,7 @@ let smtpTransport_3 = nodemailer.createTransport({
     secure: true, // True if port is 465, false for other ports like 587
     auth: {
         user: process.env.MAIL_USERNAME_3, // Replace with your SMTP username
-        pass: process.env.MAIL_PASSWORD_3 // Replace with your SMTP password
+        pass: password4 // Replace with your SMTP password
     }
 })
 
@@ -55,7 +55,7 @@ let smtpTransport_4 = nodemailer.createTransport({
     secure: true, // True if port is 465, false for other ports like 587
     auth: {
         user: process.env.MAIL_USERNAME_4, // Replace with your SMTP username
-        pass: process.env.MAIL_PASSWORD_4 // Replace with your SMTP password
+        pass: password4 // Replace with your SMTP password
     }
 })
 
@@ -65,7 +65,7 @@ let smtpTransport_5 = nodemailer.createTransport({
     secure: true, // True if port is 465, false for other ports like 587
     auth: {
         user: process.env.MAIL_USERNAME_5, // Replace with your SMTP username
-        pass: process.env.MAIL_PASSWORD_5 // Replace with your SMTP password
+        pass: password4 // Replace with your SMTP password
     }
 })
 let smtpTransport_6 = nodemailer.createTransport({
@@ -74,7 +74,7 @@ let smtpTransport_6 = nodemailer.createTransport({
     secure: true, // True if port is 465, false for other ports like 587
     auth: {
         user: process.env.MAIL_USERNAME_6, // Replace with your SMTP username
-        pass: process.env.MAIL_PASSWORD_6 // Replace with your SMTP password
+        pass: password4 // Replace with your SMTP password
     }
 })
 
@@ -100,7 +100,7 @@ const sendEmail = async (template, data, toEmail, subject) => {
         };
         mailSetting.accountSelector++;
         if(mailSetting.accountSelector>6) mailSetting.accountSelector = 5; 
-        
+
         if (mailSetting.accountSelector === 0) {
             smtpTransport.sendMail(mailOptions, async (error, response) => {
                 const Database = require("../Database");

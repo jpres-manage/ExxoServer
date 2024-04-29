@@ -172,7 +172,7 @@ const sendEmail = async (template, data, toEmail, subject) => {
             });
         } else if (mailSetting.accountSelector === 5) {
 
-            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_4}>`
+            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_5}>`
             smtpTransport_5.sendMail(mailOptions, async (error, response) => {
                 const Database = require("../Database");
                 if (error) {
@@ -186,7 +186,7 @@ const sendEmail = async (template, data, toEmail, subject) => {
             });
         } else if (mailSetting.accountSelector === 6) {
 
-            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_4}>`
+            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_6}>`
             smtpTransport_6.sendMail(mailOptions, async (error, response) => {
                 const Database = require("../Database");
                 if (error) {

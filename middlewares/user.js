@@ -53,6 +53,7 @@ const validateWithdraw = async (req, res, next)=>{
     const accountUuid = req.accountUuid; 
     let userInfo =await Database.Account.getAccountDetailByEmail(req.email);
     let data = req.body; 
+    if(data.amount < 50) return res.status(403).send("Withdraw amount should be more than $50.")
     const tradingAccounts = await Database.TradingAccount.getTradingAccountByEmail(userInfo.email); 
     if(tradingAccounts){
         if(tradingAccounts.findIndex((tradingAccount)=>tradingAccount.tradingAccountId === data.tradingAccountId) ==-1)

@@ -70,6 +70,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use('/api/static', express.static('public/images'));
 app.use('/api/qrcode', express.static('public/qrcode'));
+
 // Initialization
 
 app.get("/result", (req, res) => {

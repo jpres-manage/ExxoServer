@@ -95,6 +95,22 @@ const getAllTradingAccounts = async () => {
     let tradingAccountIds = tradingAccounts.map(item => item.tradingAccountId).filter(v => !!v);
     return tradingAccountIds;
 }
+const getAllLiveTradingAccounts = async () => {
+    let tradingAccounts = await Wallet.aggregate([
+        {
+            $match:{
+                isDemo: false
+            }
+        },
+        {
+            $project: {
+                "tradingAccountId": 1
+            }
+        }
+    ])
+    let tradingAccountIds = tradingAccounts.map(item => item.tradingAccountId).filter(v => !!v);
+    return tradingAccountIds;
+}
 
 const getTradingAccountsByUserId = async (clientUuid) => {
     try {
@@ -586,6 +602,7 @@ const TradingAccountController = {
     getTradingAccountsByAdminUuid,
     getTradingAccountByWallet,
     getAllTradingAccounts,
+    getAllLiveTradingAccounts,
     getIBTradingAccountByEmail,
     getTradingAccountByTradintAccountId,
     getAccountDetailByTradingAccountId,

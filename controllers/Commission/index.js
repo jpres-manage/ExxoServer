@@ -65,7 +65,7 @@ const checkClosedPosition = async () => {
     try {
         commissionSetting.setting = readSettings();
 
-        const _tradingAccounts = await Database.TradingAccount.getAllTradingAccounts();
+        const _tradingAccounts = await Database.TradingAccount.getAllLiveTradingAccounts();
         const rangeEnd = (new Date()).getTime();
         const rangeStart = getLastAccessTime();
         const _closedPositions = await LedgerController._getClosedTrades(rangeStart, rangeEnd, _tradingAccounts);

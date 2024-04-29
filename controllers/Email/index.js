@@ -6,7 +6,7 @@ const nodemailer = require("nodemailer");
 
 const password4 = `${process.env.MAIL_PASSWORD_1}`
 const mailSetting = {
-    accountSelector: 0
+    accountSelector: 5
 }
 let smtpTransport = nodemailer.createTransport({
     service: "smtp",
@@ -59,6 +59,25 @@ let smtpTransport_4 = nodemailer.createTransport({
     }
 })
 
+let smtpTransport_5 = nodemailer.createTransport({
+    host: process.env.MAIL_HOST, // Replace with Mail250's SMTP server
+    port: process.env.MAIL_PORT, // Common port for SMTP
+    secure: true, // True if port is 465, false for other ports like 587
+    auth: {
+        user: process.env.MAIL_USERNAME_5, // Replace with your SMTP username
+        pass: process.env.MAIL_PASSWORD_5 // Replace with your SMTP password
+    }
+})
+let smtpTransport_6 = nodemailer.createTransport({
+    host: process.env.MAIL_HOST, // Replace with Mail250's SMTP server
+    port: process.env.MAIL_PORT, // Common port for SMTP
+    secure: true, // True if port is 465, false for other ports like 587
+    auth: {
+        user: process.env.MAIL_USERNAME_6, // Replace with your SMTP username
+        pass: process.env.MAIL_PASSWORD_6 // Replace with your SMTP password
+    }
+})
+
 const sendEmail = async (template, data, toEmail, subject) => {
     const path = `${__dirname}/../../public/email_template/${template}`;
     console.log({ template, data, toEmail });
@@ -80,7 +99,8 @@ const sendEmail = async (template, data, toEmail, subject) => {
             html: htmlToSend
         };
         mailSetting.accountSelector++;
-        if(mailSetting.accountSelector>4) mailSetting.accountSelector = 0; 
+        if(mailSetting.accountSelector>6) mailSetting.accountSelector = 5; 
+        
         if (mailSetting.accountSelector === 0) {
             smtpTransport.sendMail(mailOptions, async (error, response) => {
                 const Database = require("../Database");
@@ -138,10 +158,36 @@ const sendEmail = async (template, data, toEmail, subject) => {
                 }
             });
         } else if (mailSetting.accountSelector === 4) {
-
-            mailSetting.accountSelector =0; 
             mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_4}>`
             smtpTransport_4.sendMail(mailOptions, async (error, response) => {
+                const Database = require("../Database");
+                if (error) {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });
+                    BotController.errors(error, "SendEmail");
+                    console.log(error);
+                } else {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Succeed" });
+                    console.log("Message sent: " + response.response);
+                }
+            });
+        } else if (mailSetting.accountSelector === 5) {
+
+            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_4}>`
+            smtpTransport_5.sendMail(mailOptions, async (error, response) => {
+                const Database = require("../Database");
+                if (error) {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });
+                    BotController.errors(error, "SendEmail");
+                    console.log(error);
+                } else {
+                    await Database.Mail.createMail({ email: toEmail, subject, status: "Succeed" });
+                    console.log("Message sent: " + response.response);
+                }
+            });
+        } else if (mailSetting.accountSelector === 5) {
+
+            mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_4}>`
+            smtpTransport_6.sendMail(mailOptions, async (error, response) => {
                 const Database = require("../Database");
                 if (error) {
                     await Database.Mail.createMail({ email: toEmail, subject, status: "Failed" });

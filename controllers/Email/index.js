@@ -6,7 +6,7 @@ const nodemailer = require("nodemailer");
 
 const password4 = `${process.env.MAIL_PASSWORD_1}`
 const mailSetting = {
-    accountSelector: 5,
+    accountSelector: 0,
     verifMailer: 0
 }
 
@@ -70,7 +70,7 @@ const sendEmail = async (template, data, toEmail, subject, isVerify = false) => 
 
         } else {
             mailSetting.accountSelector++;  
-            if (mailSetting.accountSelector > 6) mailSetting.accountSelector = 5;
+            if (mailSetting.accountSelector > 6) mailSetting.accountSelector = 0;
 
             if (mailSetting.accountSelector === 0) {
                 mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME}>`

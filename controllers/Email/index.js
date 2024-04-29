@@ -184,7 +184,7 @@ const sendEmail = async (template, data, toEmail, subject) => {
                     console.log("Message sent: " + response.response);
                 }
             });
-        } else if (mailSetting.accountSelector === 5) {
+        } else if (mailSetting.accountSelector === 6) {
 
             mailOptions.from = `${process.env.MAIL_NAME} <${process.env.MAIL_USERNAME_4}>`
             smtpTransport_6.sendMail(mailOptions, async (error, response) => {

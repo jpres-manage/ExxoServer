@@ -63,14 +63,16 @@ const getIBOwnClientsTree = async (req, res, next) => {
             start = commissionSetting.rankingCommissionLevels[index-1]; 
             end= commissionSetting.rankingCommissionLevels[index]; 
         }
-
         /////// get tree and summary info 
         let summary = {
             totalQClients:0, 
             totalIbs:0, 
-            totalVolume: 0
+            totalVolume: 0, 
+            totalUsers: 0
         }
         const _ibClients = await Database.Account.createIBClientTree(parentTradingAccountId, 0, start, end, summary);
+        summary.totalUsers = await Database.Account.getTotalIBOwnUsers(parentTradingAccountId);
+
         return res.status(200).send({
             success: true,
             body: _ibClients, 

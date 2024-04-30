@@ -67,43 +67,43 @@ const getUsers = async (adminUuid, role) => {
     try {
         let result = await Account.aggregate([
             {
-                $lookup:{
+                $lookup: {
                     from: "branches",
-                    localField: "branchUuid", 
-                    foreignField: "branchUuid", 
-                    as: "branch", 
-                } 
+                    localField: "branchUuid",
+                    foreignField: "branchUuid",
+                    as: "branch",
+                }
             },
             {
                 $unwind: "$branch"
             },
             {
                 $lookup: {
-                    from: "admins", 
-                    localField: "branch.adminUuid", 
-                    foreignField: "adminUuid", 
+                    from: "admins",
+                    localField: "branch.adminUuid",
+                    foreignField: "adminUuid",
                     as: "admin"
                 }
             },
             {
                 $unwind: "$admin"
-            }, 
+            },
             {
                 $project: {
-                    email: 1, 
-                    verification_status: 1, 
-                    isEmailVerified: 1, 
-                    submittedAt: 1, 
-                    accountUuid: 1, 
-                    adminUuid: "admin.adminUuid", 
-                    docType: 1, 
-                    docType2: 1, 
-                    docUrl1: 1, 
-                    docUrl2: 1, 
-                    docUrl3: 1, 
-                    fullname: 1, 
-                    avatarUrl: 1, 
-                    branchUuid: 1, 
+                    email: 1,
+                    verification_status: 1,
+                    isEmailVerified: 1,
+                    submittedAt: 1,
+                    accountUuid: 1,
+                    adminUuid: "admin.adminUuid",
+                    docType: 1,
+                    docType2: 1,
+                    docUrl1: 1,
+                    docUrl2: 1,
+                    docUrl3: 1,
+                    fullname: 1,
+                    avatarUrl: 1,
+                    branchUuid: 1,
                 }
             },
             {
@@ -128,10 +128,10 @@ const getUsers = async (adminUuid, role) => {
     }
 }
 
-const getUserEmailsByIds = async (ids)=>{
-    
-    const _ids = ids.map(item=>ObjectId(item)); 
-    try{
+const getUserEmailsByIds = async (ids) => {
+
+    const _ids = ids.map(item => ObjectId(item));
+    try {
         let result = await Account.aggregate([
             {
                 $match: {
@@ -142,20 +142,20 @@ const getUserEmailsByIds = async (ids)=>{
             }
         ])
         return result;
-    }catch(e){
-        return false; 
+    } catch (e) {
+        return false;
     }
 }
 //  for admin actions
 const getIBClients = async (data) => {
-    let match = {}; 
+    let match = {};
     const query = { ibStatus: { $in: [IBStatus.PENDING, IBStatus.APPROVED, IBStatus.DECLINED] } };
 
-    try{
+    try {
         const result = await Account.aggregate([
             {
                 $match: {
-                    ...query, 
+                    ...query,
                     verification_status: {
                         $ne: KYCStatus.DELETED
                     }
@@ -163,47 +163,47 @@ const getIBClients = async (data) => {
             },
             {
                 $lookup: {
-                    from: "branches", 
-                    localField: "branchUuid", 
+                    from: "branches",
+                    localField: "branchUuid",
                     foreignField: "branchUuid",
-                    as : "branch"
+                    as: "branch"
                 }
             },
             {
                 $unwind: "$branch"
-            }, 
+            },
             {
-               $project: {
-                    fullname: 1, 
-                    accountUuid: 1, 
-                    ibStatus: 1, 
-                    ibParentTradingAccountId:1, 
-                    parentTradingAccountId: 1, 
-                    ibSubmittedAt: 1, 
-                    state: 1, 
-                    avatarUrl:1, 
-                    adminUuid: "$branch.adminUuid", 
-                    email: 1, 
-                    ibRanking: 1, 
-                    isQClient: 1, 
+                $project: {
+                    fullname: 1,
+                    accountUuid: 1,
+                    ibStatus: 1,
+                    ibParentTradingAccountId: 1,
+                    parentTradingAccountId: 1,
+                    ibSubmittedAt: 1,
+                    state: 1,
+                    avatarUrl: 1,
+                    adminUuid: "$branch.adminUuid",
+                    email: 1,
+                    ibRanking: 1,
+                    isQClient: 1,
                     isQIB: 1
-               }
-            }, 
+                }
+            },
             {
                 $match: {
                     ...match
                 }
             },
             {
-                $sort:{
+                $sort: {
                     ibSubmittedAt: -1
                 }
             }
         ])
         return result;
-    }catch(e){
-        BotController.errors({adminUuid, role}, "get IB Clietns")
-        return false; 
+    } catch (e) {
+        BotController.errors({ adminUuid, role }, "get IB Clietns")
+        return false;
     }
 }
 const updateAccountPassword = async (accountUuid, _password) => {
@@ -287,12 +287,12 @@ const getIBOwnClients = async (data) => {
                     verification_status: 1,
                     isEmailVerified: 1,
                     accountUuid: 1,
-                    ibStatus:1, 
-                    ibParentTradingAccountId: 1, 
-                    ibParentTradingAccountUuid:1, 
-                    isQClient: 1, 
-                    isQIB: 1, 
-                    ibRanking :1, 
+                    ibStatus: 1,
+                    ibParentTradingAccountId: 1,
+                    ibParentTradingAccountUuid: 1,
+                    isQClient: 1,
+                    isQIB: 1,
+                    ibRanking: 1,
                 }
             }
         ]);
@@ -302,62 +302,81 @@ const getIBOwnClients = async (data) => {
     }
 }
 
-const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, summary) =>{
-    try{
-        let ibUserTreeData = []; 
-        const affiliateUsers  =await getIBOwnClients({parentTradingAccountId, verification_status:KYCStatus.APPROVED});
-        let totalIbs =0, totalQClients =0, totalVolume =0; 
-        for( let i = 0; i< affiliateUsers.length; i++){
-            let item = affiliateUsers[i]; 
-            let data ; 
-            if(ibDepth >= start){
-                if(item.ibStatus === IBStatus.APPROVED){
+const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, summary) => {
+    try {
+        let ibUserTreeData = [];
+        const affiliateUsers = await getIBOwnClients({ parentTradingAccountId, verification_status: KYCStatus.APPROVED });
+        let totalIbs = 0, totalQClients = 0, totalVolume = 0;
+        for (let i = 0; i < affiliateUsers.length; i++) {
+            let item = affiliateUsers[i];
+            let data;
+            if (ibDepth >= start) {
+                if (item.ibStatus === IBStatus.APPROVED) {
                     data = {
-                        text: MakeSimpleEmail(item.email), 
-                        id: item.accountUuid, 
-                        ...item, 
+                        text: MakeSimpleEmail(item.email),
+                        id: item.accountUuid,
+                        ...item,
                         state: {
                             opened: true,
-                        }, 
-                        children: ibDepth+1<end &&  await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end, summary) ||undefined
+                        },
+                        children: ibDepth + 1 < end && await createIBClientTree(item.ibParentTradingAccountId, ibDepth + 1, start, end, summary) || undefined
                     };
-                }else{
+                } else {
                     data = {
-                        text: MakeSimpleEmail(item.email), 
-                        id: item.accountUuid, 
-                        ...item, 
+                        text: MakeSimpleEmail(item.email),
+                        id: item.accountUuid,
+                        ...item,
                         state: {
                             opened: true,
-                        }, 
+                        },
                     }
                 }
-                ibUserTreeData = [...ibUserTreeData,data ]
-            }else {
-                if(item.ibStatus === IBStatus.APPROVED){
-                    data = await createIBClientTree(item.ibParentTradingAccountId, ibDepth+1, start, end, summary); 
+                ibUserTreeData = [...ibUserTreeData, data]
+            } else {
+                if (item.ibStatus === IBStatus.APPROVED) {
+                    data = await createIBClientTree(item.ibParentTradingAccountId, ibDepth + 1, start, end, summary);
                     ibUserTreeData = [...ibUserTreeData, ...data]
                 }
             }
-            if(item.isQClient)
-                totalQClients++; 
-    
-            if(item.ibStatus === IBStatus.APPROVED) 
-                totalIbs++; 
-    
-            const clientIds = (await  getTradingAccountsByUserId(item.accountUuid)).filter(account=>!account.offer.demo).map(item=>item.tradingAccountId); 
-            totalVolume =parseFloat(totalVolume) + parseFloat(await getTotalVolume(0, new Date().getTime(), [...clientIds]));
+            if (item.isQClient)
+                totalQClients++;
 
-        } 
-        summary.totalQClients += totalQClients; 
-        summary.totalIbs += totalIbs; 
-        summary.totalVolume =parseFloat(summary.totalVolume) + parseFloat(Number(totalVolume)) ; 
-    
-        return ibUserTreeData; 
-    }catch(e){
+            if (item.ibStatus === IBStatus.APPROVED)
+                totalIbs++;
+
+            const clientIds = (await getTradingAccountsByUserId(item.accountUuid)).filter(account => !account.offer.demo).map(item => item.tradingAccountId);
+            totalVolume = parseFloat(totalVolume) + parseFloat(await getTotalVolume(0, new Date().getTime(), [...clientIds]));
+
+        }
+        summary.totalQClients += totalQClients;
+        summary.totalIbs += totalIbs;
+        summary.totalVolume = parseFloat(summary.totalVolume) + parseFloat(Number(totalVolume));
+
+        return ibUserTreeData;
+    } catch (e) {
         return []
     }
 }
 
+const getTotalIBOwnUsers = async (parentTradingAccountId) => {
+    try {
+        const affiliateUsers = await getIBOwnClients({ parentTradingAccountId, verification_status: KYCStatus.APPROVED });
+        let totalClients = 0;
+        for (let i = 0; i < affiliateUsers.length; i++) {
+            let item = affiliateUsers[i];
+            let data;
+            if (item.ibStatus === IBStatus.APPROVED) {
+                totalClients += await getTotalIBOwnUsers(item.ibParentTradingAccountId) +1
+                
+            } else {
+                totalClients += 1;
+            }
+        }
+        return totalClients;
+    } catch (e) {
+        return 0
+    }
+}
 
 const getTotalVolume = async (start, end, clientIds) => {
     try {
@@ -460,7 +479,7 @@ const getTradingAccountsByUserId = async (clientUuid) => {
 }
 const getUserAnalytics = async (start = 0, end = new Date(), adminUuid, role) => {
 
-    let match = {}; 
+    let match = {};
     // if(role === AccountRole.ADMIN){
     //     match = {
     //         adminUuid
@@ -477,10 +496,10 @@ const getUserAnalytics = async (start = 0, end = new Date(), adminUuid, role) =>
                 }
             },
             {
-                $lookup:{
-                    from: "branches", 
+                $lookup: {
+                    from: "branches",
                     foreignField: "branchUuid",
-                    localField: "branchUuid", 
+                    localField: "branchUuid",
                     as: "branch"
                 }
             },
@@ -489,12 +508,12 @@ const getUserAnalytics = async (start = 0, end = new Date(), adminUuid, role) =>
             },
             {
                 $project: {
-                    ibStatus: 1, 
-                    verification_status: 1, 
-                    isEmailVerified:1, 
-                    submittedAt: 1, 
-                    created: 1, 
-                    adminUuid:"$branch.adminUuid"
+                    ibStatus: 1,
+                    verification_status: 1,
+                    isEmailVerified: 1,
+                    submittedAt: 1,
+                    created: 1,
+                    adminUuid: "$branch.adminUuid"
                 }
             },
             {
@@ -579,7 +598,7 @@ const updatePhoneVerification = async (email) => {
         let user = await Account.findOneAndUpdate({ email }, { phoneVerified: true }, { new: true })
         return user;
     } catch (e) {
-        return false; 
+        return false;
     }
 }
 const findOneAccountByQuery = async (query) => {
@@ -600,22 +619,22 @@ const excuteQueryFromUser = async (query) => {
     }
 }
 
-const deleteUser = async (_id)=>{
-    try{
-        let result = await Account.deleteOne({_id}); 
-        return result; 
-    }catch(e){
-        return false; 
+const deleteUser = async (_id) => {
+    try {
+        let result = await Account.deleteOne({ _id });
+        return result;
+    } catch (e) {
+        return false;
     }
 }
-const deleteUserMany = async (_ids)=>{
-    try{
-        let result =  await Account.deleteMany({
-            _id: {$in: _ids}
-        }); 
+const deleteUserMany = async (_ids) => {
+    try {
+        let result = await Account.deleteMany({
+            _id: { $in: _ids }
+        });
         return result;
-    }catch(e){
-        return false; 
+    } catch (e) {
+        return false;
     }
 }
 const AccountController = {
@@ -627,7 +646,7 @@ const AccountController = {
     getAccountDetailByIblink,
     getUserAnalytics,
     createAccountSync,
-    deleteUser, 
+    deleteUser,
     deleteUserMany,
     getUsers,
     getUserEmailsByIds,

@@ -241,7 +241,9 @@ exports.resetPassword = async (req, res) => {
 exports.signin = async (req, res) => {
    try {
 
-      const email = req.body.email;
+      let email = req.body.email;
+      email = email.toLowerCase(); 
+
       let user = await Database.Account.getAccountDetailByEmail(email);
       if (!user) {
          return res.status(200).send({

@@ -5,7 +5,7 @@ const Mail = mongoose.model(
     new mongoose.Schema({
         Uuid: String, 
         clientUuid: String, 
-        emai: String, 
+        email: String, 
         status: String, 
         ceatedAt: {
             type: Date, 

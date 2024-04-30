@@ -105,32 +105,32 @@ exports.resetLink = async (req, res) => {
     res.status(500).send("User register failed.");
   }
 };
-exports.getResetEmailPoint =async (req, res)=>{
-  const {email }= req; 
-  
-  const verifyEmail =await Database.VerifyEmail.getVerifyEmail(email)
+exports.getResetEmailPoint = async (req, res) => {
+  const { email } = req;
 
+  const verifyEmail = await Database.VerifyEmail.getVerifyEmail(email)
+  return res.status(200).send({ success: true, point: verifyEmail.updatedAt })
 }
 exports.resendEmail = async (req, res) => {
   try {
     const { email } = req;
-    const user = await Database.Account.getAccountDetailByEmail(email); 
-    if(user.isEmailVerified){
+    const user = await Database.Account.getAccountDetailByEmail(email);
+    if (user.isEmailVerified) {
       return res.status(403).send("Forbidden request.")
     }
     const _verifyEmail = await Database.VerifyEmail.getVerifyEmail(email);
 
-    if(!_verifyEmail)
+    if (!_verifyEmail)
       return res.status(403).send("Forbidden request.");
-    
-    const timeDiff = (new Date()).getTime() - (new Date(_verifyEmail.updatedAt)).getTime(); 
 
-    if(timeDiff< 10 * 60*1000){
+    const timeDiff = (new Date()).getTime() - (new Date(_verifyEmail.updatedAt)).getTime();
+
+    if (timeDiff < 10 * 60 * 1000) {
       return res.status(403).send("Forbidden request.");
     }
 
-    _verifyEmail.updatedAt = new Date(); 
-    await _verifyEmail.save(); 
+    _verifyEmail.updatedAt = new Date();
+    await _verifyEmail.save();
 
     await EmailController.verifyEmail(email, _verifyEmail.link);
     return res.status(200).send({
@@ -248,7 +248,7 @@ exports.signin = async (req, res) => {
       });
     } else {
       if (!user.isEmailVerified) {
-        let token =jwt.sign({ email: req.body.email, _id: user._id, accountUuid: user.accountUuid, isEmailVerified: user.isEmailVerified }, config.secret, {
+        let token = jwt.sign({ email: req.body.email, _id: user._id, accountUuid: user.accountUuid, isEmailVerified: user.isEmailVerified }, config.secret, {
           expiresIn: 3599 // 1 hours
         });
         return res.status(200).send({
@@ -261,7 +261,7 @@ exports.signin = async (req, res) => {
             leadInfo: undefined,
             oneTimeToken: undefined,
             branchInfo: undefined,
-            branchUuid:  undefined      
+            branchUuid: undefined
           }
         }
         );

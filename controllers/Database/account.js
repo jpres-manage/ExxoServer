@@ -661,6 +661,7 @@ const AccountController = {
     updateAccountProfileByEmail,
     updateProfileImage,
     updatePhoneVerification,
-    createIBClientTree
+    createIBClientTree,
+    getTotalIBOwnUsers
 }
 module.exports = AccountController; 

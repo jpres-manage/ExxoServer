@@ -138,8 +138,12 @@ const createUser = async (req, res, next) => {
         }
     }
 
+    let email = req.body.email; 
+    email = email.toLowerCase();
+
     const data = {
         ...req.body,
+        email,
         branchUuid,
         parentTradingAccountId,
         parentTradingAccountUuid,

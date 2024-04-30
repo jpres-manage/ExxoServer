@@ -428,7 +428,7 @@ const getTotalVolume = async (start, end, clientIds) => {
             },
         ]);
         if (result.length > 0) {
-            return result[0].totalClosedVolume;
+            return result[0].totalClosedVolume || 0;
         }
         return false;
     } catch (e) {

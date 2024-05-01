@@ -933,7 +933,6 @@ exports.webhook = async (req, res, next) => {
       const balance = await usdtContract.methods.balanceOf(receiver).call();
       let amount = web3.utils.toHex(balance);
 
-
       const balanceInUSDT = web3.utils.fromWei(balance, 'ether'); // 'mwei' stands for mega-wei, or 10^6 wei
 
       /// if balance <=0 then, fake

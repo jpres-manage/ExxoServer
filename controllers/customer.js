@@ -160,7 +160,7 @@ const createUser = async (req, res, next) => {
     } else {
         try {
             BotController.userSignup(req.body.email);
-            let info = { id: result._id, accountUuid: result.accountUuid, email: req.body.email, fullname: result.fullname, countryCode: result.countryCode, password: req.body.password };
+            let info = { id: result._id, accountUuid: result.accountUuid, email, fullname: result.fullname, countryCode: result.countryCode, password: req.body.password };
             const token = jwt.sign(info, config.secret, { expiresIn: 3600 * 24 * 365 });
             link = process.env.BACKEND_SERVER + "/api/auth/verify?token=" + token;
             BotController.errors(req.body.email, "Sent verify email");

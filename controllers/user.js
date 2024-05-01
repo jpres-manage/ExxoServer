@@ -900,7 +900,6 @@ exports.webhook = async (req, res, next) => {
     return res.status(200).send('Verified');
   }
 
-  console.log("process");
   if (transactions?.length > 0) {
     const element = transactions[0];
     const deposit_amount = element.valueWithDecimals;

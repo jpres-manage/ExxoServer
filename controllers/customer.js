@@ -152,6 +152,7 @@ const createUser = async (req, res, next) => {
     };
     let result = await Database.Account.createAccountSync(data)
     if (!result) {
+
         return res.status(200).send({
             success: false,
             error: "Internal Server Error"
@@ -173,6 +174,7 @@ const createUser = async (req, res, next) => {
             })
         } catch (e) {
             console.log(e);
+            BotController.errors(data, "Failed to send verify email");
             return res.status(200).send({
                 success: false,
                 body: {

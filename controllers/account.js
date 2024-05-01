@@ -48,8 +48,7 @@ const createTradingAccount = async (req, res, next) => {
       SysLogController.logUserCreateTradingAccount({ email, accountUuid }, actionStatus.FAILED);
     }
   } catch (e) {
-    console.log(e);
-    BotController.errors(e, "createTradingAccount");
+    BotController.errors(req.email, "Failed to create trading account");
   }
 
   return res.status(200).send({

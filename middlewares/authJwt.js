@@ -6,7 +6,6 @@ const BotController = require("../controllers/Bot/index.js");
 
 const verifyToken = (req, res, next) => {
   let token = req.headers["authorization"];
-  console.log(token);
   try {
     let token = req.headers["authorization"];
     if (!token) {
@@ -18,10 +17,7 @@ const verifyToken = (req, res, next) => {
     req.isEmailVerified = decode.isEmailVerified; 
     req._id = decode._id;
     next();
-
   } catch (e) {
-    console.log(e);
-    BotController.errors("Unauthorized");
     return res.status(401).send({ message: "Unauthorized!" });
   }
 };

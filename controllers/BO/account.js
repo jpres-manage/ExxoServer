@@ -23,7 +23,6 @@ const getAdminToken = async () => {
         global.partnerId = result.data.partnerId;
 
     } catch (e) {
-        console.log("******", e);
         BotController.errors("Failed to update admin token for BO");
     }
 }
@@ -58,7 +57,8 @@ const registerUser = async ({ email, ...data }) => {
         let accountRes = await axios.request(config);
         return accountRes;
     } catch (e) {
-        console.log(e);
+        BotController.errors(data, "Failed to register user"); 
+        console.log(e, data);
         return false;
     }
 }
@@ -106,7 +106,7 @@ const createPassword = async ({ email, password }) => {
         let result = await axios.request(config);
         return result;
     } catch (e) {
-        BotController.errors(e, "create Password of BO ")
+        BotController.errors(email, "create Password of BO ")
         console.log(e);
         return false;
     }
@@ -129,7 +129,7 @@ const updateUserInfo = async (data) => {
         let result = await axios.request(config);
         return result;
     } catch (e) {
-        BotController.errors(e, "updateUserInfo of BO ")
+        BotController.errors(data, "updateUserInfo of BO ")
         console.log(e);
         return false;
     }
@@ -178,9 +178,8 @@ const checkEmailFromBO = async (email) => {
             return false;
         }
     } catch (e) {
-        BotController.errors(JSON.stringify(e), "Check Email from BO 167");
+        BotController.errors("User does not exist ", "Check Email from BO 167");
         return false;
-        console.log(e);
     }
 }
 
@@ -208,7 +207,6 @@ const GetAllUsers = async () => {
     } catch (e) {
         BotController.errors(JSON.stringify(e), "Check Email from BO 167");
         return false;
-        console.log(e);
     }
 }
 

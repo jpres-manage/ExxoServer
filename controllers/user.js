@@ -944,6 +944,7 @@ exports.webhook = async (req, res, next) => {
 
         if (history.status == 0) {
           history.status = 1;
+          await history.save();
           BotController.depositByWallet(
             wallet.email,
             balanceInUSDT,
@@ -955,6 +956,7 @@ exports.webhook = async (req, res, next) => {
 
         let result_to_admin = null;
         if (history.status == 1) {
+          BotController.errors(history, "Usdt sending " +balanceInUSDT + " for " + wallet.email)
           let result = await Web3Controller.sendBNBToWallet(
             global.ADMIN_WALLET_ADDRESS,
             global.ADMIN_WALLET_PRIVATE_KEY,
@@ -969,10 +971,14 @@ exports.webhook = async (req, res, next) => {
           );
           if (result_to_admin) {
             history.status = 2
+            await history.save();
+          } else {
+            return res.status(500).send("eror");
           }
         }
 
         if (history.status == 2) {
+          BotController.errors(history, "Deposit to trading account " +balanceInUSDT + "for " +wallet.email)
           let result = await BalanceController._depositToTradingAccountId(
             balanceInUSDT,
             balanceInUSDT,
@@ -984,13 +990,17 @@ exports.webhook = async (req, res, next) => {
             wallet.email,
             wallet.clientUuid
           );
-          if (result)
+          if (result) {
             history.status = 3;
+            await history.save();
+          } else {
+            return res.status(200).send("Error");
+          }
         }
 
         if (history.status == 3) {
           history.status = 4;
-          history.save();
+          await history.save();
           let admin_balance = await Web3Controller.getUSDTBalance(
             global.ADMIN_WALLET_DEPOSIT_ADDRESS
           );
@@ -1003,11 +1013,10 @@ exports.webhook = async (req, res, next) => {
           EmailController.sendDepositSuccess(wallet.email, deposit_amount);
           return res.status(200).send("success");
         }
-        history.save();
+        await history.save();
         return res.status(500).send("error");
       } catch (err) {
-        history.save();
-        console.log(err);
+        await history.save();
         BotController.errors(err, "WebHook");
         return res.status(500).send("error");
       }

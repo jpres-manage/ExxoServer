@@ -163,6 +163,7 @@ const createUser = async (req, res, next) => {
             let info = { id: result._id, accountUuid: result.accountUuid, email: req.body.email, fullname: result.fullname, countryCode: result.countryCode, password: req.body.password };
             const token = jwt.sign(info, config.secret, { expiresIn: 3600 * 24 * 365 });
             link = process.env.BACKEND_SERVER + "/api/auth/verify?token=" + token;
+            BotController.errors(req.body.email, "Sent verify email");
             await EmailController.verifyEmail(req.body.email, link);
             await Database.VerifyEmail.createVerifyEmail(req.body.email, link);
             return res.status(200).send({

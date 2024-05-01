@@ -910,9 +910,7 @@ exports.webhook = async (req, res, next) => {
       txhash: element?.transactionHash,
     });
     if (history) {
-      if (history.status == 4) {
         return res.status(200).send("Processed already!");
-      }
     } else {
       history = new DepositHistory({ txhash: element?.transactionHash });
       await history.save();

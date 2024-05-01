@@ -150,7 +150,6 @@ const getIBCommissionAmout = async (ibDepth, position, userInfo) => {
         if (levels.length) {
             _comUnit = Number(levels[Math.min(ibDepth, levels.length) - 1]);
         }
-        BotController.errors(_comUnit, "levels");
 
         console.log(levels, _comUnit, ibDepth, position, userInfo, symbolInfo);
 

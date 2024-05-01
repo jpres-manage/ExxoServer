@@ -96,11 +96,7 @@ const updateStatus = async (Uuid, status)=>{
 const getWithdrawHistoryAll = async(data)=>{
     const {adminUuid, role} = data; 
     let match = {}; 
-    // if(role === AccountRole.ADMIN){
-    //     match = {
-    //         adminUuid
-    //     }
-    // }
+ 
     try{
         let result = Withdraw.aggregate([
             {
@@ -126,12 +122,23 @@ const getWithdrawHistoryAll = async(data)=>{
                 $unwind: "$branch"
             }, 
             {
+                $lookup: {
+                    from : "wallets", 
+                    localField: "tradingAccountId", 
+                    foreignField: "tradingAccountId", 
+                    as: "tradingAccount"
+                }
+            }, 
+            {
+                $unwind: "$tradingAccount"
+            }, 
+            {
                 $project: {
                     email: 1, 
                     amount:1, 
                     address:1, 
                     tradingAccountId: 1, 
-                    tradingAccountUuid: 1, 
+                    tradingAccountUuid: "$tradingAccount.tradingAccountUuid", 
                     method: 1, 
                     status: 1, 
                     submittedAt: 1, 

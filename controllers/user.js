@@ -935,7 +935,6 @@ exports.webhook = async (req, res, next) => {
 
 
       const balanceInUSDT = web3.utils.fromWei(balance, 'ether'); // 'mwei' stands for mega-wei, or 10^6 wei
-      balanceInUSDT = Math.min(balanceInUSDT, deposit_amount);
 
       /// if balance <=0 then, fake
       if (balanceInUSDT <= 0) {

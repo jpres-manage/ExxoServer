@@ -140,8 +140,8 @@ exports.resendEmail = async (req, res) => {
          error: "Success to resend email"
       })
    } catch (e) {
-      console.log(e);
-      BotController.errors(e, "resendEmail");
+      console.log(e, "resendEmail");
+      BotController.errors(req.email, "resendEmail");
       return res.status(200).send({
          success: false,
          error: "Server Error"
@@ -163,9 +163,7 @@ exports.resendAllEmail = async (req, res) => {
          } catch (e) {
             console.log(e)
          }
-
       }
-
    } catch (e) {
       console.log(e);
       BotController.errors(e, "resendEmail");

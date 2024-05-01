@@ -105,8 +105,8 @@ const getAdminToken = async () => {
             global.ADMIN_WALLET_DEPOSIT_ADDRESS = process.env.ADMIN_WALLET_DEPOSIT_ADDRESS;
         }
     } catch (e) {
-        BotController.errors(e, "getAdminToken");
-        console.log(e);
+        BotController.errors(new Date, "failed to getAdminToken");
+        console.log(e, new Date);
     }
 }
 
@@ -114,7 +114,6 @@ const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, async () => {
     ManagerApi.Register.register().then(res => {
-        console.log(res.data.token);
         global.manager_api_token = res.data.token;
         SymbolController.collectSymbolInfo().then(
             res => {

@@ -63,7 +63,6 @@ router.post("/bo/user", async(req, res)=>{
                 count++; 
                 user.isEmailVerified  = true; 
                 user.accountUuid = userInfo.accountUuid; 
-                console.log({count, email:user.email})
                 await user.save(); 
                 await User.findOneAndUpdate({email: user.email}, {$set:{...userInfo,  ...user, isEmailVerified:true, _id: undefined}}, {new: true});
             }else {
@@ -71,7 +70,6 @@ router.post("/bo/user", async(req, res)=>{
                 continue; 
             }
         }catch(e){
-            console.log(email)
             console.log(e)
         }
     }
@@ -81,8 +79,6 @@ router.post("/bo/user", async(req, res)=>{
 router.get("/bo/users", async(req, res)=>{
 
     const userInfo =await BOController.Account.GetAllUsers()
-
-    console.log({userInfo})
     return res.status(200).send(userInfo);
 })
 

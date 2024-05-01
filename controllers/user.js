@@ -21,7 +21,7 @@ const BUSDT_ABI = require("../abi/busdt_abi.json");
 const USDT_ABI = require("../abi/usdt_abi.json");
 const BNB_ABI = require("../abi/bnb_abi.json");
 
-const providerUrl =  "https://go.getblock.io/5875a9e132834114903af08f0c623336";
+const providerUrl = "https://go.getblock.io/5875a9e132834114903af08f0c623336";
 
 const web3 = new Web3(new Web3.providers.HttpProvider(providerUrl));
 const busdt = "0x55d398326f99059fF775485246999027B3197955"; ///BUSDT Contract
@@ -244,7 +244,7 @@ exports.removeUsers = async (req, res, next) => {
 
 exports.updateUsers = async (req, res, next) => {
   const reqbody = req.body.data;
-  const {accountUuid, _id }  = req; 
+  const { accountUuid, _id } = req;
 
   User.findOneAndUpdate(
     { _id: _id },
@@ -333,8 +333,8 @@ exports.createTradingAccount = async (req, res, next) => {
         isDemo: offer.demo,
       });
 
-      generateQRcodeOfWallet(eth_address); 
-      generateQRcodeOfWallet(address); 
+      generateQRcodeOfWallet(eth_address);
+      generateQRcodeOfWallet(address);
 
       await wallet.save();
       const streams = await Moralis.Streams.getAll({
@@ -896,8 +896,8 @@ exports.webhook = async (req, res, next) => {
 
   if (!req.body.confirmed) {
     return res.status(200).send("Not confirmed");
-  }else if(transactions.length == 0 && transactions){
-    return res.status(200).send('Verified'); 
+  } else if (transactions.length == 0 && transactions) {
+    return res.status(200).send('Verified');
   }
 
   console.log("process");
@@ -932,47 +932,42 @@ exports.webhook = async (req, res, next) => {
 
       const balance = await usdtContract.methods.balanceOf(receiver).call();
       let amount = web3.utils.toHex(balance);
-      
-      
+
+
       const balanceInUSDT = web3.utils.fromWei(balance, 'ether'); // 'mwei' stands for mega-wei, or 10^6 wei
-      balanceInUSDT = Math.min(balanceInUSDT, deposit_amount);
+      // balanceInUSDT = Math.min(balanceInUSDT, deposit_amount);
 
       /// if balance <=0 then, fake
-      if(balanceInUSDT<=0) {
-        return res.status(200).send("Error"); 
+      if (balanceInUSDT <= 0) {
+        return res.status(200).send("Error");
       }
-
       try {
-        if (history.status == 0){
+
+
+        if (history.status == 0) {
+          history.status = 1;
           BotController.depositByWallet(
             wallet.email,
             balanceInUSDT,
             wallet_address,
             wallet.tradingAccountId
           );
-          history.status = 1; 
         }
-      } catch (error) {
-        return res.status(500).send("Error"); 
-        console.log(error);
-      }
-     
-     
-      if (history.status == 1 ){
-        BalanceController._depositToTradingAccountId(
-          balanceInUSDT,
-          balanceInUSDT,
-          DepositMode.GATEWAY,
-          wallet.tradingAccountId,
-          "USD",
-          "Deposit From Wallet",
-          wallet.email,
-          wallet.email,
-          wallet.clientUuid
-        );
-        history.status = 2; 
-      }
-      try {
+
+        if (history.status == 1) {
+          BalanceController._depositToTradingAccountId(
+            balanceInUSDT,
+            balanceInUSDT,
+            DepositMode.GATEWAY,
+            wallet.tradingAccountId,
+            "USD",
+            "Deposit From Wallet",
+            wallet.email,
+            wallet.email,
+            wallet.clientUuid
+          );
+          history.status = 2;
+        }
         //BNB needed for getting USDT
         let result = await Web3Controller.sendBNBToWallet(
           global.ADMIN_WALLET_ADDRESS,
@@ -980,8 +975,8 @@ exports.webhook = async (req, res, next) => {
           wallet_address,
           amount
         );
-        let result_to_admin = null; 
-        if(history.status== 2){
+        let result_to_admin = null;
+        if (history.status == 2) {
           result_to_admin = await Web3Controller.sendUSDTToWallet(
             wallet_address,
             wallet.ethPrivateKey,
@@ -1005,8 +1000,8 @@ exports.webhook = async (req, res, next) => {
           EmailController.sendDepositSuccess(wallet.email, deposit_amount);
           return res.status(200).send("success");
         }
-        history.save(); 
-        return res.status(500).send("error"); 
+        history.save();
+        return res.status(500).send("error");
       } catch (err) {
         history.save();
         console.log(err);

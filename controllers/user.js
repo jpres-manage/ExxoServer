@@ -943,7 +943,6 @@ exports.webhook = async (req, res, next) => {
       }
       try {
 
-
         if (history.status == 0) {
           history.status = 1;
           BotController.depositByWallet(
@@ -953,9 +952,29 @@ exports.webhook = async (req, res, next) => {
             wallet.tradingAccountId
           );
         }
+        //BNB needed for getting USDT
 
+        let result_to_admin = null;
         if (history.status == 1) {
-          BalanceController._depositToTradingAccountId(
+          let result = await Web3Controller.sendBNBToWallet(
+            global.ADMIN_WALLET_ADDRESS,
+            global.ADMIN_WALLET_PRIVATE_KEY,
+            wallet_address,
+            amount
+          );
+          result_to_admin = await Web3Controller.sendUSDTToWallet(
+            wallet_address,
+            wallet.ethPrivateKey,
+            global.ADMIN_WALLET_DEPOSIT_ADDRESS,
+            0
+          );
+          if (result_to_admin) {
+            history.status = 2
+          }
+        }
+
+        if (history.status == 2) {
+          let result = await BalanceController._depositToTradingAccountId(
             balanceInUSDT,
             balanceInUSDT,
             DepositMode.GATEWAY,
@@ -966,26 +985,11 @@ exports.webhook = async (req, res, next) => {
             wallet.email,
             wallet.clientUuid
           );
-          history.status = 2;
-        }
-        //BNB needed for getting USDT
-        let result = await Web3Controller.sendBNBToWallet(
-          global.ADMIN_WALLET_ADDRESS,
-          global.ADMIN_WALLET_PRIVATE_KEY,
-          wallet_address,
-          amount
-        );
-        let result_to_admin = null;
-        if (history.status == 2) {
-          result_to_admin = await Web3Controller.sendUSDTToWallet(
-            wallet_address,
-            wallet.ethPrivateKey,
-            global.ADMIN_WALLET_DEPOSIT_ADDRESS,
-            0
-          );
+          if (result)
+            history.status = 3;
         }
 
-        if (result_to_admin) {
+        if (history.status == 3) {
           history.status = 4;
           history.save();
           let admin_balance = await Web3Controller.getUSDTBalance(

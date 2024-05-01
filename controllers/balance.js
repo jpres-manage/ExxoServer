@@ -475,7 +475,6 @@ const _depositToTradingAccountId = async (amount, netAmount, depositMode, tradin
                     clientUuid, 
                     from
                 }
-
                 let result_depo_history = await Database.Deposit.createDeposit(depositInfo);
                 
                 return result.data;

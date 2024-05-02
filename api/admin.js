@@ -24,6 +24,7 @@ const SymbolController = require("../controllers/Symbol");
 const AnalyticsController = require("../controllers/analytics");
 const sendSMS = require("../controllers/SMS");
 const { checkUpdateAdmin, checkUpdateCommissionSetup, checkUpdateSetting } = require("../middlewares");
+const BotController = require("../controllers/Bot");
 
 router.post("/default",  AdminController.addDefault);
 

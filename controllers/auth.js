@@ -312,6 +312,8 @@ exports.signin = async (req, res) => {
 
 };
 exports.getAdmins = (req, res) => {
+
+   
    Admin.find({}).exec((err, result) => {
       if (err) {
          console.log(err);
@@ -322,12 +324,18 @@ exports.getAdmins = (req, res) => {
    });
 }
 exports.updateAdmin = (req, res) => {
+
    if (!req.body) {
       return res.status(500).send({ message: "Request error!" });
    }
+
    const { name, email, role, subRole } = req.body;
    const password = bcrypt.hashSync(req.body.password, 8);
    const createdAt = new Date();
+   const {admin, remoteIp} = req;
+   if(admin){
+      BotController.sendAdminLog(admin.email, remoteIp, `Created Admin ${name}  ${email}`)
+   }
    Admin.findOne({ email }, async function (err, result) {
       if (err) {
          console.log(err);

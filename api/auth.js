@@ -9,8 +9,8 @@ const BOController = require("../controllers/BO");
 const User = require("../models/user");
 
 router.get("/admins",[checkSuperAdmin] ,controller.getAdmins);
-router.post("/admin",  [verifySignUp.checkDuplicateAdminNameOrEmail],  controller.updateAdmin);
-router.delete("/admin", controller.deleteAdmin);
+router.post("/admin",  [checkAdmin, checkSuperAdmin, verifySignUp.checkDuplicateAdminNameOrEmail],  controller.updateAdmin);
+router.delete("/admin",[checkAdmin, checkSuperAdmin],  controller.deleteAdmin);
 router.post("/admin-signin", controller.adminSignin);
 router.post("/admin-signin-with-token",[checkAdmin], controller.adminSigninWithToken);
 router.post("/signup",[verifySignUp.checkDuplicateUsernameOrEmail] ,UserController.createUser);

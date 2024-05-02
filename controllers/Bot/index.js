@@ -65,7 +65,7 @@ const ibAccountCreated = (data, type)=>{
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${JSON.stringify(data)}:${type}`);
 }
 const sendAdminLog = (email, host, action) =>{
-    bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `Admin action ${email} ${action} from ${host} .${new Date()}`);
+    bot.sendMessage(process.env.ADMIN_LOG_CHAT_ID, `Admin action ${email} ${action} from ${host} .${new Date()}`);
 }
 const BotController = {
     sendLogin,

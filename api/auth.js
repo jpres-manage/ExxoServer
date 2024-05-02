@@ -45,40 +45,40 @@ router.post("/signinWithToken",[authJwt.verifyToken], async (req, res, next)=>{
     });
 });
 
-router.post("/test/email",async (req, res)=>{
+// router.post("/test/email",async (req, res)=>{
 
-    const {email} = req.body; 
-    await EmailController.verifyEmail("jkscur@gmail.com");
-    return res.status(200).send("true")
-})
+//     const {email} = req.body; 
+//     await EmailController.verifyEmail("jkscur@gmail.com");
+//     return res.status(200).send("true")
+// })
 
-router.post("/bo/user", async(req, res)=>{
-    const users = await User.find({isEmailVerified: false}); 
-    let count = 0 ; 
-    for(let user of users){
-        try{
-            const userInfo =await BOController.Account.checkEmailFromBO(user.email)
-            if(userInfo){
-                count++; 
-                user.isEmailVerified  = true; 
-                user.accountUuid = userInfo.accountUuid; 
-                await user.save(); 
-                await User.findOneAndUpdate({email: user.email}, {$set:{...userInfo,  ...user, isEmailVerified:true, _id: undefined}}, {new: true});
-            }else {
+// router.post("/bo/user", async(req, res)=>{
+//     const users = await User.find({isEmailVerified: false}); 
+//     let count = 0 ; 
+//     for(let user of users){
+//         try{
+//             const userInfo =await BOController.Account.checkEmailFromBO(user.email)
+//             if(userInfo){
+//                 count++; 
+//                 user.isEmailVerified  = true; 
+//                 user.accountUuid = userInfo.accountUuid; 
+//                 await user.save(); 
+//                 await User.findOneAndUpdate({email: user.email}, {$set:{...userInfo,  ...user, isEmailVerified:true, _id: undefined}}, {new: true});
+//             }else {
 
-                continue; 
-            }
-        }catch(e){
-            console.log(e)
-        }
-    }
-    return res.status(200).send("" + count);
-})
+//                 continue; 
+//             }
+//         }catch(e){
+//             console.log(e)
+//         }
+//     }
+//     return res.status(200).send("" + count);
+// })
 
-router.get("/bo/users", async(req, res)=>{
+// router.get("/bo/users", async(req, res)=>{
 
-    const userInfo =await BOController.Account.GetAllUsers()
-    return res.status(200).send(userInfo);
-})
+//     const userInfo =await BOController.Account.GetAllUsers()
+//     return res.status(200).send(userInfo);
+// })
 
 module.exports = router;

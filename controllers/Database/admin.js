@@ -47,6 +47,7 @@ const createAdmin = async (data) => {
 
 const updateAdminInfo = async (email, data) => {
   try {
+    
     let result = await Admin.findOneAndUpdate(
       { email },
       { ...data },

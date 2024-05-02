@@ -6,16 +6,21 @@ const { AccountRole, AdminRole } = require("../controllers/constant");
 
 const checkAdmin = async (req, res, next) => {
     const admin = getEmailFromToken(req);
+
     if (!admin) {
         return res.status(401).send({ error: "Unauthorized User" });
     }
     if(admin.enable2FA && !admin.verified_2fa ){
         return res.status(405).send({ error: "Unauthorized User" });
     }
+    const ip = req.connection.remoteAddress; 
+
     req.email = admin.email;
     req.adminUuid = admin.adminUuid;
     req.role = admin.role;
     req.admin = admin;
+    req.remoteIp =ip; 
+    
     next();
 }
 const checkAdminWithout2FA = async (req, res, next) => {

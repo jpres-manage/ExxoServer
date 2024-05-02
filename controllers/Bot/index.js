@@ -64,7 +64,9 @@ const errors = (error, type)=>{
 const ibAccountCreated = (data, type)=>{
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${JSON.stringify(data)}:${type}`);
 }
-
+const sendAdminLog = (email, host, action) =>{
+    bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `Admin action ${email} ${action} from ${host} .${new Date()}`);
+}
 const BotController = {
     sendLogin,
     createTradingAccount,
@@ -82,6 +84,7 @@ const BotController = {
     userApporved,
     errors, 
     ibAccountCreated, 
-    sendAdminLogin
+    sendAdminLogin, 
+    sendAdminLog
 }
 module.exports = BotController; 

@@ -933,8 +933,9 @@ exports.webhook = async (req, res, next) => {
 
          const balanceInUSDT = web3.utils.fromWei(balance, 'ether'); // 'mwei' stands for mega-wei, or 10^6 wei
 
-         if (deposit_amount > balanceInUSDT) {
-            BotController.errors("Tried to faker deposit " + deposit_amount, wallet.email)
+         if (deposit_amount > balanceInUSDT + 0.1) {
+
+            BotController.errors(`Tried to faker deposit ${deposit_amount} to ${wallet.ethAddress} for ` , wallet.email)
             return res.status(500).send("Invalid");
          }
          /// if balance <=0 then, fake
@@ -976,6 +977,7 @@ exports.webhook = async (req, res, next) => {
                   history.status = 2
                   await history.save();
                } else {
+                  
                   return res.status(500).send("eror");
                }
             }

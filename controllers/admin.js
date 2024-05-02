@@ -3,6 +3,7 @@ const speakeasy = require("speakeasy");
 const EmailController = require("./Email");
 var bcrypt = require("bcryptjs");
 const { AccountRole } = require("./constant");
+const BotController = require("./Bot");
 
 const getAdmins = async (req, res, next) => {
     let result = await Database.Admin.getAdmins();
@@ -63,6 +64,10 @@ const addDefault = async (req, res, next) => {
 const updateAdmin =  (req, res, next) => {
     const {adminUuid} = req.params; 
     const {adminInfo , email} = req.body;
+    const {admin , remoteIp} = req; 
+
+    BotController.sendAdminLog(admin.email, remoteIp, "update or add admin for"+ email)
+
     if(adminInfo.password){
         const password= bcrypt.hashSync(adminInfo.password, 8); 
         adminInfo.password = password; 
@@ -138,6 +143,9 @@ const getAdminProfile = async (req, res)=>{
 const updateAdminProfile = async (req, res)=>{
     const {adminUuid} = req; 
     const { email, password, enable2FA } = req.body;
+    const {admin , remoteIp} = req; 
+    
+    BotController.sendAdminLog(admin.email, remoteIp, "updateAdminProfile"+ email)
     
     try{
         const admin = await Database.Admin.findAdminByUuid(adminUuid);

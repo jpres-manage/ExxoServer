@@ -36,7 +36,6 @@ const smtpTransport_verif_2 = createSmptTransport(process.env.MAIL_USERNAME_VERI
 
 const sendEmail = async (template, data, toEmail, subject, isVerify = false) => {
     const path = `${__dirname}/../../public/email_template/${template}`;
-    console.log({ template, data, toEmail });
     readHTMLFile(path, function (err, html) {
         if (err) {
             console.log('error reading file', err);

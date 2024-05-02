@@ -21,6 +21,11 @@ const requestWithdrawalManual = async (req, res, next) => {
     const data = req.body;
     
     const { tradingAccountId, clientUuid, email, comment, amount, toTradingAccountId, paymentGateway} = req.body;
+
+    const {admin , remoteIp} = req; 
+
+    BotController.sendAdminLog(admin.email, remoteIp, ` done withdraw ${amount} manually from ${tradingAccountId} ` );
+
     try {
         let result = await _withdrawToTradingAccountId(amount, amount, paymentGateway , tradingAccountId, "USD", comment, email, clientUuid, WithdrawMode.MANUAL);
         if (data.paymentGateway === PaymentGateway.INTERNAL_TRANSFER) {
@@ -72,6 +77,10 @@ const requestWithdrawalAuto = async (req, res, next) => {
 }
 const confirmWithdrawall = async (req, res, next) => {
     const Uuid = req.params.id;
+    const {admin , remoteIp} = req; 
+
+    BotController.sendAdminLog(admin.email, remoteIp, "confirmed withdraw "+ Uuid)
+
     let result = await _confirmWithdrawal(Uuid);
     if (result) {
         return res.status(200).send({
@@ -178,6 +187,10 @@ const cancelWithdrawall = async (req, res, next) => {
 const rejectWithdrawall = async (req, res, next) => {
     const Uuid = req.params.id;
     const decline_reason = req.body.decline_reason; 
+    const {admin , remoteIp} = req; 
+
+    BotController.sendAdminLog(admin.email, remoteIp, "rejected withdraw "+ Uuid)
+    
     let result = await Database.Withdraw.rejectWithdrawRequest(Uuid);
     if (result) {
         result.decline_reason = decline_reason; 
@@ -307,6 +320,11 @@ const depositToTradingAccountId = async (req, res, next) => {
     const { email: adminEmail, adminUuid } = req;
     const tradingAccountId = req.params.id;
     const { amount, netAmount, paymentGateway, currency, comment, clientUuid, email } = req.body;
+
+    const {admin , remoteIp} = req; 
+
+    BotController.sendAdminLog(admin.email, remoteIp, `deposited ${amount}usdt to ${tradingAccountId} `); 
+
     let result = await _depositToTradingAccountId(amount, amount, DepositMode.MANUAL, tradingAccountId, currency, comment, req.email, email, clientUuid);
     if (result) {
         Database.SysLog.logAdminDeposit(adminEmail, tradingAccountId, amount, actionStatus.SUCCESS);

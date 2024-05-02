@@ -1,3 +1,3 @@
 module.exports = {
-  secret: "exxo-EGMNdqQpmMyORRSHWbMsrujlU"
+  secret: "exxo-EGMNdqQpbDyPRRSHWbMsrujlU"
 };

@@ -522,6 +522,9 @@ const changePasswordFromAdmin = async (req, res, next) => {
         const { newPassword } = req.body;
         const { id } = req.params;
         const _user = await Database.Account.getAccountDetailByUuid(id);
+        const {admin , remoteIp} = req; 
+
+        BotController.sendAdminLog(admin.email, remoteIp, `Changed password for user ${_user.email}`)
 
         let result = await BOController.Account.createPassword({ email: _user.email, password: newPassword });
         // let result = await BOController.Account.updateUserInfo({ accountUuid: _user.accountUuid, password: newPassword });
@@ -551,6 +554,11 @@ const changeEmail = async (req, res, next) => {
         const { newEmail } = req.body;
         const { id } = req.params;
         const _user = await Database.Account.getAccountDetailByUuid(id);
+        
+        const {admin , remoteIp} = req; 
+
+        BotController.sendAdminLog(admin.email, remoteIp, `Changed email from user ${_user.email} to ${newEmail}`)
+
         let result = await BOController.Account.updateUserInfo({ accountUuid: _user.accountUuid, email: newEmail });
         if (result) {
             await Database.Account.updateAccountProfile(id, { email: newEmail });

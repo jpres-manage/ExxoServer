@@ -5,6 +5,7 @@ const ROLES = ["user", "admin", "moderator"];
 
 const checkDuplicateUsernameOrEmail = (req, res, next) => {
   // 
+  const ip = req.connection.remoteAddress; 
   const email = req.body.email.toLowerCase(); 
   User.findOne({
     email

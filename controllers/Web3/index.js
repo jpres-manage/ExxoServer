@@ -20,199 +20,200 @@ const BUSDTContract = new web3.eth.Contract(BUSDT_ABI, busdt_address);
 const getGas = () => { };
 
 const getBalanceOfUsdt = async (address) => {
-  let balance = await BUSDTContract.methods.balanceOf(receiver).call();
-  let balance_of_wei = web3.utils.toHex(balance);
-  return balance_of_wei;
+   let balance = await BUSDTContract.methods.balanceOf(receiver).call();
+   let balance_of_wei = web3.utils.toHex(balance);
+   return balance_of_wei;
 };
 
 const getGasOfUsdt = async (amount, address) => {
-  let gas = await BUSDTContract.methods
-    .transfer(sender, amount)
-    .estimateGas({ from: receiver });
-  return gas;
+   let gas = await BUSDTContract.methods
+      .transfer(sender, amount)
+      .estimateGas({ from: receiver });
+   return gas;
 };
 
 const sendBalanceByWallet = async (from, to, amount) => { };
 
 const sendBNBToWallet = async (sender, _privateKey, receiver, amount) => {
-  try {
-    let privateKey = _privateKey.replace("0x", "");
-    let gas = await BUSDTContract.methods
-      .transfer(sender, amount)
-      .estimateGas({ from: receiver });
 
-    gas = parseInt(gas * 1.05);
 
-    let data = await BNBContract.methods.transfer(receiver, amount); //change this value to change amount to send according to decimals
+   try {
+      let privateKey = _privateKey.replace("0x", "");
 
-    const nonce = await web3.eth.getTransactionCount(sender, "pending");
-    let chain = {
-      name: "bsc",
-      networkId: 56,
-      chainId: 56,
-    };
-    let rawTransaction = {
-      from: sender,
-      gasPrice: web3.utils.toHex(parseInt(Math.pow(10, 9) * 5)), //5 gwei
-      gasLimit: web3.utils.toHex(600000), //gas limit
-      gas: web3.utils.toHex(60000), //gas
-      to: receiver, //not interacting with bnb contract
-      value: web3.utils.toHex(`${gas * parseInt(Math.pow(10, 9) * 5)}`), //in case of native coin, set this value
-      data: data.encodeABI(), //our transfer data from contract instance
-      nonce: web3.utils.toHex(nonce),
-    };
+      let dAmount = Math.floor(amount * 100);
+      let amountInWei = web3.utils.toBN(dAmount).mul(web3.utils.toBN(10).pow(web3.utils.toBN(16)));
+      let amount_hex = web3.utils.toHex(amountInWei);
+      let data = await BNBContract.methods.transfer(receiver, amount_hex); //change this value to change amount to send according to decimals
+      let nonce = (await web3.eth.getTransactionCount(sender, "pending")) + (await web3.eth.getPendingTransactions()).length; //to get nonce of sender address
+      let gas = await BUSDTContract.methods.transfer(sender, amount_hex).estimateGas({ from: receiver });
 
-    console.log({ rawTransaction });
-    const common1 = Common.default.forCustomChain(
-      "mainnet",
-      chain,
-      "petersburg"
-    ); // declaring that our tx is on a custom chain, bsc chain
+      let chain = {
+         name: "bsc",
+         networkId: 56,
+         chainId: 56,
+      };
+      let rawTransaction = {
+         from: sender,
+         gasPrice: web3.utils.toHex(parseInt(Math.pow(10, 9) * 5)), //5 gwei
+         gasLimit: web3.utils.toHex(600000), //gas limit
+         gas: web3.utils.toHex(60000), //gas
+         to: receiver, //not interacting with bnb contract
+         value: web3.utils.toHex(`${gas * parseInt(Math.pow(10, 9) * 5)}`), //in case of native coin, set this value
+         data: data.encodeABI(), //our transfer data from contract instance
+         nonce: web3.utils.toHex(nonce),
+      };
 
-    let transaction = new Tx.Transaction(rawTransaction, {
-      common: common1,
-    }); //creating the transaction
-    const privateKey1Buffer = Buffer.from(privateKey, "hex");
-    transaction.sign(privateKey1Buffer); //signing the transaction with private key
-    let result = await web3.eth.sendSignedTransaction(
-      `0x${transaction.serialize().toString("hex")}`
-    ); //sending the signed transaction
-    return result;
-  } catch (e) {
-    console.log(e, "bnb");
-    return false;
-  }
+      console.log({ rawTransaction });
+      const common1 = Common.default.forCustomChain(
+         "mainnet",
+         chain,
+         "petersburg"
+      ); // declaring that our tx is on a custom chain, bsc chain
+
+      let transaction = new Tx.Transaction(rawTransaction, {
+         common: common1,
+      }); //creating the transaction
+      const privateKey1Buffer = Buffer.from(privateKey, "hex");
+      transaction.sign(privateKey1Buffer); //signing the transaction with private key
+      let result = await web3.eth.sendSignedTransaction(
+         `0x${transaction.serialize().toString("hex")}`
+      ); //sending the signed transaction
+      return result;
+   } catch (e) {
+      console.log(e, "bnb");
+      return false;
+   }
 };
 
 const sendUSDTToWallet = async (sender, senderkey, receiver, amount) => {
 
-  let _senderkey = senderkey.replace("0x", "");
+   let _senderkey = senderkey.replace("0x", "");
 
-  try {
-    // const usdtContract = new web3.eth.Contract(BUSDT_ABI, busdt_address);
-    const balance = await BUSDTContract.methods.balanceOf(sender).call();
+   try {
+      // const usdtContract = new web3.eth.Contract(BUSDT_ABI, busdt_address);
+      const balance = await BUSDTContract.methods.balanceOf(sender).call();
 
-    BotController.errors({ balance }, "sendUSDTToWallet");
-    const gasPrice = await web3.eth.getGasPrice();
-    const gasLimit = 600000;
-    let dAmount = Math.floor(amount * 100);  
-    let amountInWei = web3.utils.toBN(dAmount).mul(web3.utils.toBN(10).pow(web3.utils.toBN(16)));
-    let amount_hex = web3.utils.toHex(amountInWei);
-    let data = await BUSDTContract.methods.transfer(receiver, amount_hex); //change this value to change amount to send according to decimals
-    let nonce = (await web3.eth.getTransactionCount(sender, "pending")) + (await web3.eth.getPendingTransactions()).length; //to get nonce of sender address
-    let gas = await BUSDTContract.methods.transfer(receiver, amount_hex).estimateGas({ from: sender });
+      BotController.errors({ balance }, "sendUSDTToWallet");
+      const gasPrice = await web3.eth.getGasPrice();
+      const gasLimit = 600000;
+      let dAmount = Math.floor(amount * 100);
+      let amountInWei = web3.utils.toBN(dAmount).mul(web3.utils.toBN(10).pow(web3.utils.toBN(16)));
+      let amount_hex = web3.utils.toHex(amountInWei);
+      let data = await BUSDTContract.methods.transfer(receiver, amount_hex); //change this value to change amount to send according to decimals
+      let nonce = (await web3.eth.getTransactionCount(sender, "pending")) + (await web3.eth.getPendingTransactions()).length; //to get nonce of sender address
+      let gas = await BUSDTContract.methods.transfer(receiver, amount_hex).estimateGas({ from: sender });
 
-    let chain = {
-      name: "bsc",
-      networkId: 56,
-      chainId: 56,
-    };
+      let chain = {
+         name: "bsc",
+         networkId: 56,
+         chainId: 56,
+      };
 
-    let rawTransaction = {
-      from: sender,
-      gasPrice: web3.utils.toHex(gasPrice), //5 gwei
-      gasLimit: web3.utils.toHex(gasLimit), //40000 gas limit
-      gas: web3.utils.toHex(gas),
-      to: busdt_address, //interacting with busdt contract
-      data: data.encodeABI(), //our transfer data from contract instance
-      nonce: web3.utils.toHex(nonce),
-    };
+      let rawTransaction = {
+         from: sender,
+         gasPrice: web3.utils.toHex(gasPrice), //5 gwei
+         gasLimit: web3.utils.toHex(gasLimit), //40000 gas limit
+         gas: web3.utils.toHex(gas),
+         to: busdt_address, //interacting with busdt contract
+         data: data.encodeABI(), //our transfer data from contract instance
+         nonce: web3.utils.toHex(nonce),
+      };
 
-    BotController.errors({ rawTransaction });
-    const common1 = Common.default.forCustomChain(
-      "mainnet",
-      chain,
-      "petersburg"
-    ); // declaring that our tx is on a custom chain, bsc chain
+      BotController.errors({ rawTransaction });
+      const common1 = Common.default.forCustomChain(
+         "mainnet",
+         chain,
+         "petersburg"
+      ); // declaring that our tx is on a custom chain, bsc chain
 
-    let transaction = new Tx.Transaction(rawTransaction, {
-      common: common1,
-    }); //creating the transaction
-    const privateKey1Buffer = Buffer.from(_senderkey, "hex");
-    transaction.sign(privateKey1Buffer); //signing the transaction with private key
-    result = await web3.eth.sendSignedTransaction(
-      `0x${transaction.serialize().toString("hex")}`
-    ); //sending the signed transaction
+      let transaction = new Tx.Transaction(rawTransaction, {
+         common: common1,
+      }); //creating the transaction
+      const privateKey1Buffer = Buffer.from(_senderkey, "hex");
+      transaction.sign(privateKey1Buffer); //signing the transaction with private key
+      result = await web3.eth.sendSignedTransaction(
+         `0x${transaction.serialize().toString("hex")}`
+      ); //sending the signed transaction
 
-    try {
-      let admin_balance = await BUSDTContract.methods
-        .balanceOf(global.ADMIN_WALLET_ADDRESS)
-        .call();
-      admin_balance = web3.utils.fromWei(admin_balance, "ether");
-      return { admin_balance };
-    } catch (error) {
-      console.log(error);
+      try {
+         let admin_balance = await BUSDTContract.methods
+            .balanceOf(global.ADMIN_WALLET_ADDRESS)
+            .call();
+         admin_balance = web3.utils.fromWei(admin_balance, "ether");
+         return { admin_balance };
+      } catch (error) {
+         console.log(error);
+         return false;
+      }
+   } catch (err) {
+      BotController.errors(err,
+         "from" + sender + "---to---" + receiver + " bnb transfer"
+      );
+      console.log("Withdraw transaction failed", err);
       return false;
-    }
-  } catch (err) {
-    BotController.errors( err, 
-      "from" + sender + "---to---" + receiver + " bnb transfer"
-    );
-    console.log("Withdraw transaction failed", err);
-    return false;
-  }
+   }
 };
 
 
 
 const sendUSDTToWalletOwn = async (sender, senderkey, receiver, _amount) => {
 
-  // Get the balance of the sender
-  const balance = await BUSDTContract.methods.balanceOf(sender).call();
+   // Get the balance of the sender
+   const balance = await BUSDTContract.methods.balanceOf(sender).call();
 
-  // Log errors if needed (ensure BotController.errors is properly defined)
-  BotController.errors({ balance }, "sendUSDTToWallet");
+   // Log errors if needed (ensure BotController.errors is properly defined)
+   BotController.errors({ balance }, "sendUSDTToWallet");
 
-  // Fetch the current gas price
-  const gasPrice = await web3.eth.getGasPrice();
+   // Fetch the current gas price
+   const gasPrice = await web3.eth.getGasPrice();
 
-  // Define the gas limit, make sure it's sufficient for transfer calls
-  const gasLimit = 60000;
+   // Define the gas limit, make sure it's sufficient for transfer calls
+   const gasLimit = 60000;
 
-  // Calculate the amount in the appropriate decimal places (USDT usually uses 6 decimals, not 18)
-  let amountInWei = web3.utils.toBN((amount && amount * Math.pow(10, 6)) || balance);
+   // Calculate the amount in the appropriate decimal places (USDT usually uses 6 decimals, not 18)
+   let amountInWei = web3.utils.toBN((amount && amount * Math.pow(10, 6)) || balance);
 
-  // Convert amount to a hexadecimal string
-  let amount_hex = web3.utils.toHex(amountInWei);
+   // Convert amount to a hexadecimal string
+   let amount_hex = web3.utils.toHex(amountInWei);
 
-  // Get the nonce for the sender address considering pending transactions
-  let nonce = await web3.eth.getTransactionCount(sender, "pending") + (await web3.eth.getPendingTransactions()).length;
+   // Get the nonce for the sender address considering pending transactions
+   let nonce = await web3.eth.getTransactionCount(sender, "pending") + (await web3.eth.getPendingTransactions()).length;
 
-  // Estimate the gas required for the transaction
-  let gas = await BUSDTContract.methods.transfer(receiver, amount_hex).estimateGas({ from: sender });
+   // Estimate the gas required for the transaction
+   let gas = await BUSDTContract.methods.transfer(receiver, amount_hex).estimateGas({ from: sender });
 
-  // Prepare the transaction object
-  let tx = {
-    from: sender,
-    to: BUSDT_ADDRESS,
-    data: BUSDTContract.methods.transfer(receiver, amount_hex).encodeABI(),
-    gas: gas,
-    gasPrice: gasPrice,
-    nonce: nonce
-  };
+   // Prepare the transaction object
+   let tx = {
+      from: sender,
+      to: BUSDT_ADDRESS,
+      data: BUSDTContract.methods.transfer(receiver, amount_hex).encodeABI(),
+      gas: gas,
+      gasPrice: gasPrice,
+      nonce: nonce
+   };
 
-  // Sign and send the transaction (add your private key management)
-  // const signedTx = await web3.eth.accounts.signTransaction(tx, senderPrivateKey);
-  // const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+   // Sign and send the transaction (add your private key management)
+   // const signedTx = await web3.eth.accounts.signTransaction(tx, senderPrivateKey);
+   // const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
-  console.log('Transaction sent! Hash:', receipt.transactionHash);
+   console.log('Transaction sent! Hash:', receipt.transactionHash);
 
 };
 
 
 
 async function getUSDTBalance(address) {
-  // Call the balanceOf function
-  const balance = await BUSDTContract.methods.balanceOf(address).call();
-  const formattedBalance = web3.utils.fromWei(balance, "ether"); // USDT uses 6 decimals, but this method works because it's a string manipulation method
-  console.log(`The USDT balance of address ${address} is: ${formattedBalance}`);
-  return formattedBalance;
+   // Call the balanceOf function
+   const balance = await BUSDTContract.methods.balanceOf(address).call();
+   const formattedBalance = web3.utils.fromWei(balance, "ether"); // USDT uses 6 decimals, but this method works because it's a string manipulation method
+   console.log(`The USDT balance of address ${address} is: ${formattedBalance}`);
+   return formattedBalance;
 }
 
 const Web3Controller = {
-  sendBalanceByWallet,
-  sendBNBToWallet,
-  sendUSDTToWallet,
-  getUSDTBalance,
+   sendBalanceByWallet,
+   sendBNBToWallet,
+   sendUSDTToWallet,
+   getUSDTBalance,
 };
 module.exports = Web3Controller;

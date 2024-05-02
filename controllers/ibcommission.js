@@ -126,13 +126,17 @@ const getIBCommissionHistory = async (req, res, next) => {
 const createCommission = async (req, res, next) => {
 
     let result;
-
+    const { admin, remoteIp } = req;
+   
     if (await Database.Commission.checkCommissionExistByName(req.body.name)) {
         return res.status(200).send({
             success: false,
             code: 502,
             error: "Name already exist"
         })
+    }
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `create Commission ${req.body.name}`)
     }
     result = await Database.Commission.createCommission({ ...req.body });
     if (result) {
@@ -155,6 +159,10 @@ const creteCommissionLevel = async (req, res, next) => {
     const data = req.body;
     result = await Database.Commission.createCommissionLevel(data);
 
+    const { admin, remoteIp } = req;
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `create commission level ${new Date} ${JSON.stringify(data)} `)
+    }
     if (result) {
         return res.status(200).send({
             success: true,

@@ -96,6 +96,10 @@ const saveUserProfile = async (req, res, next) => {
 const updateProfileFromAdmin = async (req, res, next) => {
     const { id: accountUuid } = req.params;
     const data = req.body;
+
+    const { admin, remoteIp } = req;
+
+    BotController.sendAdminLog(admin.email, remoteIp, "updateProfileFromAdmin " + accountUuid)
     const result = await Database.Account.updateAccountProfile(accountUuid, { ...data });
     if (!result) {
         return res.status(200).send({
@@ -138,7 +142,7 @@ const createUser = async (req, res, next) => {
         }
     }
 
-    let {email, password} = req.body; 
+    let { email, password } = req.body;
     email = email.toLowerCase();
 
     const data = {
@@ -169,7 +173,7 @@ const createUser = async (req, res, next) => {
             return res.status(200).send({
                 success: true,
                 body: {
-                    ...result, 
+                    ...result,
                     accessToken: token
                 }
             })
@@ -179,7 +183,7 @@ const createUser = async (req, res, next) => {
             return res.status(200).send({
                 success: false,
                 body: {
-                    ...result, 
+                    ...result,
                 }
             })
         }
@@ -198,7 +202,7 @@ const approveAnway = async (req, res, next) => {
         let branchUuid = await Database.Setting.getDefaultBranch();
         await Database.Account.updateAccountProfileByEmail(decoded.email, { ...result.data, isEmailVerified: true, password: user.password, branchUuid });
 
-        let place = await Database.Account.updateVerifyStatus({ _id, status : KYCStatus.APPROVED});
+        let place = await Database.Account.updateVerifyStatus({ _id, status: KYCStatus.APPROVED });
 
         BotController.userApporved(place.email);
         EmailController.sendUserApproved(place.email);
@@ -212,8 +216,14 @@ const approveAnway = async (req, res, next) => {
     }
 }
 const updateStatus = async (req, res, next) => {
+
+    const { admin, remoteIp } = req;
+    const _id = req.params.id;
+
+    if (admin) {
+        BotController.sendAdminLog(admin?.email, remoteIp, `updateStatus user  ${_id}  to ${req.body.verification_status}`);
+    }
     try {
-        const _id = req.params.id;
         let status = req.body.verification_status;
         let place = await Database.Account.updateVerifyStatus({ _id, status });
 
@@ -310,6 +320,10 @@ const getSystemLogs = async (req, res, next) => {
 }
 const updateIBCommissionType = async (req, res, next) => {
     const { accountUuid, ibCommissionType } = req.body;
+    const { admin, remoteIp } = req;
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, "updateIBCommissionType" + admin.email)
+    }
     try {
         const result = await Database.Account.updateAccountProfile(accountUuid, { ibCommissionType });
         return res.status(200).send({
@@ -329,7 +343,13 @@ const updateIBStatus = async (req, res, next) => {
     const { id, ibStatus } = reqbody;
     let tradingAccount = null;
 
+    const { admin, remoteIp } = req;
     const _user = await Database.Account.getAccountDetailById(id);
+
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `updateIBStatus  ${_user.email} with ${ibStatus}`)
+    }
+
     if (_user.ibStatus === ibStatus) {
         return res.status(200).send({
             success: false,
@@ -522,7 +542,7 @@ const changePasswordFromAdmin = async (req, res, next) => {
         const { newPassword } = req.body;
         const { id } = req.params;
         const _user = await Database.Account.getAccountDetailByUuid(id);
-        const {admin , remoteIp} = req; 
+        const { admin, remoteIp } = req;
 
         BotController.sendAdminLog(admin.email, remoteIp, `Changed password for user ${_user.email}`)
 
@@ -554,8 +574,8 @@ const changeEmail = async (req, res, next) => {
         const { newEmail } = req.body;
         const { id } = req.params;
         const _user = await Database.Account.getAccountDetailByUuid(id);
-        
-        const {admin , remoteIp} = req; 
+
+        const { admin, remoteIp } = req;
 
         BotController.sendAdminLog(admin.email, remoteIp, `Changed email from user ${_user.email} to ${newEmail}`)
 
@@ -650,11 +670,11 @@ const createUserFromGoogle = async (req, res, next) => {
 const deleteUser = async (req, res, next) => {
 
     const { id } = req.params;
+    const { admin, remoteIp } = req;
+    BotController.sendAdminLog(admin?.email, remoteIp, `updateStatus user  ${_id}  to ${req.body.verification_status}`);
+
     let result = await Database.Account.updateVerifyStatus({ _id: id, status: KYCStatus.DELETED, remark: "" });
 
-    // 
-    // BO Action
-    ///
     return res.status(200).send({
         success: true,
     })
@@ -662,6 +682,10 @@ const deleteUser = async (req, res, next) => {
 }
 const approveBulkKYCStatus = async (req, res, next) => {
     const { ids } = req.body;
+    const { admin, remoteIp } = req;
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `approveBulkKYCStatus  at ${new Date} ${JSON.stringify(ids)}`)
+    }
     try {
         for (let index = 0; index < ids.length; index++) {
             await Database.Account.updateVerifyStatus({ _id: ids[index], status: KYCStatus.APPROVED, remark: "" });
@@ -678,6 +702,11 @@ const approveBulkKYCStatus = async (req, res, next) => {
 }
 const rejectBulkKYCStatus = async (req, res, next) => {
     const { ids, remark } = req.body;
+
+    const { admin, remoteIp } = req;
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `reject Bulk KYCStatus  at ${new Date} ${JSON.stringify(ids)}`)
+    }
     try {
         for (let index = 0; index < ids.length; index++) {
             let result = await Database.Account.updateVerifyStatus({ _id: ids[index], status: KYCStatus.REJECTED, remark });
@@ -695,6 +724,12 @@ const rejectBulkKYCStatus = async (req, res, next) => {
 }
 const deleteBulkKYCStatus = async (req, res, next) => {
     const { ids, remark } = req.body;
+    
+    const { admin, remoteIp } = req;
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `approveBulkKYCStatus  at ${new Date} ${JSON.stringify(ids)}`)
+    }
+    
     try {
         for (let index = 0; index < ids.length; index++) {
             let result = await Database.Account.updateVerifyStatus({ _id: ids[index], status: KYCStatus.DELETED, remark });
@@ -797,7 +832,7 @@ const updateIBUser = async (req, res, next) => {
     }
 }
 
-const resendVerifyEmail = (req, res)=>{
+const resendVerifyEmail = (req, res) => {
 
 
 

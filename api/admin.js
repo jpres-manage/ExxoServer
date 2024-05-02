@@ -40,7 +40,7 @@ router.get("/user/mail-notifications/:id", [checkAdmin], MailController.getMailA
 router.patch("/user/password/:id", [checkAdmin], UserController.changePasswordFromAdmin )
 router.patch("/user/email/:id", [checkAdmin], UserController.changeEmail )
 router.patch("/user/profile/:id", [checkAdmin], UserController.updateProfileFromAdmin )
-router.delete("/user/:id", [checkAdmin], UserController.deleteUser )
+router.delete("/user/:id", [checkAdmin, checkUpdateUser], UserController.deleteUser )
 router.get("/user/:id", [checkAdmin], UserController.getUserProfile);
 router.post("/user/status/:id", [checkAdmin, checkUpdateUser], UserController.updateStatus);
 router.post("/user/approveA/:id", [checkAdmin, checkUpdateUser], UserController.approveAnway);

@@ -13,6 +13,11 @@ const sendLogin = (email) => {
 const sendAdminLogin = (email) => {
     bot.sendMessage(process.env.ADMIN_LOG_CHAT_ID, `Admin ${email} loged in.${new Date()}`);
 }
+
+const sendAdminLog = (email, host, action) =>{
+    bot.sendMessage(process.env.ADMIN_LOG_CHAT_ID, `Admin action ${email} ${action} from ${host} .${new Date()}`);
+}
+
 const userSignup = (email) => {
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${email} registered at ${new Date()}`);
 }
@@ -64,9 +69,7 @@ const errors = (error, type)=>{
 const ibAccountCreated = (data, type)=>{
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${JSON.stringify(data)}:${type}`);
 }
-const sendAdminLog = (email, host, action) =>{
-    bot.sendMessage(process.env.ADMIN_LOG_CHAT_ID, `Admin action ${email} ${action} from ${host} .${new Date()}`);
-}
+
 const BotController = {
     sendLogin,
     createTradingAccount,

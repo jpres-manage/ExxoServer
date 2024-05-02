@@ -195,6 +195,10 @@ const _checkClosedPosition = async (req, res, next) => {
 
 const evalRankingFromAdmin = async (req, res) => {
 
+    const { admin, remoteIp } = req;
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `started ranking reset at ${new Date} `)
+    }
     await startCheckRanking(false);    // by admin
     return res.status(200).send("ok");
 
@@ -346,6 +350,12 @@ const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber) =>
 
 const updateIBRanking = async (req, res) => {
     const { accountUuid, ibRanking } = req.body;
+
+    const { admin, remoteIp } = req;
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `updated IB ranking ${accountUuid} to ${ibRanking}  at ${new Date} `)
+    }
+
     try {
         const result = await Database.Account.updateAccountProfile(accountUuid, { ibRanking });
         return res.status(200).send({

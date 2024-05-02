@@ -66,7 +66,9 @@ const updateAdmin =  (req, res, next) => {
     const {adminInfo , email} = req.body;
     const {admin , remoteIp} = req; 
 
-    BotController.sendAdminLog(admin.email, remoteIp, "update or add admin for"+ email)
+    if(admin){
+        BotController.sendAdminLog(admin.email, remoteIp, "update or add admin for"+ email)
+    }
 
     if(adminInfo.password){
         const password= bcrypt.hashSync(adminInfo.password, 8); 
@@ -87,6 +89,11 @@ const updateAdmin =  (req, res, next) => {
 
 const reset2FA = async (req, res) => {
     const { email } = req.body;
+
+    const { admin, remoteIp } = req;
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `updated role  at ${new Date} ${email}`)
+    }
 
     let secret_2fa =  Database.Admin.generateSecret(email);
     EmailController.sendTFACode(email, secret_2fa);
@@ -118,6 +125,11 @@ const getRole =async (req, res, next)=>{
 
 }
 const updateRole =async (req, res, next)=>{
+
+    const { admin, remoteIp } = req;
+    if (admin) {
+        BotController.sendAdminLog(admin.email, remoteIp, `updated role  at ${new Date} ${JSON.stringify(req.body)}`)
+    }
 
     let result = await Database.Role.updateRole(req.body); 
     return res.status(200).send({

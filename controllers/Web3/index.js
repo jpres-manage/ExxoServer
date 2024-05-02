@@ -145,7 +145,7 @@ const sendUSDTToWallet = async (sender, senderkey, receiver, amount) => {
       return false;
     }
   } catch (err) {
-    BotController.errors(
+    BotController.errors( err, 
       "from" + sender + "---to---" + receiver + " bnb transfer"
     );
     console.log("Withdraw transaction failed", err);

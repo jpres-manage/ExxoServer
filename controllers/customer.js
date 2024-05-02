@@ -138,7 +138,7 @@ const createUser = async (req, res, next) => {
         }
     }
 
-    let {email, password} = req.body.email; 
+    let {email, password} = req.body; 
     email = email.toLowerCase();
 
     const data = {

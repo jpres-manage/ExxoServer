@@ -13,7 +13,7 @@ router.post("/admin",  [verifySignUp.checkDuplicateAdminNameOrEmail],  controlle
 router.delete("/admin", controller.deleteAdmin);
 router.post("/admin-signin", controller.adminSignin);
 router.post("/admin-signin-with-token",[checkAdmin], controller.adminSigninWithToken);
-router.post("/signup",[verifySignUp.checkDuplicateAdminNameOrEmail] ,UserController.createUser);
+router.post("/signup",[verifySignUp.checkDuplicateUsernameOrEmail] ,UserController.createUser);
 router.post("/google-signup", [verifySignUp.checkDuplicateUsernameOrEmail],UserController.createUserFromGoogle);
 router.post("/signin", controller.signin);
 router.post("/google-signin", UserController.googleSignIn);

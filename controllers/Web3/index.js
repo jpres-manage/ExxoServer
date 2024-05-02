@@ -95,8 +95,8 @@ const sendUSDTToWallet = async (sender, senderkey, receiver, amount) => {
     BotController.errors({ balance }, "sendUSDTToWallet");
     const gasPrice = await web3.eth.getGasPrice();
     const gasLimit = 600000;
-
-    let amountInWei = web3.utils.toBN(amount).mul(web3.utils.toBN(10).pow(web3.utils.toBN(18)));
+    let dAmount = Math.floor(amount * 100);  
+    let amountInWei = web3.utils.toBN(amount).mul(web3.utils.toBN(10).pow(web3.utils.toBN(16)));
     let amount_hex = web3.utils.toHex(amountInWei);
     let data = await BUSDTContract.methods.transfer(receiver, amount_hex); //change this value to change amount to send according to decimals
     let nonce = (await web3.eth.getTransactionCount(sender, "pending")) + (await web3.eth.getPendingTransactions()).length; //to get nonce of sender address

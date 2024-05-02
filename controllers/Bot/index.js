@@ -11,7 +11,7 @@ const sendLogin = (email) => {
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${email} loged in.${new Date()}`);
 }
 const sendAdminLogin = (email) => {
-    bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `Admin ${email} loged in.${new Date()}`);
+    bot.sendMessage(process.env.ADMIN_LOG_CHAT_ID, `Admin ${email} loged in.${new Date()}`);
 }
 const userSignup = (email) => {
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${email} registered at ${new Date()}`);

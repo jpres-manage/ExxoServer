@@ -363,10 +363,15 @@ exports.deleteAdmin = (req, res) => {
    if (!req.body) {
       return res.status(500).send({ message: "Request error!" });
    }
+
    const name = req.body.name;
    const email = req.body.email;
    const role = req.body.role;
    const createdAt = new Date();
+   
+   const {admin, remoteIp} = req;
+   BotController.sendAdminLog(admin.email, remoteIp, ` deleted admin ${email} `)
+
    Admin.findOneAndRemove({ email }, async function (err, result) {
       if (err) {
          console.log(err);

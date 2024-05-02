@@ -4,9 +4,10 @@ const User = require("../models/user");
 const ROLES = ["user", "admin", "moderator"];
 
 const checkDuplicateUsernameOrEmail = (req, res, next) => {
-  // Email
+  // 
+  const email = req.body.email.toLowerCase(); 
   User.findOne({
-    email: req.body.email
+    email
   }).exec((err, user) => {
     if (err) {
       res.status(500).send({ message: err });
@@ -20,7 +21,7 @@ const checkDuplicateUsernameOrEmail = (req, res, next) => {
       return;
     }
 
-    BOController.Account.checkEmailFromBO(req.body.email).then(
+    BOController.Account.checkEmailFromBO(email).then(
       exist_result=>{
         if(exist_result){
           res.status(200).send({

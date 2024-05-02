@@ -130,7 +130,7 @@ const updateUserInfo = async (data) => {
         return result;
     } catch (e) {
         BotController.errors(data, "updateUserInfo of BO ")
-        console.log(e);
+        console.log("updateUserInfo");
         return false;
     }
 }
@@ -205,7 +205,7 @@ const GetAllUsers = async () => {
             return false;
         }
     } catch (e) {
-        BotController.errors(JSON.stringify(e), "Check Email from BO 167");
+        BotController.errors("Error GetAllUsers", "Check Email from BO 167");
         return false;
     }
 }

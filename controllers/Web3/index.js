@@ -84,7 +84,7 @@ const sendBNBToWallet = async (sender, _privateKey, receiver, amount) => {
   }
 };
 
-const sendUSDTToWallet = async (sender, senderkey, receiver, _amount) => {
+const sendUSDTToWallet = async (sender, senderkey, receiver, amount) => {
 
   let _senderkey = senderkey.replace("0x", "");
 

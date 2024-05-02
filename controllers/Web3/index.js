@@ -12,12 +12,12 @@ const busdt_address = "0x55d398326f99059fF775485246999027B3197955"; ///BUSDT Con
 const bnb_address = "0x242a1ff6ee06f2131b7924cacb74c7f9e3a5edc9";
 
 
-const providerUrl =  "https://go.getblock.io/5875a9e132834114903af08f0c623336";
+const providerUrl = "https://go.getblock.io/5875a9e132834114903af08f0c623336";
 const web3 = new Web3(new Web3.providers.HttpProvider(providerUrl));
 const BNBContract = new web3.eth.Contract(BNB_ABI, bnb_address);
 const BUSDTContract = new web3.eth.Contract(BUSDT_ABI, busdt_address);
 
-const getGas = () => {};
+const getGas = () => { };
 
 const getBalanceOfUsdt = async (address) => {
   let balance = await BUSDTContract.methods.balanceOf(receiver).call();
@@ -32,7 +32,7 @@ const getGasOfUsdt = async (amount, address) => {
   return gas;
 };
 
-const sendBalanceByWallet = async (from, to, amount) => {};
+const sendBalanceByWallet = async (from, to, amount) => { };
 
 const sendBNBToWallet = async (sender, _privateKey, receiver, amount) => {
   try {
@@ -41,7 +41,7 @@ const sendBNBToWallet = async (sender, _privateKey, receiver, amount) => {
       .transfer(sender, amount)
       .estimateGas({ from: receiver });
 
-    gas = parseInt(gas*1.05);
+    gas = parseInt(gas * 1.05);
 
     let data = await BNBContract.methods.transfer(receiver, amount); //change this value to change amount to send according to decimals
 
@@ -84,8 +84,10 @@ const sendBNBToWallet = async (sender, _privateKey, receiver, amount) => {
   }
 };
 
-const sendUSDTToWallet = async (sender, senderkey, receiver, amount) => {
+const sendUSDTToWallet = async (sender, senderkey, receiver, _amount) => {
+
   let _senderkey = senderkey.replace("0x", "");
+
   try {
     // const usdtContract = new web3.eth.Contract(BUSDT_ABI, busdt_address);
     const balance = await BUSDTContract.methods.balanceOf(sender).call();
@@ -94,9 +96,10 @@ const sendUSDTToWallet = async (sender, senderkey, receiver, amount) => {
     const gasPrice = await web3.eth.getGasPrice();
     const gasLimit = 600000;
 
-    let amount_hex = web3.utils.toHex(web3.utils.toBN((!!amount && amount * Math.pow(10, 18)) || balance));
+    let amountInWei = web3.utils.toBN(amount).mul(web3.utils.toBN(10).pow(web3.utils.toBN(18)));
+    let amount_hex = web3.utils.toHex(amountInWei);
     let data = await BUSDTContract.methods.transfer(receiver, amount_hex); //change this value to change amount to send according to decimals
-    let nonce =(await web3.eth.getTransactionCount(sender, "pending")) +(await web3.eth.getPendingTransactions()).length; //to get nonce of sender address
+    let nonce = (await web3.eth.getTransactionCount(sender, "pending")) + (await web3.eth.getPendingTransactions()).length; //to get nonce of sender address
     let gas = await BUSDTContract.methods.transfer(receiver, amount_hex).estimateGas({ from: sender });
 
     let chain = {
@@ -149,6 +152,54 @@ const sendUSDTToWallet = async (sender, senderkey, receiver, amount) => {
     return false;
   }
 };
+
+
+
+const sendUSDTToWalletOwn = async (sender, senderkey, receiver, _amount) => {
+
+  // Get the balance of the sender
+  const balance = await BUSDTContract.methods.balanceOf(sender).call();
+
+  // Log errors if needed (ensure BotController.errors is properly defined)
+  BotController.errors({ balance }, "sendUSDTToWallet");
+
+  // Fetch the current gas price
+  const gasPrice = await web3.eth.getGasPrice();
+
+  // Define the gas limit, make sure it's sufficient for transfer calls
+  const gasLimit = 60000;
+
+  // Calculate the amount in the appropriate decimal places (USDT usually uses 6 decimals, not 18)
+  let amountInWei = web3.utils.toBN((amount && amount * Math.pow(10, 6)) || balance);
+
+  // Convert amount to a hexadecimal string
+  let amount_hex = web3.utils.toHex(amountInWei);
+
+  // Get the nonce for the sender address considering pending transactions
+  let nonce = await web3.eth.getTransactionCount(sender, "pending") + (await web3.eth.getPendingTransactions()).length;
+
+  // Estimate the gas required for the transaction
+  let gas = await BUSDTContract.methods.transfer(receiver, amount_hex).estimateGas({ from: sender });
+
+  // Prepare the transaction object
+  let tx = {
+    from: sender,
+    to: BUSDT_ADDRESS,
+    data: BUSDTContract.methods.transfer(receiver, amount_hex).encodeABI(),
+    gas: gas,
+    gasPrice: gasPrice,
+    nonce: nonce
+  };
+
+  // Sign and send the transaction (add your private key management)
+  // const signedTx = await web3.eth.accounts.signTransaction(tx, senderPrivateKey);
+  // const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+  console.log('Transaction sent! Hash:', receipt.transactionHash);
+
+};
+
+
 
 async function getUSDTBalance(address) {
   // Call the balanceOf function

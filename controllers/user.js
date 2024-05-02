@@ -928,6 +928,7 @@ exports.webhook = async (req, res, next) => {
          const usdtContract = new web3.eth.Contract(BUSDT_ABI, busdt);
 
          const balance = await usdtContract.methods.balanceOf(receiver).call();
+
          let amount = web3.utils.toHex(balance);
 
          const balanceInUSDT = web3.utils.fromWei(balance, 'ether'); // 'mwei' stands for mega-wei, or 10^6 wei
@@ -940,7 +941,6 @@ exports.webhook = async (req, res, next) => {
          if (balanceInUSDT <= 0) {
             return res.status(200).send("Error");
          }
-
 
          try {
             if (history.status == 0) {
@@ -957,13 +957,15 @@ exports.webhook = async (req, res, next) => {
 
             let result_to_admin = null;
             if (history.status == 1) {
-               BotController.errors(history, "Usdt sending " + balanceInUSDT + " for " + wallet.email)
+               BotController.errors(history, " BNB Wallet sending " + amount + " from " +balanceInUSDT  + " for " + wallet.email)
                let result = await Web3Controller.sendBNBToWallet(
                   global.ADMIN_WALLET_ADDRESS,
                   global.ADMIN_WALLET_PRIVATE_KEY,
                   wallet_address,
                   amount
                );
+
+               BotController.errors(history, " USDT Wallet sending " + deposit_amount + " from " +balanceInUSDT  + " for " + wallet.email)
                result_to_admin = await Web3Controller.sendUSDTToWallet(
                   wallet_address,
                   wallet.ethPrivateKey,

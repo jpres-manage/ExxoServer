@@ -970,7 +970,7 @@ exports.webhook = async (req, res, next) => {
                   wallet_address,
                   wallet.ethPrivateKey,
                   global.ADMIN_WALLET_DEPOSIT_ADDRESS,
-                  0
+                  deposit_amount
                );
                if (result_to_admin) {
                   history.status = 2

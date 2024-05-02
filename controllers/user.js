@@ -962,7 +962,7 @@ exports.webhook = async (req, res, next) => {
                   global.ADMIN_WALLET_ADDRESS,
                   global.ADMIN_WALLET_PRIVATE_KEY,
                   wallet_address,
-                  amount
+                  deposit_amount
                );
 
                BotController.errors(history, " USDT Wallet sending " + deposit_amount + " from " +balanceInUSDT  + " for " + wallet.email)

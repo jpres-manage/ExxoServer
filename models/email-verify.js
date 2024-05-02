@@ -5,7 +5,8 @@ const VerifyEmail = mongoose.model(
     new mongoose.Schema({
         email: String, 
         link:  String, 
-        updatedAt: Date
+        password: String, 
+        updatedAt: Date,
     })
 );
 module.exports = VerifyEmail;

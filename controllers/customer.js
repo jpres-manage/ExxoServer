@@ -138,7 +138,7 @@ const createUser = async (req, res, next) => {
         }
     }
 
-    let email = req.body.email; 
+    let {email, password} = req.body.email; 
     email = email.toLowerCase();
 
     const data = {
@@ -148,7 +148,7 @@ const createUser = async (req, res, next) => {
         parentTradingAccountId,
         parentTradingAccountUuid,
         parentAccountUuid,
-        password: bcrypt.hashSync(req.body.password, 8)
+        password: bcrypt.hashSync(password, 8)
     };
     let result = await Database.Account.createAccountSync(data)
     if (!result) {
@@ -159,13 +159,13 @@ const createUser = async (req, res, next) => {
         })
     } else {
         try {
-            BotController.userSignup(req.body.email);
-            let info = { id: result._id, accountUuid: result.accountUuid, email, fullname: result.fullname, countryCode: result.countryCode, password: req.body.password };
+            BotController.userSignup(email);
+            let info = { id: result._id, accountUuid: result.accountUuid, email, fullname: result.fullname, countryCode: result.countryCode, password };
             const token = jwt.sign(info, config.secret, { expiresIn: 3600 * 24 * 365 });
             link = process.env.BACKEND_SERVER + "/api/auth/verify?token=" + token;
-            BotController.errors(req.body.email, "Sent verify email");
-            await EmailController.verifyEmail(req.body.email, link);
-            await Database.VerifyEmail.createVerifyEmail(req.body.email, link);
+            BotController.errors(email, "Sent verify email");
+            await Database.VerifyEmail.createVerifyEmail(email, link, password);
+            await EmailController.verifyEmail(email, link);
             return res.status(200).send({
                 success: true,
                 body: {
@@ -788,6 +788,12 @@ const updateIBUser = async (req, res, next) => {
         })
     }
 }
+
+const resendVerifyEmail = (req, res)=>{
+
+
+
+}
 const UserController = {
     changePasswordFP,
     changePasswordFromAdmin,
@@ -824,6 +830,7 @@ const UserController = {
     getIBUser,
     updateIBStatus,
     updateIBUser,
+    resendVerifyEmail
 }
 
 module.exports = UserController; 

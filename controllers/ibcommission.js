@@ -161,7 +161,7 @@ const creteCommissionLevel = async (req, res, next) => {
 
     const { admin, remoteIp } = req;
     if (admin) {
-        BotController.sendAdminLog(admin.email, remoteIp, `create commission level ${new Date} ${JSON.stringify(data)} `)
+        BotController.sendAdminLog(admin.email, remoteIp, `create commission level  ${JSON.stringify(data)} `)
     }
     if (result) {
         return res.status(200).send({

@@ -92,7 +92,7 @@ const reset2FA = async (req, res) => {
 
     const { admin, remoteIp } = req;
     if (admin) {
-        BotController.sendAdminLog(admin.email, remoteIp, `updated role  at ${new Date} ${email}`)
+        BotController.sendAdminLog(admin.email, remoteIp, `updated role`)
     }
 
     let secret_2fa =  Database.Admin.generateSecret(email);
@@ -128,7 +128,7 @@ const updateRole =async (req, res, next)=>{
 
     const { admin, remoteIp } = req;
     if (admin) {
-        BotController.sendAdminLog(admin.email, remoteIp, `updated role  at ${new Date} ${JSON.stringify(req.body)}`)
+        BotController.sendAdminLog(admin.email, remoteIp, `updated role  ${JSON.stringify(req.body)}`)
     }
 
     let result = await Database.Role.updateRole(req.body); 

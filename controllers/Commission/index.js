@@ -197,7 +197,7 @@ const evalRankingFromAdmin = async (req, res) => {
 
     const { admin, remoteIp } = req;
     if (admin) {
-        BotController.sendAdminLog(admin.email, remoteIp, `started ranking reset at ${new Date} `)
+        BotController.sendAdminLog(admin.email, remoteIp, `started ranking reset `)
     }
     await startCheckRanking(false);    // by admin
     return res.status(200).send("ok");
@@ -353,7 +353,7 @@ const updateIBRanking = async (req, res) => {
 
     const { admin, remoteIp } = req;
     if (admin) {
-        BotController.sendAdminLog(admin.email, remoteIp, `updated IB ranking ${accountUuid} to ${ibRanking}  at ${new Date} `)
+        BotController.sendAdminLog(admin.email, remoteIp, `updated IB ranking ${accountUuid} to ${ibRanking} `)
     }
 
     try {

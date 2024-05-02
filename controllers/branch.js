@@ -12,8 +12,9 @@ const createBranch = async (req, res, next) =>{
     let adminUuid = req.body.adminUuid; 
     let adminInfo = await Database.Admin.findAdminByUuid(adminUuid);
 
+    const {admin, remoteIp} = req;
     if (admin) {
-        BotController.sendAdminLog(admin.email, remoteIp, `createBranch ${adminUuid} ${new Date}  `)
+        BotController.sendAdminLog(admin.email, remoteIp, `createBranch ${adminUuid} `)
     }
 
     if(!adminInfo) {

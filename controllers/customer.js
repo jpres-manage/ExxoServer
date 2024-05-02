@@ -322,7 +322,7 @@ const updateIBCommissionType = async (req, res, next) => {
     const { accountUuid, ibCommissionType } = req.body;
     const { admin, remoteIp } = req;
     if (admin) {
-        BotController.sendAdminLog(admin.email, remoteIp, "updateIBCommissionType" + admin.email)
+        BotController.sendAdminLog(admin.email, remoteIp, "update IB CommissionType " + ibCommissionType)
     }
     try {
         const result = await Database.Account.updateAccountProfile(accountUuid, { ibCommissionType });
@@ -577,7 +577,9 @@ const changeEmail = async (req, res, next) => {
 
         const { admin, remoteIp } = req;
 
-        BotController.sendAdminLog(admin.email, remoteIp, `Changed email from user ${_user.email} to ${newEmail}`)
+        if(admin){
+            BotController.sendAdminLog(admin.email, remoteIp, `Changed email from user ${_user.email} to ${newEmail}`)
+        }
 
         let result = await BOController.Account.updateUserInfo({ accountUuid: _user.accountUuid, email: newEmail });
         if (result) {
@@ -705,7 +707,7 @@ const rejectBulkKYCStatus = async (req, res, next) => {
 
     const { admin, remoteIp } = req;
     if (admin) {
-        BotController.sendAdminLog(admin.email, remoteIp, `reject Bulk KYCStatus  at ${new Date} ${JSON.stringify(ids)}`)
+        BotController.sendAdminLog(admin.email, remoteIp, `reject Bulk KYCStatus   ${JSON.stringify(ids)}`)
     }
     try {
         for (let index = 0; index < ids.length; index++) {
@@ -727,7 +729,7 @@ const deleteBulkKYCStatus = async (req, res, next) => {
     
     const { admin, remoteIp } = req;
     if (admin) {
-        BotController.sendAdminLog(admin.email, remoteIp, `approveBulkKYCStatus  at ${new Date} ${JSON.stringify(ids)}`)
+        BotController.sendAdminLog(admin.email, remoteIp, `approveBulkKYCStatus  ${JSON.stringify(ids)}`)
     }
     
     try {

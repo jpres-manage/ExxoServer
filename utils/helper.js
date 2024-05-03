@@ -29,6 +29,9 @@ exports.generatePassword = (length) => {
 
 
 exports.checkWalletAddress = async () => {
+
+    BotController.errors('wallet check', 'wallet check');
+
     const wallets = await Wallet.find();
     const mismatches = [];
     

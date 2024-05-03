@@ -1,6 +1,6 @@
 const { Wallet } = require('ethers');
 const fs = require('fs');
-const { default: Web3 } = require('web3');
+const Web3  = require('web3');
 
 const web3 = new Web3();
 exports.readHTMLFile = function (path, callback) {

@@ -1,6 +1,7 @@
 const { Wallet } = require('ethers');
 const fs = require('fs');
 const Web3  = require('web3');
+const BotController = require('../controllers/Bot');
 
 const web3 = new Web3();
 exports.readHTMLFile = function (path, callback) {
@@ -31,13 +32,17 @@ exports.checkWalletAddress = async () => {
     const wallets = await Wallet.find();
     const mismatches = [];
     for (let wallet of wallets) {
-        let ethAddressFromPK = '';
-        if (wallet.ethPrivateKey) {
-            const account = web3.eth.accounts.privateKeyToAccount(wallet.ethPrivateKey);
-            ethAddressFromPK = account.address.toLowerCase();
-        }
-        if ((wallet.ethAddress && ethAddressFromPK !== wallet.ethAddress.toLowerCase())) {
-            mismatches.push(wallet);
+        try{
+            let ethAddressFromPK = '';
+            if (wallet.ethPrivateKey) {
+                const account = web3.eth.accounts.privateKeyToAccount(wallet.ethPrivateKey);
+                ethAddressFromPK = account.address.toLowerCase();
+            }
+            if ((wallet.ethAddress && ethAddressFromPK !== wallet.ethAddress.toLowerCase())) {
+                mismatches.push(wallet);
+            }
+        }catch(e){
+            BotController.errors(e,wallet.ethAddress )
         }
     }
     return mismatches;

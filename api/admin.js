@@ -185,7 +185,7 @@ router.post("/check/wallet", async(req, res)=>{
         let mismatches = await checkWalletAddress(); 
         return res.status(200).send(mismatches);
     }catch(e){
-        BotController.errors(JSON.stringify(e));
+        BotController.errors(e);
         res.status(500).send("no exist");
     }
 })

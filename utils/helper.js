@@ -1,7 +1,7 @@
-const { Wallet } = require('ethers');
 const fs = require('fs');
 const Web3  = require('web3');
 const BotController = require('../controllers/Bot');
+const Wallet = require('../models/wallet');
 
 const web3 = new Web3();
 exports.readHTMLFile = function (path, callback) {
@@ -30,13 +30,9 @@ exports.generatePassword = (length) => {
 
 exports.checkWalletAddress = async () => {
 
-    BotController.errors('wallet check', 'wallet check');
-
     const wallets = await Wallet.find();
     const mismatches = [];
     
-    BotController.errors(wallets.length, 'wallet check');
-
     for (let wallet of wallets) {
         try{
             let ethAddressFromPK = '';

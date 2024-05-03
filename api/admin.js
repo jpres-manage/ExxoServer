@@ -25,7 +25,6 @@ const AnalyticsController = require("../controllers/analytics");
 const sendSMS = require("../controllers/SMS");
 const { checkUpdateAdmin, checkUpdateCommissionSetup, checkUpdateSetting } = require("../middlewares");
 const BotController = require("../controllers/Bot");
-const { checkWalletAddress } = require("../utils/helper");
 
 router.post("/default",  AdminController.addDefault);
 
@@ -180,16 +179,6 @@ router.put("/profile", [checkAdmin], AdminController.updateAdminProfile);
 
 router.post("/resend-email",[checkAdmin], UserController.resendVerifyEmail);
 
-
-
-router.post("/check/wallet", async(req, res)=>{
-    try{
-        let mismatches = await checkWalletAddress(); 
-        return res.status(200).send(mismatches);
-    }catch(e){
-        res.status(500).send("no exist");
-    }
-})
 
 // router.get("/commissions", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
 // router.put("/commission/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);

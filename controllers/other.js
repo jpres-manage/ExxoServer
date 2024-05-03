@@ -105,9 +105,6 @@ exports.removeSetting = async (req, res, next) => {
   });
 }
 exports.updateSetting = async (req, res, next) => {
-
-  const {admin, remoteIp} = req; 
-  
   try {
     const setting = req.body.setting;
     const admin_wallet = req.body.adminWallet;

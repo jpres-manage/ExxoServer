@@ -223,6 +223,7 @@ const updateStatus = async (req, res, next) => {
     if (admin) {
         BotController.sendAdminLog(admin?.email, remoteIp, `updateStatus user  ${_id}  to ${req.body.verification_status}`);
     }
+    
     try {
         let status = req.body.verification_status;
         let place = await Database.Account.updateVerifyStatus({ _id, status });

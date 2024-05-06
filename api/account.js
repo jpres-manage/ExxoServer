@@ -20,7 +20,6 @@ router.get("/tradingAccount/:id",[authJwt.verifyToken ], AccountController.getTr
 router.get("/freeMargin/:id",[authJwt.verifyToken ], AccountController.getFreeMargin);
 router.post("/transfer",[authJwt.verifyToken, userValidation.kycApproved ], BalanceController.internalTransfer);
 router.get("/transaction",[authJwt.verifyToken ], AccountController.getTradingAccountTransactions);
-// router.get("/managertoken", AccountController.getManagerToken);
 router.get("/active-orders/:id",[authJwt.verifyToken ], OrderController.getActiveOrdersByAccountUuid);
 router.get("/canceled-orders/:id",[authJwt.verifyToken ], OrderController.getAllOrdersByAccountUuid);
 router.get("/open-positions/:id",[authJwt.verifyToken ], PositionController.getAllPositionsByAccountUuid);

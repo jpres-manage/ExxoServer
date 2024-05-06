@@ -9,6 +9,7 @@ const updateDefaultBranch = async (req, res, next) => {
     if (admin) {
         BotController.sendAdminLog(admin.email, remoteIp, `set default branch ${branchUuid}  `)
     }
+    
     if(setting){
         let result =await Database.Branch.getBranchDetailsByUuid(branchUuid);
         return res.status(200).send({

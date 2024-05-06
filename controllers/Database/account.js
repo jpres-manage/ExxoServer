@@ -152,54 +152,53 @@ const getIBClients = async (data) => {
     const query = { ibStatus: { $in: [IBStatus.PENDING, IBStatus.APPROVED, IBStatus.DECLINED] } };
 
     try {
-        const result = await Account.aggregate([
-            {
-                $match: {
-                    ...query,
-                    verification_status: {
-                        $ne: KYCStatus.DELETED
-                    }
-                }
-            },
-            {
-                $lookup: {
-                    from: "branches",
-                    localField: "branchUuid",
-                    foreignField: "branchUuid",
-                    as: "branch"
-                }
-            },
-            {
-                $unwind: "$branch"
-            },
-            {
-                $project: {
-                    fullname: 1,
-                    accountUuid: 1,
-                    ibStatus: 1,
-                    ibParentTradingAccountId: 1,
-                    parentTradingAccountId: 1,
-                    ibSubmittedAt: 1,
-                    state: 1,
-                    avatarUrl: 1,
-                    adminUuid: "$branch.adminUuid",
-                    email: 1,
-                    ibRanking: 1,
-                    isQClient: 1,
-                    isQIB: 1
-                }
-            },
-            {
-                $match: {
-                    ...match
-                }
-            },
-            {
-                $sort: {
-                    ibSubmittedAt: -1
-                }
-            }
-        ])
+
+        const result = await Account.find({...query, verification_status: {$ne: KYCStatus.DELETED}}).sort({
+            ibSubmittedAt: -1
+        })
+        // const result = await Account.aggregate([
+        //     {
+        //         $match: {
+        //             ...query,
+        //             verification_status: {
+        //                 $ne: KYCStatus.DELETED
+        //             }
+        //         }
+        //     },
+        //     {
+        //         $lookup: {
+        //             from: "branches",
+        //             localField: "branchUuid",
+        //             foreignField: "branchUuid",
+        //             as: "branch"
+        //         }
+        //     },
+        //     {
+        //         $unwind: "$branch"
+        //     },
+        //     {
+        //         $project: {
+        //             fullname: 1,
+        //             accountUuid: 1,
+        //             ibStatus: 1,
+        //             ibParentTradingAccountId: 1,
+        //             parentTradingAccountId: 1,
+        //             ibSubmittedAt: 1,
+        //             state: 1,
+        //             avatarUrl: 1,
+        //             adminUuid: "$branch.adminUuid",
+        //             email: 1,
+        //             ibRanking: 1,
+        //             isQClient: 1,
+        //             isQIB: 1
+        //         }
+        //     },
+        //     {
+        //         $sort: {
+        //             ibSubmittedAt: -1
+        //         }
+        //     }
+        // ])
         return result;
     } catch (e) {
         BotController.errors({ adminUuid, role }, "get IB Clietns")

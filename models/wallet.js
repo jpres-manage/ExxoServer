@@ -3,10 +3,22 @@ const mongoose = require("mongoose");
 const Wallet = mongoose.model(
   "Wallet",
   new mongoose.Schema({
-    clientUuid:           String,
-    email:                String,
-    tradingAccountUuid:   String,
-    tradingAccountId:     String,
+    clientUuid:          {
+       type: String, 
+       index: true,
+    }, 
+    email: {
+      type: String, 
+      index: true
+    } , 
+    tradingAccountUuid:  {
+      type: String,
+      index: true
+    },
+    tradingAccountId:   {  
+      type: String,
+      index: true
+    },
     ethAddress:           String,
     ethPrivateKey:        String,
     tronAddress:          String,

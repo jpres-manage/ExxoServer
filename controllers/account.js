@@ -394,7 +394,7 @@ const syncTradingAccounts = async (req, res, next) => {
                 ethPrivateKey: eth_privateKey,
                 tronAddress: address,
                 tronPrivateKey: privateKey,
-                offerUuid: offer.offerUuid,
+                offerUuid: offer.uuid,
                 isDemo: offer.demo,
             });
             
@@ -406,7 +406,7 @@ const syncTradingAccounts = async (req, res, next) => {
                 email: email,
                 tradingAccountUuid: uuid.v4(),
                 tradingAccountId: clientId,
-                offerUuid: offer.offerUuid,
+                offerUuid: offer.uuid,
                 isDemo: true,
             });
             

@@ -359,7 +359,6 @@ const updateIBStatus = async (req, res, next) => {
     }
 
     if (ibStatus === IBStatus.APPROVED) {
-
         tradingAccount = await Database.TradingAccount.getIBTradingAccountByAccountUuid(_user.accountUuid);
         if (!tradingAccount)
             tradingAccount = await Database.TradingAccount.createIBTradingAccount(id);

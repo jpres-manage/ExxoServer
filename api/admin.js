@@ -77,6 +77,11 @@ router.get("/tradingAccounts/:userId",[checkAdmin ], AccountController.getTradin
 router.post("/tradingAccount",[checkAdmin ], AccountController.createTradingAccount);
 router.get("/tradingAccount/:id",[checkAdmin ], AccountController.getTradingAccountByTradingAccountUuid);
 router.post('/tradingAccounts/qrcode', generateAllQrcode);
+
+
+////// sync trading accounts from Oldbo
+router.post('/tradingAccounts/sync_bo', AccountController.syncTradingAccounts )
+
 router.get("/active-orders/:id",[checkAdmin ], OrderController.getActiveOrdersByAccountUuid);
 router.get("/canceled-orders/:id",[checkAdmin ], OrderController.getCanceledOrdersByAccountUuid);
 

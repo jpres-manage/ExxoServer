@@ -151,6 +151,14 @@ const findOffers = async (condition) =>{
     }
 }
 
+const getOfferByGName =async (groupName)=>{
+    try{
+        const result= await Offer.findOne({groupName}); 
+        return result; 
+    }catch(e){
+
+    }
+}
 const OfferModel = {
     addOffers,
     createOffer, 
@@ -164,6 +172,7 @@ const OfferModel = {
     getDemoOffers, 
     getIBOffer, 
     updateOfferByUuid, 
+    getOfferByGName
 }
 module.exports=OfferModel;
 

@@ -372,13 +372,14 @@ const updateIBStatus = async (req, res, next) => {
     let user_result = null;
     if (ibStatus === IBStatus.APPROVED) {
         let commissionType = await Database.Setting.getCommissionType();
-        user_result = await Database.Account.updateIBStatus(req.body, tradingAccount.tradingAccountId, tradingAccount.tradingAccountUuid);
+        user_result = await Database.Account.updateIBStatus(req.body, tradingAccount.tradingAccountId, tradingAccount.tradingAccountUuid );
         if (user_result.parentTradingAccountId) {
             let parentAccount = await Database.Account.findOneAccountByQuery({ ibParentTradingAccountId: user_result.parentTradingAccountId });
             user_result.ibCommissionType = parentAccount.ibCommissionType || commissionType || 'Lot';
         } else {
             user_result.ibCommissionType = commissionType || 'Lot'
         }
+        user_result.ibRanking = 0; 
         await user_result.save();
     } else {
         user_result = await Database.Account.updateIBStatus(req.body, null, null);

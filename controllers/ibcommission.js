@@ -384,7 +384,7 @@ const getIBCommissionsForUser =async (req, res, next ) =>{
         const _user = await Database.Account.getAccountDetailByEmail(email); 
         const ibCommissions =await IBCommission.find({
             email
-        }); 
+        }).sort({createdAt: -1}); 
 
         return res.status(200).send({
             success: true, 

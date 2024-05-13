@@ -19,7 +19,7 @@ const sendAdminLog = (email, host, action) =>{
 }
 
 const userSignup = (email) => {
-    bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${email} registered at ${new Date()}`);
+    bot.sendMessage(process.env.KYC_IB_CHAT_ID, `${email} registered at ${new Date()}`);
 }
 const userApporved = (email) => {
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${email} Approved at ${new Date()}`);
@@ -69,7 +69,12 @@ const errors = (error, type)=>{
 const ibAccountCreated = (data, type)=>{
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${JSON.stringify(data)}:${type}`);
 }
-
+const ibUserRequest = (email)=>{
+    bot.sendMessage(process.env.KYC_IB_CHAT_ID, `IB request received from ${email}`);
+} 
+const sendSocialAccountRequest = (email)=>{
+    bot.sendMessage(process.env.KYC_IB_CHAT_ID, `Social account request received from ${email}`);
+} 
 const BotController = {
     sendLogin,
     createTradingAccount,
@@ -87,7 +92,9 @@ const BotController = {
     userApporved,
     errors, 
     ibAccountCreated, 
+    ibUserRequest,
     sendAdminLogin, 
-    sendAdminLog
+    sendAdminLog,
+    sendSocialAccountRequest
 }
 module.exports = BotController; 

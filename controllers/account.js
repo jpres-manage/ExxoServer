@@ -385,7 +385,7 @@ const syncTradingAccounts = async (req, res, next) => {
             //Tron
             const { address, privateKey } = generateAccount();
     
-            let account = new Wallet({
+            let account = new MissedWallet({
                 clientUuid: user.accountUuid,
                 email: email,
                 tradingAccountUuid: uuid.v4(),
@@ -401,7 +401,7 @@ const syncTradingAccounts = async (req, res, next) => {
             await account.save(); 
         }else{
             
-            let account = new Wallet({
+            let account = new MissedWallet({
                 clientUuid: user.accountUuid,
                 email: email,
                 tradingAccountUuid: uuid.v4(),

@@ -19,7 +19,7 @@ var storage = multer.diskStorage({
     cb(null, Date.now() + file.originalname)
   }
 })
-exports.upload = multer({ storage: storage , limits: 10*1024*1024})
+exports.upload = multer({ storage: storage , limits: { fileSize: 10 * 1024 * 1024 } })
 
 // =========================================Buy USDT===============================================
 exports.buy = async (req, res, next) => {

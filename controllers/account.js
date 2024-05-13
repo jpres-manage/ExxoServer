@@ -378,6 +378,7 @@ const syncMissingTradingAccounts = async (req, res, next) => {
          });
         try {
             await tradingAccount.save();
+            num++;
         } catch (error) {
             console.error('Failed to save trading account:', error);
             // Handle the error appropriately

@@ -365,7 +365,7 @@ const syncMissingTradingAccounts = async (req, res, next) => {
         if(!!wallet) continue; 
 
         const tradingAccount = new Wallet({
-            clientUuid: mTradingAccounts.clientUuid,
+            clientUuid: mTradingAccount.clientUuid,
             email:mTradingAccount.email,
             tradingAccountUuid:mTradingAccount.tradingAccountUuid,
             tradingAccountId:mTradingAccount.tradingAccountId,

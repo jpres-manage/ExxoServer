@@ -186,17 +186,6 @@ const getTradingAccountsByAdminUuid = async (adminUuid, role) => {
                 $unwind: "$offer"
             },
             {
-                $lookup: {
-                    from: "branches",
-                    localField: "user.branchUuid",
-                    foreignField: "branchUuid",
-                    as: "userBranch"
-                }
-            },
-            {
-                $unwind: "$userBranch"
-            },
-            {
                 $project: {
                     "tradingAccountUuid": 1,
                     "tradingAccountId": 1,
@@ -206,7 +195,6 @@ const getTradingAccountsByAdminUuid = async (adminUuid, role) => {
                     "user._id":1,
                     "offer.name": 1,
                     "offer.demo": 1,
-                    "userBranch.name": 1,
                     "createdAt": 1, 
                     "verification_status": "$user.verification_status"
                 },

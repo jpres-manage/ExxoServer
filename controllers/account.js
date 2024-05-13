@@ -355,13 +355,18 @@ const validateSMSNumber = async (req, res, next) => {
         })
     }
 }
-const syncMissingTradingAccounts = async(req,res, next)=>{
+const syncMissingTradingAccounts = async (req, res, next) => {
 
-    try{
+    const mTradingAccounts = await MissedWallet.find({});
 
-
-    }catch(e){
-
+    for (const mTradingAccount of mTradingAccounts) {
+        const tradingAccount = new Wallet({ ...mTradingAccount });
+        try {
+            await tradingAccount.save();
+        } catch (error) {
+            console.error('Failed to save trading account:', error);
+            // Handle the error appropriately
+        }
     }
 
 }
@@ -376,6 +381,9 @@ const syncTradingAccounts = async (req, res, next) => {
         let wallet = await Wallet.findOne({ tradingAccountId: tradingAccount.clientId })
         if (!!wallet) return;
 
+        let mWallet = await MissedWallet.findOne({ tradingAccountId: tradingAccount.clientId })
+        if (!!mWallet) return;
+
         const { clientId, clientGroup, equity, clientInfo: { email } } = tradingAccount;
         let user = await User.findOne({ email });
 
@@ -385,7 +393,7 @@ const syncTradingAccounts = async (req, res, next) => {
         const offer = await Database.Offer.getOfferByGName(clientGroup);
         if (!offer) return;
 
-        if(!offer.demo){
+        if (!offer.demo) {
 
             let addressData = ethWallet.generate();
             const eth_privateKey = addressData.getPrivateKeyString();
@@ -393,8 +401,8 @@ const syncTradingAccounts = async (req, res, next) => {
             const eth_address = addressData.getAddressString();
             //Tron
             const { address, privateKey } = generateAccount();
-    
-            let account = new Wallet({
+
+            let account = new MissedWallet({
                 clientUuid: user.accountUuid,
                 email: email,
                 tradingAccountUuid: uuid.v4(),
@@ -406,11 +414,11 @@ const syncTradingAccounts = async (req, res, next) => {
                 offerUuid: offer.uuid,
                 isDemo: offer.demo,
             });
-            
-            await account.save(); 
-        }else{
-            
-            let account = new Wallet({
+
+            await account.save();
+        } else {
+
+            let account = new MissedWallet({
                 clientUuid: user.accountUuid,
                 email: email,
                 tradingAccountUuid: uuid.v4(),
@@ -418,8 +426,8 @@ const syncTradingAccounts = async (req, res, next) => {
                 offerUuid: offer.uuid,
                 isDemo: true,
             });
-            
-            await account.save(); 
+
+            await account.save();
         }
     })
 

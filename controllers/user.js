@@ -1048,7 +1048,7 @@ exports.requestIB = async (req, res, next) => {
                .status(500)
                .send({ success: false, error: "There is an error!" });
          }
-         result.ibStatus = IBStatus.PENDING;
+         BotController.ibUserRequest(email)
          return res.status(200).send({ success: true });
       }
    });

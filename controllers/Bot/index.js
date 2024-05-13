@@ -29,7 +29,7 @@ const emailVerified = (email) => {
 }
 
 const kycUploaded = (email) =>{
-    bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${email} uploaded kyc documents.`); 
+    bot.sendMessage(process.env.KYC_IB_CHAT_ID, `${email} uploaded kyc documents.`); 
 }
 
 const createTradingAccount = (email, tradingAccountId) => {

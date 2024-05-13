@@ -355,16 +355,7 @@ const validateSMSNumber = async (req, res, next) => {
         })
     }
 }
-const syncMissingTradingAccounts = async(req,res, next)=>{
 
-    try{
-
-
-    }catch(e){
-
-    }
-
-}
 const syncTradingAccounts = async (req, res, next) => {
 
     const mngResult = await ManagerApi.Account.getAllForManager();
@@ -441,7 +432,6 @@ const AccountController = {
     requestSMS,
     validateSMSNumber,
     syncTradingAccounts,
-    syncMissingTradingAccounts
 }
 
 module.exports = AccountController;

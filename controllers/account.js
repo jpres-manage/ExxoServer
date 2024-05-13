@@ -355,15 +355,7 @@ const validateSMSNumber = async (req, res, next) => {
         })
     }
 }
-const syncMissingTradingAccounts = async(req,res, next)=>{
 
-    try{
-
-    }catch(e){
-
-    }
-
-}
 const syncTradingAccounts = async (req, res, next) => {
 
     const mngResult = await ManagerApi.Account.getAllForManager();
@@ -393,7 +385,7 @@ const syncTradingAccounts = async (req, res, next) => {
             //Tron
             const { address, privateKey } = generateAccount();
     
-            let account = new Wallet({
+            let account = new MissedWallet({
                 clientUuid: user.accountUuid,
                 email: email,
                 tradingAccountUuid: uuid.v4(),
@@ -409,7 +401,7 @@ const syncTradingAccounts = async (req, res, next) => {
             await account.save(); 
         }else{
             
-            let account = new Wallet({
+            let account = new MissedWallet({
                 clientUuid: user.accountUuid,
                 email: email,
                 tradingAccountUuid: uuid.v4(),
@@ -439,8 +431,7 @@ const AccountController = {
     getTransactions,
     requestSMS,
     validateSMSNumber,
-    syncTradingAccounts,
-    syncMissingTradingAccounts
+    syncTradingAccounts
 }
 
 module.exports = AccountController;

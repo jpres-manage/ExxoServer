@@ -361,9 +361,9 @@ const syncMissingTradingAccounts = async (req, res, next) => {
 
     for (const mTradingAccount of mTradingAccounts) {
         const wallet =await  Wallet.findOne({tradingAccountId: mTradingAccount.tradingAccountId});
-        if(wallet) continue; 
+        if(!!wallet) continue; 
 
-        const tradingAccount = new Wallet({ ...mTradingAccount });
+        const tradingAccount = new Wallet({ ...mTradingAccount, _id: undefined, __v:undefined });
         try {
             await tradingAccount.save();
         } catch (error) {

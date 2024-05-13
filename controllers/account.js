@@ -359,11 +359,23 @@ const syncMissingTradingAccounts = async (req, res, next) => {
 
     const mTradingAccounts = await MissedWallet.find({});
 
+    let num =0; 
     for (const mTradingAccount of mTradingAccounts) {
         const wallet =await  Wallet.findOne({tradingAccountId: mTradingAccount.tradingAccountId});
         if(!!wallet) continue; 
 
-        const tradingAccount = new Wallet({ ...mTradingAccount, _id: undefined, __v:undefined });
+        const tradingAccount = new Wallet({
+            clientUuid: mTradingAccounts.clientUuid,
+            email:mTradingAccount.email,
+            tradingAccountUuid:mTradingAccount.tradingAccountUuid,
+            tradingAccountId:mTradingAccount.tradingAccountId,
+            ethAddress:mTradingAccount.ethAddress,
+            ethPrivateKey:mTradingAccount.ethPrivateKey,
+            tronAddress:mTradingAccount.tronAddress,
+            tronPrivateKey:mTradingAccount.tronPrivateKey,
+            offerUuid:mTradingAccount.offerUuid,
+            isDemo:mTradingAccount.isDemo,
+         });
         try {
             await tradingAccount.save();
         } catch (error) {
@@ -372,7 +384,7 @@ const syncMissingTradingAccounts = async (req, res, next) => {
         }
     }
 
-    return res.status(200).send(mTradingAccounts); 
+    return res.status(200).send({mTradingAccounts, num}); 
 
 }
 const syncTradingAccounts = async (req, res, next) => {

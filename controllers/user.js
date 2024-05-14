@@ -1191,6 +1191,7 @@ exports.registerSocialTradingFeed = async (req, res, next) => {
             errorMessage: "This user already applied the social trading Account",
          });
    }
+   BotController.sendSocialAccountRequest(email);
 
    let socialAccount = new SocialAccount({
       email: email,
@@ -1206,7 +1207,6 @@ exports.registerSocialTradingFeed = async (req, res, next) => {
       sStatus: sStatus,
       createAt: new Date(),
    });
-   BotController.sendSocialAccountRequest(email);
    socialAccount.save(function (err, result) {
       if (err) {
          console.log(err, "Failed to create Social Account ")

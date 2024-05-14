@@ -64,7 +64,7 @@ const getDeclinedSocialAccounts = async ()=>{
 }
 const updateSocialAccount = async (accountUuid, data)=>{
     try{
-        let result =await SocialAccount.findOneAndUpdate({accountUuid}, {data}, {new: true}); 
+        let result =await SocialAccount.findOneAndUpdate({accountUuid}, {...data}, {new: true}); 
         return result; 
     }catch(e){
         BotController.errors(e, "updateSoicalAccount");

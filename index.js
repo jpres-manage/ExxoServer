@@ -148,6 +148,5 @@ app.listen(PORT, async () => {
     Moralis.initMoralis();
 
     SocketController.initSecketServer();
-    BotController.sendSocialAccountRequest("Dev.test");
 
 }); 

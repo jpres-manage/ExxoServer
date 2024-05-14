@@ -23,6 +23,7 @@ const createAccount = async (data) => {
         let result = await tradingAccount.save();
         return result;
     } catch (e) {
+        BotController.errors(e,"createAccount")
         console.log(e);
         return false;
     }

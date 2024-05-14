@@ -722,8 +722,8 @@ exports.verifyProfile = async (req, res, next) => {
          });
          return;
       }
-      EmailController.sendKYCRecieved(email);
       BotController.kycUploaded(email);
+      EmailController.sendKYCRecieved(email);
 
       place.expDate = req.body.expDate;
       place.docType = req.body.docType;
@@ -1048,7 +1048,7 @@ exports.requestIB = async (req, res, next) => {
                .status(500)
                .send({ success: false, error: "There is an error!" });
          }
-         BotController.ibUserRequest(email)
+         BotController.ibUserRequest(result.email)
          return res.status(200).send({ success: true });
       }
    });
@@ -1206,12 +1206,12 @@ exports.registerSocialTradingFeed = async (req, res, next) => {
       sStatus: sStatus,
       createAt: new Date(),
    });
+   BotController.sendSocialAccountRequest(email);
    socialAccount.save(function (err, result) {
       if (err) {
+         console.log(err, "Failed to create Social Account ")
          return res.status(500).send(err);
       }
-      BotController.sendSocialAccountRequest(email);
-      
       return res.status(200).send(result);
    });
 };

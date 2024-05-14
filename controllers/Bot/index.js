@@ -1,11 +1,37 @@
+const { execFile  } = require('child_process');
 
-
-const TelegramBot = require('node-telegram-bot-api');
 const { PaymentType } = require('../constant');
 const bot_enabled = Number(process.env.TELEGRAM_ENABLED);
 const token = process.env.TELEGRAM_BOT_TOKEN;
-const bot = new TelegramBot(token, { polling: true });
-console.log("telegram", token); 
+const botUrl = `https://api.telegram.org/bot${token}/sendMessage`
+
+const bot = {
+    sendMessage: (chatid, message) => {
+
+        const postData = JSON.stringify({ chat_id: chatid, text: message });
+
+        // Splitting the command into base command and arguments for safer execution
+        const curlCommand = 'curl';
+        const args = [
+            '-X', 'POST',
+            '-H', 'Content-Type: application/json',
+            '-d', postData,
+            botUrl
+        ];
+
+        execFile(curlCommand, args, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                console.error(`Stderr: ${stderr}`);
+                return;
+            }
+            console.log(`Response: ${stdout}`);
+        });
+    }
+}
 
 const sendLogin = (email) => {
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${email} loged in.${new Date()}`);
@@ -19,7 +45,7 @@ const sendAdminLog = (email, host, action) =>{
 }
 
 const userSignup = (email) => {
-    bot.sendMessage(process.env.KYC_IB_CHAT_ID, `${email} registered at ${new Date()}`);
+    bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${email} registered at ${new Date()}`);
 }
 const userApporved = (email) => {
     bot.sendMessage(process.env.SIGMA_CHANNEL_ID, `${email} Approved at ${new Date()}`);

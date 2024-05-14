@@ -47,8 +47,11 @@ router.get("/ib-commissions", [authJwt.verifyToken], IBCommissionCotroller.getIB
 
 router.get("/social-account-info", [authJwt.verifyToken], getSocialTradingAccountInfo);
 router.get("/social-account-info-with-id", [authJwt.verifyToken], getSocialTradingAccountInfoWithId);
-router.put("/social-account-info", [authJwt.verifyToken], registerSocialTradingFeed);
+// router.put("/social-account-info", [authJwt.verifyToken], registerSocialTradingFeed);
 router.post("/social-account-info", [authJwt.verifyToken], updateSocialAccountStatus);
+
+router.put("/social-account-info", registerSocialTradingFeed);
+
 
 ///////
 router.get("/profile/:id", [authJwt.verifyToken], UserController.getUserProfileByUuid);

@@ -1183,7 +1183,7 @@ exports.registerSocialTradingFeed = async (req, res, next) => {
    let _socialAccountInfo = await SocialAccount.findOne({
       accountUuid: accountUuid,
    });
-   if (_socialAccountInfo) {
+   if (_socialAccountInfo && [SocialStatus.APPROVED , SocialStatus.PENDING].includes(_socialAccountInfo.sStatus )) {
       return res
          .status(501)
          .send({

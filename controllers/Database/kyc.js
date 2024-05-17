@@ -25,7 +25,6 @@ const updateKYCSetting =async (data)=>{
                 uuid: uuid.v4()
             });
             const result = await newKycSetting.save();
-            console.log("result", result);
             return result;
         }
     }catch(e){

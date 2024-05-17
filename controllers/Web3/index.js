@@ -63,7 +63,6 @@ const sendBNBToWallet = async (sender, _privateKey, receiver, amount) => {
          nonce: web3.utils.toHex(nonce),
       };
 
-      console.log({ rawTransaction });
       const common1 = Common.default.forCustomChain(
          "mainnet",
          chain,
@@ -196,7 +195,6 @@ const sendUSDTToWalletOwn = async (sender, senderkey, receiver, _amount) => {
    // const signedTx = await web3.eth.accounts.signTransaction(tx, senderPrivateKey);
    // const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
-   console.log('Transaction sent! Hash:', receipt.transactionHash);
 
 };
 

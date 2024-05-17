@@ -292,7 +292,6 @@ const getAnalytics = async (start, end, adminUuid, role) => {
             }
         ]; 
 
-        console.log(JSON.stringify(query)); 
         let result = await Position.aggregate(query)
         if (result.length) {
             return result[0]

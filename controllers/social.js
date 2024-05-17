@@ -7,7 +7,6 @@ const registerSocialTradingFeed = async (req, res, next) => {
     const accountUuid = req.body.params.accountUuid;
     const email = req.body.params.email;
     const socialAccountInfo = req.body.params.socialAccountInfo;
-    console.log("social account info:", socialAccountInfo);
     const sStatus = SocialStatus.PENDING;
 
     let _socialAccountInfo = await SocialAccount.findOne({ accountUuid: accountUuid });

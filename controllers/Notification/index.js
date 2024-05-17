@@ -77,7 +77,6 @@ const sendNotifyToUser = (user_id, message)=>{
 
 const sendMessage = (ws, message) =>{
     let _msg = JSON.stringify(message); 
-    console.log(message); 
     ws.send(_msg);
 }
 

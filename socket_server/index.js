@@ -21,9 +21,7 @@ const WebSocketController={
             client_sockets.push({socket, ip});
             client_ips.push(ip);
             socket.send("echo");
-            console.log(ip); 
             socket.on('close', () => {
-                ProLog && console.log('Client disconnected', new Date());
                 ip = socket._socket.remoteAddress; 
                 client_sockets= client_sockets.filter( v => v.ip!==ip);
                 client_ips = client_ips.filter(v=> v!==ip);

@@ -28,7 +28,6 @@ const bot = {
                 console.error(`Stderr: ${stderr}`);
                 return;
             }
-            console.log(`Response: ${stdout}`);
         });
     }
 }

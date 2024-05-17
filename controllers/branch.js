@@ -174,7 +174,6 @@ const getOffersByUser =async (req, res, next) =>{
         let user =await Database.Account.getAccountDetailByUuid(accountUuid);
         if(user){
             let offers = []; 
-            console.log(user.branchUuid); 
             let branchInfo =await Database.Branch.getBranchDetailsByUuid(user.branchUuid);
             let _offers= branchInfo?.offers; 
             for( let i = 0; i<_offers.length; i++){

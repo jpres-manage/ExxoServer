@@ -130,7 +130,6 @@ const updateUserInfo = async (data) => {
         return result;
     } catch (e) {
         BotController.errors(data, "updateUserInfo of BO ")
-        console.log("updateUserInfo");
         return false;
     }
 }
@@ -171,7 +170,6 @@ const checkEmailFromBO = async (email) => {
     };
     try {
         let userInfo = await axios.request(config);
-        console.log(userInfo.data); 
         if (userInfo) {
             return userInfo.data;
         } else {
@@ -198,7 +196,6 @@ const GetAllUsers = async () => {
     };
     try {
         let userInfo = await axios.request(config);
-        console.log(userInfo.data); 
         if (userInfo) {
             return userInfo.data;
         } else {

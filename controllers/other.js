@@ -356,7 +356,6 @@ exports.updateWithdraw = async (req, res, next) => {
 
       ManagerApi.Balance.withdrawMoney(token, data)
         .then(async withdrawResult => {
-          console.log("withdraw success:", withdrawResult.data);
           withdraw.status = withdrawResult.data.status;
           withdraw.ledgerUid = withdrawResult.ledgerUid;
           await withdraw.save();

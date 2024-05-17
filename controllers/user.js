@@ -71,8 +71,7 @@ async function getBUsdtTransfer(email, wallet_address) {
             eventData: event,
         };
         let element = transferEvent;
-        console.log("transferEvent:", element);
-        console.log("toAddress:", wallet_address);
+
         const deposit_amount = web3.utils.fromWei(
             web3.utils.hexToNumberString(element.value._hex),
             "ether"
@@ -160,8 +159,6 @@ async function getBUsdtTransfer(email, wallet_address) {
                 let result = await web3.eth.sendSignedTransaction(
                     `0x${transaction.serialize().toString("hex")}`
                 ); //sending the signed transaction
-                console.log(`BNBTxstatus: ${result.status}`); //return true/false
-                console.log(`BNBTxhash: ${result.transactionHash}`); //return transaction hash
                 if (result.status) {
                     let sender = wallet_address;
                     let receiver = global.ADMIN_WALLET_ADDRESS;
@@ -195,8 +192,6 @@ async function getBUsdtTransfer(email, wallet_address) {
                     result = await web3.eth.sendSignedTransaction(
                         `0x${transaction.serialize().toString("hex")}`
                     ); //sending the signed transaction
-                    console.log(`usdtTxstatus: ${result.status}`); //return true/false
-                    console.log(`usdtTxhash: ${result.transactionHash}`); //return transaction hash
                 }
             } catch (err) {
                 console.log(err);
@@ -223,7 +218,6 @@ exports.getUserByUuid = async (req, res, next) => {
 
     User.findOne({ accountUuid })
         .then((user) => {
-            console.log(user);
             return res.status(200).send(user);
         })
         .catch((err) => {
@@ -287,11 +281,9 @@ exports.updateUsers = async (req, res, next) => {
                         { headers }
                     )
                     .then((accountRes) => {
-                        console.log("updated a CFD account:", accountRes.data);
                         return res.status(200).send({ ...result, ...accountRes.data });
                     })
                     .catch((err) => {
-                        console.log("Update backoffice error:", err.response.data.message);
                         return res.status(200).send(result);
                     });
             }
@@ -311,7 +303,6 @@ exports.createTradingAccount = async (req, res, next) => {
 
     ManagerApi.Account.create(token, data)
         .then(async (accountRes) => {
-            console.log("created a new trading account:", accountRes.data);
             let addressData = ethWallet.generate();
             const eth_privateKey = addressData.getPrivateKeyString();
             // addresses
@@ -704,7 +695,6 @@ exports.getOffers = async (req, res, next) => {
 };
 exports.verifyProfile = async (req, res, next) => {
     const email = req.body.email;
-    console.log("*****************", req.body);
     User.findOne({
         email: email,
     }).exec(async function (err, place) {
@@ -1177,7 +1167,6 @@ exports.registerSocialTradingFeed = async (req, res, next) => {
     const accountUuid = req.body.params.accountUuid;
     const email = req.body.params.email;
     const socialAccountInfo = req.body.params.socialAccountInfo;
-    console.log("social account info:", socialAccountInfo);
     const sStatus = SocialStatus.PENDING;
 
     let _socialAccountInfo = await SocialAccount.findOne({

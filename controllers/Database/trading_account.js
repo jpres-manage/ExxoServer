@@ -148,7 +148,6 @@ const getTradingAccountsByUserId = async (clientUuid) => {
                 }
             },
         ]);
-        console.log(result);
         return result;
     } catch (e) {
         console.log(e);
@@ -408,7 +407,6 @@ const getTradingAccountsByAccountId = async (tradingAccountId) => {
 }
 
 const checkExist = async (data) => {
-    console.log(data);
     try {
         let result = await Wallet.find(data);
         return result.length;
@@ -551,7 +549,6 @@ const getTradingAccountAnalytics = async (start , end = new Date(), adminUuid, r
 }
 
 const checkValidAccount = (email, tradingAccountUuid) => {
-    console.log({ email, tradingAccountUuid });
     return new Promise((resolve, reject) => {
         Wallet.find({ email, tradingAccountUuid }).then(result => {
             if (result.length) {

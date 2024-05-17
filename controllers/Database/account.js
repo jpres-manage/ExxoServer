@@ -469,7 +469,6 @@ const getTradingAccountsByUserId = async (clientUuid) => {
                 }
             },
         ]);
-        console.log(result);
         return result;
     } catch (e) {
         console.log(e);

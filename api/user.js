@@ -23,7 +23,7 @@ router.get("/offers", [ authJwt.verifyToken ], BranchController.getOffersByUser)
 router.get("/tradingAccounts", [authJwt.verifyToken], getTradingAccounts);
 router.get("/tradingAccountTransactions/:tradingAccountUuid", [authJwt.verifyToken], AccountController.getTradingAccountTransactions);
 router.get("/tradingAccount/balance", [authJwt.verifyToken], getTradingAccountBalance);
-router.post("/tradingAccount", [authJwt.verifyToken], createTradingAccount);
+// router.post("/tradingAccount", [authJwt.verifyToken], createTradingAccount);
 router.post("/walletOfAllTradingAccounts", createWalletOfAllTradingAccounts);
 
 router.get("/telegram",  SettingController.getTelegram );

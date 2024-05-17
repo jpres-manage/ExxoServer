@@ -5,7 +5,6 @@ const speakeasy = require("speakeasy");
 const findAdminByEmail = async (email) => {
   try {
     let result = await Admin.findOne({ email });
-    console.log(result);
     if (result) {
       return result;
     } else {
@@ -19,7 +18,6 @@ const findAdminByUuid = async (adminUuid) => {
   try {
     let result = await Admin.findOne({ adminUuid });
 
-    console.log(result);
     if (result) {
       return result;
     } else {

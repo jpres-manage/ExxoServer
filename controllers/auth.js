@@ -223,7 +223,6 @@ exports.resetPassword = async (req, res) => {
       _user.password = bcrypt.hashSync(req.body.password, 8);
 
       let result = await BOController.Account.createPassword({ email: _user.email, password: req.body.password });
-      console.log(result, "BO create password");
       if (result) {
          await _user.save();
          return res.status(200).send({ success: true, message: "Successfully changed " });

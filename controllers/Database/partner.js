@@ -75,7 +75,6 @@ const getPartnerIdMax = async () => {
             }
         ])
         if(result.length){
-            console.log(result[0]);
             return result[0].maxField;
         }else{
             return 100;

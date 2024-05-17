@@ -53,7 +53,6 @@ const deleteOffers =async ()=>{
     }
 }
 exports.createOffers = async ()=>{
-    console.log("offer storage creating....");
     try{
         await deleteOffers();
         Offers.forEach(async (offer)=>{

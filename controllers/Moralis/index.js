@@ -18,7 +18,6 @@ const addAddress = async(wallet_addresses)=>{
 }
 const addAddressByApp = async (id, wallet_addresses) => {
 
-    console.log(id); 
     try {
         await Moralis.Streams.addAddress({
             id: id,

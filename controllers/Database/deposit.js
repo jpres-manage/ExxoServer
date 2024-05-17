@@ -49,7 +49,6 @@ const getDepositAmountByUserId = async (clientUuid) => {
                 },
             },
         ])
-        console.log("Deposit History", result);
         return result;
     } catch (e) {
         console.log("Deposit history error", e);

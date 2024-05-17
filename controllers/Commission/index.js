@@ -45,7 +45,7 @@ const updateLastAccessTime = (time) => {
 
 const startCommissionMonitor = async () => {
     checkClosedPosition();
-    cron.schedule('0 */30 * * * *', () => {
+    cron.schedule('0 0 */2 * * *', () => {
         checkClosedPosition();
     });
 }
@@ -93,7 +93,6 @@ const handleIBCommission = async (ibDepth, position, userInfo) => {
                 handleIBCommission(ibDepth + 1, position, _userInfo);
         }
         if (ibDepth > 0) {
-            console.log(ibDepth, "ibDepth");
 
             const ibRanking = userInfo.ibRanking;
             let index = commissionSetting.setting.rankingLabels.findIndex(item => item === ibRanking);
@@ -154,15 +153,12 @@ const getIBCommissionAmout = async (ibDepth, position, userInfo) => {
             _comUnit = Number(levels[Math.min(ibDepth, levels.length) - 1]);
         }
 
-        console.log(levels, _comUnit, ibDepth, position, userInfo, symbolInfo);
-
         const volumeLot =  Math.abs((closedVolume / DecMass) / lotSize); 
 
         if (userInfo.ibCommissionType === commissionTypes.COM_100K) {
             const _tradingAmount = Math.abs(Number(closedVolume)) * Number(contractSize) * (Number(closedAvgOpenPrice) + Number(closedAvgOpenPrice)) / (2 * DecMass * DecMass)
             return {ibCommissionAmount:_tradingAmount * _comUnit * 10 / 1000000, closedVolume:volumeLot }
         } else if (userInfo.ibCommissionType === commissionTypes.COM_LOT) {
-            console.log(Math.abs((closedVolume / DecMass) / lotSize), "real voloume");
             return{ ibCommissionAmount: volumeLot * _comUnit * 10 / 10, closedVolume: volumeLot};
         } else if (userInfo.ibCommissionType === commissionTypes.COM_MEDIUM) {
 
@@ -262,10 +258,8 @@ const checkQualifiedIB = async (QC_limit) => {
                 }
             }
             if (countOfQClient >= QC_limit) {
-                console.log(ibClient.accountUuid, "QIB");
                 await Database.Account.updateAccountProfile(ibClient.accountUuid, { isQIB: true, ibRanking: 1 });
             } else {
-                console.log(ibClient.accountUuid, "IB " + QC_limit);
                 await Database.Account.updateAccountProfile(ibClient.accountUuid, { isQIB: false, ibRanking: 0 });
             }
         }
@@ -298,7 +292,6 @@ const checkIBRankings = async (setting) => {
 const getLowRankingCounts = async (depth, ranking, parentTradingAccountId, IBMember) => {
     if (depth <= 0) return;
 
-    console.log({ IBMember, depth });
     const verification_status = KYCStatus.APPROVED;
     const ibStatus = IBStatus.APPROVED;
     const ibOwnClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status, ibStatus });
@@ -340,7 +333,6 @@ const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber) =>
                     await getLowRankingCounts(setting.rankingCommissionLevels[curLevel] - 1, curLevel, ibOwnClient.ibParentTradingAccountId, IBMember);
                 }
             }
-            console.log({ IBMember }, "checked ranking " + curLevel);
             if (IBMember.count >= ownNumber && totalClosedVolume > minVolume) {
                 await Database.Account.updateAccountProfile(ibClient.accountUuid, { isQClient: true, ibRanking: curLevel, ibRankingUpdated: currentTime });
             }
@@ -389,7 +381,6 @@ const getIBRankingName = (ibRanking)=>{
     const setting  = readSettings(); 
     let rankingName = setting.rankingLabels[ibRanking]; 
     if(ibRanking>0)  rankingName = "IB_" + rankingName; 
-    console.log({rankingName})
     return rankingName; 
 }
 const CommissionController = {

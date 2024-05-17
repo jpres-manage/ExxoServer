@@ -24,7 +24,7 @@ const createAccount = async (data) => {
         return result;
     } catch (e) {
         BotController.errors(e,"createAccount")
-        console.log(e);
+        console.log("createTradingAccount on createAccount", e);
         return false;
     }
 }
@@ -62,6 +62,7 @@ const createTradingAccount = async (offerUuid, accountUuid, email, demo, parentT
         }
         const accountRes = await BOController.TradingAccount.createTradingAccount(data);
         if (accountRes === false) {
+            cnosole.log('CreateTradingAccount failed : createTradingAccount', email); 
             return false;
         }
         const tradingAccount = await createAccount({ ...accountRes.data, email, demo })

@@ -47,6 +47,7 @@ const createTradingAccount = async (req, res, next) => {
                 body: tradingAccount
             })
         } else {
+            cnosole.log('CreateTradingAccount failed ', email); 
             SysLogController.logUserCreateTradingAccount({ email, accountUuid }, actionStatus.FAILED);
         }
     } catch (e) {

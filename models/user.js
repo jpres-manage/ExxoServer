@@ -9,7 +9,7 @@ const User = mongoose.model(
     partnerId:                  String, 
     created:                    Date,
     updated:                    Date,
-    email:                      String,
+    email:                      {type:String, required: true,  unique: true},
     password:                   String,
     fullname:                   String,
     birthday:                   String,
@@ -29,9 +29,8 @@ const User = mongoose.model(
     remark:                     String,
     account_type:               String,
     submittedAt:                {type: Date, default: Date.now},
-    verification_status:        { type: String, default: KYCStatus.NEW },   //New, Pending, Approved, Rejected (KYC status)
+    verification_status:        { type: String, default: KYCStatus.NEW, index:true },   //New, Pending, Approved, Rejected (KYC status)
     isEmailVerified:            { type: Boolean, default: false, required: true },
-   
     role:                       String,
     roleUuid:                   String, 
     leadInfo:                   {type: Object, default:{} },
@@ -47,7 +46,7 @@ const User = mongoose.model(
       default: true
     }, 
     parentAccountUuid:          String, 
-    ibStatus:                   { type: String, default: IBStatus.NEW },
+    ibStatus:                   { type: String, default: IBStatus.NEW , index: true},
     ibParentTradingAccountId:   { type: String, default: "" },      // Own IB trading account account to receive commission
     ibParentTradingAccountUuid: { type: String, default: "" },
     parentTradingAccountId:     String,                             // IB parents ib trading account
@@ -62,8 +61,9 @@ const User = mongoose.model(
     isQIB:                      { type: Boolean, default :false},   // Qulified IB user
     ibRanking:                  Number,                               // Ranking labeld by commission setting.json, 
     ibRankingUpdated:           Number, 
-    qClientUpdated:             Number
-
+    qClientUpdated:             Number, 
+    ibTotalVolume:              { tpe: Number, default: 0}
+    
   })
 );
 

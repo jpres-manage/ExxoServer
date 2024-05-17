@@ -20,6 +20,7 @@ const createTradingAccount = async ({clientUuid,offerUuid, commissionUuid}) => {
     };
     try {
         let accountRes = await axios.request(config);
+        console.log({accountRes}, 'bo create account'); 
         return accountRes;
     } catch (e) {
         console.log("BOContorller createTradingAccount" ,e);

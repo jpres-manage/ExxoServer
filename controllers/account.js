@@ -293,11 +293,23 @@ const updateTradingAccountInfo = async (req, res, next) => {
 const getTradingAccountsForAdmin = async (req, res, next) => {
 
     const { adminUuid, adminEmail, role } = req;
+
+    let admin_tradingaccounts = null; 
+    let key = `admin_tradingaccounts`; 
+
+    let keyExist = await redisClient.exists(key); 
+    if(keyExist){
+        let admin_tradingaccounts_data = await redisClient.get(key); 
+        admin_tradingaccounts = JSON.parse(admin_tradingaccounts_data); 
+    }else{
+        admin_tradingaccounts = await Database.Account.getUsers(adminUuid, role);
+        redisClient.set(key, JSON.stringify(admin_tradingaccounts), 'EX', 3600)
+    }
+
     try {
-        const tradingAccounts = await Database.TradingAccount.getTradingAccountsByAdminUuid(adminUuid, role);
         return res.status(200).send({
             success: true,
-            body: tradingAccounts
+            body: admin_tradingaccounts
         })
     } catch (e) {
 

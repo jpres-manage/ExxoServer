@@ -62,7 +62,7 @@ const getBranchAndOffersDetailsByUuid = async (req, res, next) =>{
         return res.status(200).send({
             success: true, 
             body: {
-                ...result._doc,
+                ...result,
                 offers: [
                     ...result_offers
                 ]

@@ -5,7 +5,7 @@ const uuid = require('uuid');
 const getKYCSetting= async () =>{
 
     try{
-        const result  =await KYCSetting.findOne({}); 
+        const result  =await KYCSetting.findOne({}).lean(); 
         return result; 
     }catch(e){
         console.log("getKYCSetting", e);

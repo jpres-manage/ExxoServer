@@ -7,7 +7,7 @@ const getKYCSettings =async (req, res, next) =>{
     if(!kycSetting){
         const data= new KYCSetting(); 
         return res.status(200).send({
-            ...data._doc, 
+            ...data, 
             isFake: true
         });
     }else{

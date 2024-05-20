@@ -608,7 +608,7 @@ const findOneAccountByQuery = async (query) => {
 }
 const excuteQueryFromUser = async (query) => {
     try {
-        let result = await Account.find({ ...query }).sort({ submittedAt: -1 });
+        let result = await Account.find({ ...query }).sort({ submittedAt: -1 }).lean();
         return result;
     } catch (e) {
         BotController.errors(e, "excuteQueryFromUser");

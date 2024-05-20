@@ -7,6 +7,7 @@ const CommissionController = require("../controllers/Commission");
 const EmailController = require("../controllers/Email");
 const BOController = require("../controllers/BO");
 const User = require("../models/user");
+const redisClient = require("../controllers/Redis");
 
 router.get("/admins",[checkSuperAdmin] ,controller.getAdmins);
 router.post("/admin",  [checkAdmin, checkSuperAdmin, verifySignUp.checkDuplicateAdminNameOrEmail],  controller.updateAdmin);
@@ -33,11 +34,24 @@ router.post('/start-2fa', controller.verifyAdmin2FA )
 router.get('/get-2fa', controller.getAdmin2FA); 
 router.post("/verify-2fa", [checkAdminWithout2FA], controller.verifyAdmin2FA );
 router.post("/signinWithToken",[authJwt.verifyToken], async (req, res, next)=>{
-    const user =await Database.Account.getAccountDetailByUuid(req.accountUuid); 
+
+    let user = null; 
+
+    let key = `user_${req.email}`; 
+    let keyExist = await redisClient.exists(key); 
+
+    if(keyExist){
+        let userData = await redisClient.get(key); 
+        user = JSON.parse(userData); 
+    }else {
+        user =await Database.Account.getAccountDetailByUuid(req.accountUuid); 
+        redisClient.set(key, JSON.stringify(user), "EX", process.env.REDIS_EXPIRATION || 3600); 
+    }
+
     res.status(200).send({
         success: true, 
         body: {
-         ...user._doc,
+         ...user,
          password: undefined, 
          oneTimeToken: undefined, 
          ibRanking: CommissionController.getIBRankingName(user.ibRanking)

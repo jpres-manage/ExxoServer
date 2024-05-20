@@ -4,6 +4,8 @@ const User = require("../models/user");
 const Role = require("../models/role");
 const BotController = require("../controllers/Bot/index.js");
 
+const redisClient = require("../controllers/Redis"); 
+
 const verifyToken = (req, res, next) => {
   let token = req.headers["authorization"];
   try {
@@ -11,6 +13,7 @@ const verifyToken = (req, res, next) => {
     if (!token) {
       return res.status(403).send({ message: "Authorization" });
     }
+    
     let decode = jwt.verify(token, config.secret);
     req.email = decode.email; 
     req.accountUuid = decode.accountUuid; 

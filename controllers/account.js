@@ -467,6 +467,19 @@ const syncTradingAccounts = async (req, res, next) => {
 
 }
 
+const syncIBParent =async (req, res, next)=>{
+    try{
+        const users =await User.find({parentTradingAccountUuid: {$ne: null}, parentAccountUuid:null});
+        users.map(async(user)=>{
+            const wallet =await Wallet.findOne({tradingAccountUuid: user.parentTradingAccountUuid});
+            user.parentAccountUuid = wallet.clientUuid; 
+            await user.save(); 
+        })
+    }catch(e){
+        console.log(e); 
+    }
+}
+
 const AccountController = {
     createTradingAccount,
     getTradingAccounts,
@@ -481,7 +494,8 @@ const AccountController = {
     requestSMS,
     validateSMSNumber,
     syncTradingAccounts,
-    syncMissingTradingAccounts
+    syncMissingTradingAccounts, 
+    syncIBParent
 }
 
 module.exports = AccountController;

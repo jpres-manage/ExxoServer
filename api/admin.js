@@ -207,7 +207,7 @@ router.post('/tradingAccounts/sync_bo', AccountController.syncTradingAccounts )
 router.post('/tradingAccounts/sync_missing_taccount', AccountController.syncMissingTradingAccounts )
 
 router.post('/sync-ib-balance', BalanceController.syncIBBalance )
-
+router.post('/sync-ib-parent', AccountController.syncIBParent)
 
 module.exports = router;
 

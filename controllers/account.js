@@ -19,6 +19,7 @@ const sendSMS = require('./SMS');
 const session = require('express-session');
 const User = require('../models/user');
 const MissedWallet = require('../models/misingWallet');
+const redisClient = require('./Redis');
 
 const createTradingAccount = async (req, res, next) => {
     try {
@@ -302,17 +303,17 @@ const getTradingAccountsForAdmin = async (req, res, next) => {
         let admin_tradingaccounts_data = await redisClient.get(key); 
         admin_tradingaccounts = JSON.parse(admin_tradingaccounts_data); 
     }else{
-        admin_tradingaccounts = await Database.Account.getUsers(adminUuid, role);
+        const admin_tradingaccounts = await Database.TradingAccount.getTradingAccountsByAdminUuid(adminUuid, role);
         redisClient.set(key, JSON.stringify(admin_tradingaccounts), 'EX', 3600)
     }
-
+    
     try {
         return res.status(200).send({
             success: true,
             body: admin_tradingaccounts
         })
     } catch (e) {
-
+        console.log(e) 
     }
 
 }

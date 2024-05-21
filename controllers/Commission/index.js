@@ -106,9 +106,7 @@ const handleIBCommission = async (ibDepth, position, userInfo) => {
             if (ibCommissionAmount === 0) return;
 
             const comment = `IB Commission from ${position.closedClOrdId} : ${"#".repeat(ibDepth - 1)}`;
-            // const result = await BalanceController._depositToTradingAccountId(ibCommissionAmount, ibCommissionAmount, DepositMode.IB_COMMISSION, ibTradingAccountId, "USD",
-            //     comment, "System", userInfo.email, userInfo.accountUuid, 0, position.clientId);
-
+          
             let ibCommissionLog = new IBCommission({
                 from: position.clientId,
                 closedVolume,

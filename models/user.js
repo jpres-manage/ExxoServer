@@ -62,8 +62,8 @@ const User = mongoose.model(
     ibRanking:                  Number,                               // Ranking labeld by commission setting.json, 
     ibRankingUpdated:           Number, 
     qClientUpdated:             Number, 
-    ibTotalVolume:              { tpe: Number, default: 0}
-    
+    ibTotalVolume:              { tpe: Number, default: 0},
+    ibBalance:                  Number
   })
 );
 

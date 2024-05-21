@@ -33,9 +33,7 @@ let smtpTransport = nodemailer.createTransport({
 
 exports.signup = async (req, res) => {
    try {
-      let parentTradingAccountId = "";
-      let parentTradingAccountUuid = "";
-
+      let parentAccountUuid = ''; 
       const ibLinkCookie = req.body.ibLinkCookie || null;
       if (ibLinkCookie) {
          const cookieInfo = JSON.parse(ibLinkCookie);
@@ -43,8 +41,7 @@ exports.signup = async (req, res) => {
          if (parentAccount && parentAccount.ibStatus) {
 
             if ((cookieInfo.when + 30 * 24 * 3600 * 1000 > Date.now())) {
-               parentTradingAccountId = parentAccount?.ibParentTradingAccountId;
-               parentTradingAccountUuid = parentAccount?.ibParentTradingAccountUuid;
+               parentAccountUuid = parentAccount.accountUuid; 
             }
          }
       }
@@ -56,8 +53,7 @@ exports.signup = async (req, res) => {
          countryCode: req.body.countryCode,
          phone: req.body.phone,
          password: bcrypt.hashSync(req.body.password, 8),
-         parentTradingAccountId: parentTradingAccountId,
-         parentTradingAccountUuid: parentTradingAccountUuid,
+         parentAccountUuid,
          branchInfo,
          branchUuid,
          accountUuid: uuid.v4()

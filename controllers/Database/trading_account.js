@@ -51,7 +51,7 @@ const createIBTradingAccount = async (_id) => {
         return false;
     }
 }
-const createTradingAccount = async (offerUuid, accountUuid, email, demo, parentTradingAccountId, commissionUuid) => {
+const createTradingAccount = async (offerUuid, accountUuid, email, demo) => {
 
     try {
         let offer = await OfferModel.getOfferbyUuid(offerUuid);

@@ -147,7 +147,7 @@ const getUserEmailsByIds = async (ids) => {
     }
 }
 //  for admin actions
-const getIBClients = async (data) => {
+const getIBClients = async () => {
     let match = {};
     const query = { ibStatus: { $in: [IBStatus.PENDING, IBStatus.APPROVED, IBStatus.DECLINED] } };
 
@@ -155,7 +155,7 @@ const getIBClients = async (data) => {
 
         const result = await Account.find({...query, verification_status: {$ne: KYCStatus.DELETED}}).sort({
             ibSubmittedAt: -1
-        })
+        }).lean(); 
         // const result = await Account.aggregate([
         //     {
         //         $match: {
@@ -232,12 +232,12 @@ const updateAccountProfileByEmail = async (email, data) => {
     }
 }
 
-const updateIBStatus = async (data, tradingAccountId, ibParentTradingAccountUuid) => {
+const updateIBStatus = async (data, parentAccountUuid) => {
 
     const { id: _id, ibStatus, ibCommissionType } = data;
     const ibClientInfo = await getIBLink();
     try {
-        let result = await Account.findOneAndUpdate({ _id }, { ibParentTradingAccountUuid, ibStatus, ...ibClientInfo, ibParentTradingAccountId: tradingAccountId, ibCommissionType, ibCreatedAt: new Date() }, { new: true });
+        let result = await Account.findOneAndUpdate({ _id }, { ibStatus, ...ibClientInfo, parentAccountUuid, ibCommissionType, ibCreatedAt: new Date() }, { new: true });
         return result;
     } catch (e) {
         BotController.errors(e, "updateIBStatus- database-account")
@@ -287,11 +287,11 @@ const getIBOwnClients = async (data) => {
                     isEmailVerified: 1,
                     accountUuid: 1,
                     ibStatus: 1,
-                    ibParentTradingAccountId: 1,
-                    ibParentTradingAccountUuid: 1,
                     isQClient: 1,
                     isQIB: 1,
                     ibRanking: 1,
+                    parentAccountUuid: 1, 
+                    ibBalance: 1
                 }
             }
         ]);
@@ -301,10 +301,10 @@ const getIBOwnClients = async (data) => {
     }
 }
 
-const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, summary) => {
+const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summary) => {
     try {
         let ibUserTreeData = [];
-        const affiliateUsers = await getIBOwnClients({ parentTradingAccountId, verification_status: KYCStatus.APPROVED });
+        const affiliateUsers = await getIBOwnClients({ parentAccountUuid, verification_status: KYCStatus.APPROVED });
         let totalIbs = 0, totalQClients = 0, totalVolume = 0;
         for (let i = 0; i < affiliateUsers.length; i++) {
             let item = affiliateUsers[i];
@@ -318,7 +318,7 @@ const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, s
                         state: {
                             opened: true,
                         },
-                        children: ibDepth + 1 < end && await createIBClientTree(item.ibParentTradingAccountId, ibDepth + 1, start, end, summary) || undefined
+                        children: ibDepth + 1 < end && await createIBClientTree(item.parentAccountUuid, ibDepth + 1, start, end, summary) || undefined
                     };
                 } else {
                     data = {
@@ -333,7 +333,7 @@ const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, s
                 ibUserTreeData = [...ibUserTreeData, data]
             } else {
                 if (item.ibStatus === IBStatus.APPROVED) {
-                    data = await createIBClientTree(item.ibParentTradingAccountId, ibDepth + 1, start, end, summary);
+                    data = await createIBClientTree(item.parentAccountUuid, ibDepth + 1, start, end, summary);
                     ibUserTreeData = [...ibUserTreeData, ...data]
                 }
             }
@@ -357,15 +357,15 @@ const createIBClientTree = async (parentTradingAccountId, ibDepth, start, end, s
     }
 }
 
-const getTotalIBOwnUsers = async (parentTradingAccountId) => {
+const getTotalIBOwnUsers = async (parentAccountUuid) => {
     try {
-        const affiliateUsers = await getIBOwnClients({ parentTradingAccountId, verification_status: KYCStatus.APPROVED });
+        const affiliateUsers = await getIBOwnClients({ parentAccountUuid, verification_status: KYCStatus.APPROVED });
         let totalClients = 0;
         for (let i = 0; i < affiliateUsers.length; i++) {
             let item = affiliateUsers[i];
             let data;
             if (item.ibStatus === IBStatus.APPROVED) {
-                totalClients += await getTotalIBOwnUsers(item.ibParentTradingAccountId) +1
+                totalClients += await getTotalIBOwnUsers(item.parentAccountUuid) +1
                 
             } else {
                 totalClients += 1;

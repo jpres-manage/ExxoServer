@@ -11,6 +11,7 @@ const IBCommission = mongoose.model(
     comment: String, 
     positionID: String, 
     ibTradingAccountId: String, 
+    parentAccountUuid: String, 
     email: String,
     depositState: Number
   })

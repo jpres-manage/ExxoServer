@@ -173,8 +173,8 @@ const getIBCommissionHistory = async (adminUuid, role) => {
             {
                 $lookup: {
                     from: "users",
-                    foreignField: "ibParentTradingAccountId",
-                    localField: "tradingAccountId",
+                    foreignField: "accountuuid",
+                    localField: "parentAccountUuid",
                     as: "user"
                 }
             },
@@ -208,7 +208,6 @@ const getIBCommissionHistory = async (adminUuid, role) => {
                     "email": 1,
                     "createdAt": 1,
                     "amount": 1,
-                    "user.ibParentTradingAccountId": 1,
                     "user.fullname": 1,
                     "user.isEmailVerified": 1,
                     "user.accountUuid": 1,

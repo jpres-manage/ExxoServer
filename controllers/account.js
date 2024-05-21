@@ -34,7 +34,7 @@ const createTradingAccount = async (req, res, next) => {
                 error: "Bad Request"
             })
         }
-        const tradingAccount = await Database.TradingAccount.createTradingAccount(offerUuid, accountUuid, email, offer.demo, user.ibParentTradingAccountUuid);
+        const tradingAccount = await Database.TradingAccount.createTradingAccount(offerUuid, accountUuid, email, offer.demo);
         if (tradingAccount) {
             BotController.createTradingAccount(email, tradingAccount.tradingAccountId);
             SysLogController.logUserCreateTradingAccount({ email, accountUuid }, actionStatus.SUCCESS);
@@ -78,7 +78,7 @@ const _createTradingAccount = async (req, res, next) => {
     const data = {
         clientUuid: user.accountUuid,
         offerUuid,
-        commissionUuid: user.ibParentTradingAccountUuid
+        commissionUuid: ""
     }
 
     try {

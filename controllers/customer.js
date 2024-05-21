@@ -128,15 +128,13 @@ const saveUserProfileImage = async (req, res, next) => {
 
 const createUser = async (req, res, next) => {
     const _data = req.body;
-    let parentTradingAccountUuid = null, parentTradingAccountId = null, parentAccountUuid = null;
+    let parentAccountUuid = null;
 
     let branchUuid = await Database.Setting.getDefaultBranch();
     const { ibLinkCookie } = _data;
     if (!!ibLinkCookie) {
         const IBUser = await Database.Account.getAccountDetailByIblink(Number(ibLinkCookie));
         if (!!IBUser) {
-            parentTradingAccountId = IBUser.ibParentTradingAccountId;
-            parentTradingAccountUuid = IBUser.ibParentTradingAccountUuid;
             branchUuid = IBUser.branchUuid;
             parentAccountUuid = IBUser.accountUuid;
         }
@@ -149,8 +147,6 @@ const createUser = async (req, res, next) => {
         ...req.body,
         email,
         branchUuid,
-        parentTradingAccountId,
-        parentTradingAccountUuid,
         parentAccountUuid,
         password: bcrypt.hashSync(password, 8)
     };
@@ -374,7 +370,7 @@ const updateIBStatus = async (req, res, next) => {
         let commissionType = await Database.Setting.getCommissionType();
         user_result = await Database.Account.updateIBStatus(req.body, tradingAccount.tradingAccountId, tradingAccount.tradingAccountUuid );
         if (user_result.parentTradingAccountId) {
-            let parentAccount = await Database.Account.findOneAccountByQuery({ ibParentTradingAccountId: user_result.parentTradingAccountId });
+            let parentAccount = await Database.Account.findOneAccountByQuery({ accountUuid: user_result.parentAccountUuid });
             user_result.ibCommissionType = parentAccount.ibCommissionType || commissionType || 'Lot';
         } else {
             user_result.ibCommissionType = commissionType || 'Lot'
@@ -403,11 +399,10 @@ const updateIBStatus = async (req, res, next) => {
 const getIBClients = async (req, res, next) => {
 
     const { eamil, accountUuid } = req;
-    const account = await Database.Account.getAccountDetailByUuid(accountUuid);
     if (account) {
-        const parentTradingAccountId = account.ibParentTradingAccountId;
+        const parentAccountUuid = accountUuid;
         const verification_status = KYCStatus.APPROVED;
-        const _ibClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
+        const _ibClients = await Database.Account.getIBOwnClients({ parentAccountUuid, verification_status });
         return res.status(200).send({
             success: true,
             body: _ibClients
@@ -424,7 +419,7 @@ const getIBOwnClients = async (req, res, next) => {
     const { eamil, accountUuid } = req;
     const user = await Database.Account.getAccountDetailByUuid(accountUuid);
 
-    if (user && user.ibStatus == IBStatus.APPROVED && user.ibParentTradingAccountId) {
+    if (user && user.ibStatus == IBStatus.APPROVED && user.parentAccountUuid) {
         let start = 0, end = 10;
         const commissionSetting = readSettings();
         const index = commissionSetting.rankingLabels.findIndex(item => item == user.ibRanking);
@@ -443,7 +438,7 @@ const getIBOwnClients = async (req, res, next) => {
             totalVolume: 0
         }
 
-        let result = await Database.Account.createIBClientTree(user.ibParentTradingAccountId, 0, start, end, summary);
+        let result = await Database.Account.createIBClientTree(user.parentAccountUuid, 0, start, end, summary);
         return res.status(200).send({
             success: true,
             body: result,

@@ -1,4 +1,5 @@
 
+const IBCommission = require('../models/ib_commission');
 const BotController = require('./Bot');
 const Database = require('./Database');
 const ManagerApi = require('./Manager');
@@ -40,11 +41,9 @@ const getIBCommissions = async (req, res, next)=>{
         const rangeEnd = (new Date()).getTime();
         const ledgerTypes = [LedgerTypes.DEPOSIT]; 
         const _user = await Database.Account.getAccountDetailByEmail(email); 
-        const clientIds = [_user.ibParentTradingAccountId]; 
-        
-        const ibCommissions = await getLedgers({
-            rangeStart, rangeEnd, clientIds, ledgerTypes
-        })
+
+        const ibCommissions = await IBCommission.find({parentAccountUuid: _user.parentAccountUuid, depositState: 1}).lean(); 
+
         return res.status(200).send({
             success: true, 
             body: ibCommissions

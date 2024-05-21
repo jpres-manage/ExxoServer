@@ -18,6 +18,7 @@ const MailController = require("../controllers/mail");
 const SettingController = require("../controllers/setting");
 const IBCommissionCotroller = require("../controllers/ibcommission");
 const AnalyticsController = require("../controllers/analytics");
+const BalanceController = require("../controllers/balance");
 
 router.get("/offers", [ authJwt.verifyToken ], BranchController.getOffersByUser);
 router.get("/tradingAccounts", [authJwt.verifyToken], getTradingAccounts);
@@ -36,6 +37,7 @@ router.post("/update-password", [authJwt.verifyToken], UserController.changePass
 router.post("/webhook", webhook);
 
 router.post("/internal-transfer", [authJwt.verifyToken], internalTransfer);
+router.post("/internal-ib-transfer", [authJwt.verifyToken], BalanceController.internalIBTransfer);
 
 router.post("/request-ib", [authJwt.verifyToken, userValidation.kycApproved], requestIB);
 router.post("/cancel-ib", [authJwt.verifyToken], cancelIB);

@@ -28,9 +28,9 @@ const getIBOwnClients = async (req, res, next) => {
     const id = req.params.id;
     const account = await Database.Account.getAccountDetailById(id);
     if (account) {
-        const parentTradingAccountId = account.ibParentTradingAccountId;
+        const parentAccountId = account.accountUuid;
         const verification_status = KYCStatus.APPROVED;
-        const _ibClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
+        const _ibClients = await Database.Account.getIBOwnClients({parentAccountId, verification_status });
         return res.status(200).send({
             success: true,
             body: _ibClients
@@ -49,7 +49,7 @@ const getIBOwnClientsTree = async (req, res, next) => {
     const id = req.params.id;
     const account = await Database.Account.getAccountDetailById(id);
     if (account) {
-        const parentTradingAccountId = account.ibParentTradingAccountId;
+        const parentAccountId = account.accountUuid;
         const verification_status = KYCStatus.APPROVED;
 
         /////////// Get setting for IB ranking
@@ -70,8 +70,8 @@ const getIBOwnClientsTree = async (req, res, next) => {
             totalVolume: 0, 
             totalUsers: 0
         }
-        const _ibClients = await Database.Account.createIBClientTree(parentTradingAccountId, 0, start, end, summary);
-        summary.totalUsers = await Database.Account.getTotalIBOwnUsers(parentTradingAccountId);
+        const _ibClients = await Database.Account.createIBClientTree(parentAccountId, 0, start, end, summary);
+        summary.totalUsers = await Database.Account.getTotalIBOwnUsers(parentAccountId);
 
         return res.status(200).send({
             success: true,

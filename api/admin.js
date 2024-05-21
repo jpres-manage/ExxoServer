@@ -79,9 +79,6 @@ router.get("/tradingAccount/:id",[checkAdmin ], AccountController.getTradingAcco
 router.post('/tradingAccounts/qrcode', generateAllQrcode);
 
 
-////// sync trading accounts from Oldbo
-router.post('/tradingAccounts/sync_bo', AccountController.syncTradingAccounts )
-router.post('/tradingAccounts/sync_missing_taccount', AccountController.syncMissingTradingAccounts )
 
 router.get("/active-orders/:id",[checkAdmin ], OrderController.getActiveOrdersByAccountUuid);
 router.get("/canceled-orders/:id",[checkAdmin ], OrderController.getCanceledOrdersByAccountUuid);
@@ -204,6 +201,12 @@ router.post("/check/wallet", async(req, res)=>{
 // router.post("/commission-levels/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
 // router.put("/commission-levels/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
 // router.delete("/commission-levels/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
+
+////// sync trading accounts from Oldbo
+router.post('/tradingAccounts/sync_bo', AccountController.syncTradingAccounts )
+router.post('/tradingAccounts/sync_missing_taccount', AccountController.syncMissingTradingAccounts )
+
+router.post('/sync-ib-balance', BalanceController.syncIBBalance )
 
 
 module.exports = router;

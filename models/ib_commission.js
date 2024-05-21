@@ -11,7 +11,8 @@ const IBCommission = mongoose.model(
     comment: String, 
     positionID: String, 
     ibTradingAccountId: String, 
-    email: String
+    email: String, 
+    depositState: Number
   })
 );
 

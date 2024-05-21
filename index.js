@@ -134,6 +134,8 @@ app.listen(PORT, async () => {
         })
     });
 
+  
+
     cron.schedule('0 0 0 *  * *', () => {
         CommissionController.startCheckRanking(); 
     });
@@ -149,5 +151,6 @@ app.listen(PORT, async () => {
     Moralis.initMoralis();
 
     SocketController.initSecketServer();
+
 
 }); 

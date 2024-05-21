@@ -8,7 +8,7 @@ const BalanceController = require('../balance');
 const { min } = require('moment');
 const ManagerApi = require('../Manager');
 const SymbolController = require('../Symbol');
-const { commissionTypes, DepositMode, KYCStatus, IBStatus } = require('../constant');
+const { commissionTypes, DepositMode, KYCStatus, IBStatus, PaymentGateway } = require('../constant');
 const { userInfo } = require('os');
 const User = require('../../models/user');
 const IBCommission = require('../../models/ib_commission');
@@ -44,8 +44,8 @@ const updateLastAccessTime = (time) => {
 }
 
 const startCommissionMonitor = async () => {
-    checkClosedPosition();
-    cron.schedule('0 0 */2 * * *', () => {
+    cron.schedule('0 0 */1 * * *', async () => {
+        await CommissionController.depositIBCommissions();
         checkClosedPosition();
     });
 }
@@ -101,26 +101,27 @@ const handleIBCommission = async (ibDepth, position, userInfo) => {
                 return;
             }
             const ibTradingAccountId = userInfo.ibParentTradingAccountId;
-            const {ibCommissionAmount, closedVolume} = await getIBCommissionAmout(ibDepth, position, userInfo);
+            const { ibCommissionAmount, closedVolume } = await getIBCommissionAmout(ibDepth, position, userInfo);
 
-            if(ibCommissionAmount === 0) return; 
+            if (ibCommissionAmount === 0) return;
 
             const comment = `IB Commission from ${position.closedClOrdId} : ${"#".repeat(ibDepth - 1)}`;
-            const result = await BalanceController._depositToTradingAccountId(ibCommissionAmount, ibCommissionAmount, DepositMode.IB_COMMISSION, ibTradingAccountId, "USD",
-                comment, "System", userInfo.email, userInfo.accountUuid, 0, position.clientId);
-            
+            // const result = await BalanceController._depositToTradingAccountId(ibCommissionAmount, ibCommissionAmount, DepositMode.IB_COMMISSION, ibTradingAccountId, "USD",
+            //     comment, "System", userInfo.email, userInfo.accountUuid, 0, position.clientId);
+
             let ibCommissionLog = new IBCommission({
-                from: position.clientId, 
-                closedVolume, 
-                createdAt: new Date().getTime(), 
-                commissionAmount: ibCommissionAmount, 
+                from: position.clientId,
+                closedVolume,
+                createdAt: new Date().getTime(),
+                commissionAmount: ibCommissionAmount,
                 positionID: position.uid,
-                ibTradingAccountId, 
-                comment, 
+                ibTradingAccountId,
+                comment,
                 email: userInfo.email,
+                depositState: 0
             })
-            await ibCommissionLog.save(); 
-                
+            await ibCommissionLog.save();
+
         }
     } catch (e) {
         BotController.errors(e, "handleIBCommission");
@@ -153,13 +154,13 @@ const getIBCommissionAmout = async (ibDepth, position, userInfo) => {
             _comUnit = Number(levels[Math.min(ibDepth, levels.length) - 1]);
         }
 
-        const volumeLot =  Math.abs((closedVolume / DecMass) / lotSize); 
+        const volumeLot = Math.abs((closedVolume / DecMass) / lotSize);
 
         if (userInfo.ibCommissionType === commissionTypes.COM_100K) {
             const _tradingAmount = Math.abs(Number(closedVolume)) * Number(contractSize) * (Number(closedAvgOpenPrice) + Number(closedAvgOpenPrice)) / (2 * DecMass * DecMass)
-            return {ibCommissionAmount:_tradingAmount * _comUnit * 10 / 1000000, closedVolume:volumeLot }
+            return { ibCommissionAmount: _tradingAmount * _comUnit * 10 / 1000000, closedVolume: volumeLot }
         } else if (userInfo.ibCommissionType === commissionTypes.COM_LOT) {
-            return{ ibCommissionAmount: volumeLot * _comUnit * 10 / 10, closedVolume: volumeLot};
+            return { ibCommissionAmount: volumeLot * _comUnit * 10 / 10, closedVolume: volumeLot };
         } else if (userInfo.ibCommissionType === commissionTypes.COM_MEDIUM) {
 
         }
@@ -266,6 +267,25 @@ const checkQualifiedIB = async (QC_limit) => {
     } catch (e) {
         console.log(e);
         return;
+    }
+}
+
+const depositIBCommissions = async () => {
+
+    const results = await IBCommission.aggregate([
+        { $match: { depositState: 0 } },
+        { $group: { _id: "$ibTradingAccountId", totalCommission: { $sum: "$commissionAmount" } } }
+    ]);
+
+    // Update depositState to 1 for the matched ibTradingAccountIds
+    for (const result of results) {
+        await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission, DepositMode.IB_COMMISSION, result._id, "USD",
+            comment, "System", "", "", 0, "");
+
+        await IBCommission.updateMany(
+            { ibTradingAccountId: result._id, depositState: 0 },
+            { $set: { depositState: 1 } }
+        );
     }
 }
 
@@ -377,14 +397,15 @@ const getRankingTypes = async (req, res) => {
     }
 }
 
-const getIBRankingName = (ibRanking)=>{
-    const setting  = readSettings(); 
-    let rankingName = setting.rankingLabels[ibRanking]; 
-    if(ibRanking>0)  rankingName = "IB_" + rankingName; 
-    return rankingName; 
+const getIBRankingName = (ibRanking) => {
+    const setting = readSettings();
+    let rankingName = setting.rankingLabels[ibRanking];
+    if (ibRanking > 0) rankingName = "IB_" + rankingName;
+    return rankingName;
 }
 const CommissionController = {
     startCommissionMonitor, checkClosedPosition, _checkClosedPosition, startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking, getRankingTypes, getIBRankingName
+    , depositIBCommissions
 }
 
 module.exports = CommissionController; 

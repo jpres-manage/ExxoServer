@@ -12,12 +12,25 @@ const { OAuth2Client } = require('google-auth-library');
 const { generatePassword } = require("../utils/helper");
 const { readSettings } = require("./Commission");
 const User = require("../models/user");
+const redisClient = require("./Redis");
 const client = new OAuth2Client(`${process.env.GOOGLE_CLIENT_ID}`);
 
 const getUsers = async (req, res, next) => {
     const { adminUuid, role } = req;
-    const result = await Database.Account.getUsers(adminUuid, role);
-    if (!result) {
+
+    let admin_users = null; 
+    let key = `admin_users`; 
+
+    let keyExist = await redisClient.exists(key); 
+    if(keyExist){
+        let admin_users_data = await redisClient.get(key); 
+        admin_users = JSON.parse(admin_users_data); 
+    }else{
+        admin_users = await Database.Account.getUsers(adminUuid, role);
+        redisClient.set(key, JSON.stringify(admin_users), "EX", process.env.REDIS_EXPIRATION || 3600)
+    }
+
+    if (!admin_users) {
         return res.status(200).send({
             success: false,
             error: "Internal Server Error"
@@ -26,7 +39,7 @@ const getUsers = async (req, res, next) => {
         return res.status(200).send({
             success: true,
             body: [
-                ...result
+                ...admin_users
             ]
         })
     }
@@ -42,11 +55,11 @@ const getUserProfile = async (req, res, next) => {
             error: "Internal Server Error"
         })
     } else {
-        const branchInfo = await Database.Branch.getBranchDetailsByUuid(result._doc.branchUuid);
+        const branchInfo = await Database.Branch.getBranchDetailsByUuid(result.branchUuid);
         return res.status(200).send({
             success: true,
             body: {
-                ...result._doc,
+                ...result,
                 branchInfo
             }
         })
@@ -59,11 +72,11 @@ const getUserProfileByUuid = async (req, res, next) => {
     const result = await Database.Account.getAccountDetailByUuid(accountUuid);
 
     if (result) {
-        const branchInfo = await Database.Branch.getBranchDetailsByUuid(result._doc.branchUuid);
+        const branchInfo = await Database.Branch.getBranchDetailsByUuid(result.branchUuid);
         return res.status(200).send({
             success: true,
             body: {
-                ...result._doc,
+                ...result,
                 branchInfo
             }
         })
@@ -253,7 +266,18 @@ const verifyEmail = async (req, res, next) => {
 
     try {
         let decoded = jwt.verify(req.query.token, config.secret);
-        let user = await Database.Account.getAccountDetailByEmail(decoded.email);
+
+        let key = `user_${decoded.email}`; 
+        let keyExist = await redisClient.exists(key); 
+        let user = null; 
+        if(keyExist){
+            let userData = await redisClient.get(key); 
+            user = JSON.parse(userData); 
+
+        }else {
+            user = await Database.Account.getAccountDetailByEmail(decoded.email);
+        }
+
         if (!user)
             return res.redirect(`${process.env.FRONT_ENTRY}/login`);
         else {
@@ -263,6 +287,9 @@ const verifyEmail = async (req, res, next) => {
             }
             let branchUuid = await Database.Setting.getDefaultBranch();
             await Database.Account.updateAccountProfileByEmail(decoded.email, { ...result.data, isEmailVerified: true, password: user.password, branchUuid });
+            
+            await redisClient.set(key, JSON.stringify({...result.data, isEmailVerified: true, password:user.password , branchUuid}), "EX", process.env.REDIS_EXPIRATION || 3600)
+
             BotController.emailVerified(decoded.email);
             return res.redirect(`${process.env.FRONT_ENTRY}/login`);
         }
@@ -624,7 +651,7 @@ const googleSignIn = async (req, res, next) => {
                 {
                     success: true,
                     body: {
-                        ...user._doc,
+                        ...user,
                         accessToken: token,
                     }
                 });

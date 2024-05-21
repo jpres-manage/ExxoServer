@@ -44,6 +44,7 @@
     "nodemon": "^2.0.20",
     "puppeteer": "^13.7.0",
     "qrcode": "^1.5.3",
+    "redis": "^4.6.14",
     "request": "^2.88.2",
     "sequelize": "^6.17.0",
     "speakeasy": "^2.0.0",

@@ -16,7 +16,7 @@ const findAdminByEmail = async (email) => {
 };
 const findAdminByUuid = async (adminUuid) => {
   try {
-    let result = await Admin.findOne({ adminUuid });
+    let result = await Admin.findOne({ adminUuid }).lean();
 
     if (result) {
       return result;

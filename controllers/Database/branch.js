@@ -21,7 +21,7 @@ const getBranchDetailsByUuid = async (branchUuid) =>{
 
 const findOneBranch = async (condition)=>{
     try{
-        let result= await Branch.findOne({...condition}); 
+        let result= await Branch.findOne({...condition}).lean(); 
         return result; 
     }catch(e){
         console.log(e); 

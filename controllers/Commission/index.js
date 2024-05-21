@@ -142,7 +142,7 @@ const getIBCommissionAmout = async (ibDepth, position, userInfo) => {
         let levels = [];
         const commissionLevel = await Database.Commission.getCommissionLevelsBySymbolAndOffer(position.instrument, tradingAccount.offerUuid, userInfo.ibCommissionType);
 
-        if (commissionLevel.isAllInstrument) {
+        if (commissionLevel?.isAllInstrument) {
             levels = commissionLevel.levels;
         } else {
             const symbolLevels = await Database.SymbolLevel.getSymbolLevel({ symbolId: symbolInfo.symbolId, commissionLevelUuid: commissionLevel.commissionLevelUuid });

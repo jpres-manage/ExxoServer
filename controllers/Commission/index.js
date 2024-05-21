@@ -44,9 +44,11 @@ const updateLastAccessTime = (time) => {
 }
 
 const startCommissionMonitor = async () => {
+    await CommissionController.depositIBCommissions();
+    await checkClosedPosition();
     cron.schedule('0 0 */1 * * *', async () => {
         await CommissionController.depositIBCommissions();
-        checkClosedPosition();
+        await checkClosedPosition();
     });
 }
 
@@ -281,10 +283,8 @@ const depositIBCommissions = async () => {
     console.log(results, "ib commissions ")
     BotController.errors(JSON.stringify(results)); 
     for (const result of results) {
-
         await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission,
             DepositMode.IB_COMMISSION, result._id, "USD",comment, "System", "", "", 0, "");
-
         
         await IBCommission.updateMany(
             { ibTradingAccountId: result._id, depositState: 0 },

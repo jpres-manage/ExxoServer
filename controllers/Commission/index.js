@@ -281,16 +281,17 @@ const depositIBCommissions = async () => {
 
     // Update depositState to 1 for the matched ibTradingAccountIds
     console.log(results, "ib commissions ")
-    BotController.errors(JSON.stringify(results)); 
+    BotController.errors(JSON.stringify(results));
     for (const result of results) {
-        BotController.errors(JSON.stringify(result)); 
-        await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission,
+        BotController.errors(JSON.stringify(result));
+        let rslt = await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission,
             DepositMode.IB_COMMISSION, result._id, "USD", "IB commission", "System", "", 0, "");
-        
-        await IBCommission.updateMany(
-            { ibTradingAccountId: result._id, depositState: 0 },
-            { $set: { depositState: 1 } }
-        );
+
+        if (rslt)
+            await IBCommission.updateMany(
+                { ibTradingAccountId: result._id, depositState: 0 },
+                { $set: { depositState: 1 } }
+            );
     }
 }
 

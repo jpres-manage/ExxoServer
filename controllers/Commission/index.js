@@ -285,7 +285,7 @@ const depositIBCommissions = async () => {
     for (const result of results) {
         BotController.errors(JSON.stringify(result)); 
         await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission,
-            DepositMode.IB_COMMISSION, result._id, "USD",comment, "System", "", "", 0, "");
+            DepositMode.IB_COMMISSION, result._id, "USD", "IB commission", "System", "", 0, "");
         
         await IBCommission.updateMany(
             { ibTradingAccountId: result._id, depositState: 0 },

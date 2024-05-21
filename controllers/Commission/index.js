@@ -278,10 +278,13 @@ const depositIBCommissions = async () => {
     ]);
 
     // Update depositState to 1 for the matched ibTradingAccountIds
+    console.log(results, "ib commissions ")
     for (const result of results) {
-        await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission, DepositMode.IB_COMMISSION, result._id, "USD",
-            comment, "System", "", "", 0, "");
 
+        await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission,
+            DepositMode.IB_COMMISSION, result._id, "USD",comment, "System", "", "", 0, "");
+
+        
         await IBCommission.updateMany(
             { ibTradingAccountId: result._id, depositState: 0 },
             { $set: { depositState: 1 } }

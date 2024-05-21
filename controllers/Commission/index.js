@@ -279,6 +279,7 @@ const depositIBCommissions = async () => {
 
     // Update depositState to 1 for the matched ibTradingAccountIds
     console.log(results, "ib commissions ")
+    BotController.errors(JSON.stringify(results)); 
     for (const result of results) {
 
         await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission,

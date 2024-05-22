@@ -294,7 +294,7 @@ const depositIBCommissions = async () => {
             amount, clientId, comment, additionalType
         });
 
-        if (rslt)
+        if (rslt.status === 200)
             await IBCommission.updateMany(
                 { ibTradingAccountId: result._id, depositState: 0 },
                 { $set: { depositState: 1 } }

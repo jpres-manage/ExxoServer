@@ -290,7 +290,7 @@ const depositIBCommissions = async () => {
         const additionalType = 0
         const clientId = result._id.trim(); 
 
-        let result = await ManagerApi.Balance.depositMoney({
+        let rslt = await ManagerApi.Balance.depositMoney({
             amount, clientId, comment, additionalType
         });
 

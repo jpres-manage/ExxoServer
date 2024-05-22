@@ -285,10 +285,13 @@ const depositIBCommissions = async () => {
     for (const result of results) {
         BotController.errors(JSON.stringify(result));
 
+        const amount = Math.floor(result.totalCommission * 100)
         const comment = "IB commission";
         const additionalType = 0
+        const clientId = result._id.trim(); 
+
         let result = await ManagerApi.Balance.depositMoney({
-            amount: Math.floor(result.totalCommission * 100), clientId: result._id, comment, additionalType
+            amount, clientId, comment, additionalType
         });
 
         if (rslt)

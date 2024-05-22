@@ -284,8 +284,12 @@ const depositIBCommissions = async () => {
     BotController.errors(JSON.stringify(results));
     for (const result of results) {
         BotController.errors(JSON.stringify(result));
-        let rslt = await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission,
-            DepositMode.IB_COMMISSION, result._id, "USD", "IB commission", "System", "", 0, "");
+
+        const comment = "IB commission";
+        const additionalType = 0
+        let result = await ManagerApi.Balance.depositMoney({
+            amount: Math.floor(result.totalCommission * 100), clientId: result._id, comment, additionalType
+        });
 
         if (rslt)
             await IBCommission.updateMany(

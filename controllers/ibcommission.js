@@ -47,6 +47,8 @@ const getIBOwnClientsTree = async (req, res, next) => {
 
     const id = req.params.id;
     const account = await Database.Account.getAccountDetailById(id);
+
+    console.log({account})
     if (account) {
         const parentAccountUuid = account.accountUuid;
         const verification_status = KYCStatus.APPROVED;

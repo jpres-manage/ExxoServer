@@ -276,7 +276,7 @@ const depositIBCommissions = async () => {
 
     const results = await IBCommission.aggregate([
         { $match: { depositState: 0 } },
-        { $group: { _id: "$ibTradingAccountId", totalCommission: { $sum: "$commissionAmount" } } }
+        { $group: { _id: "$parentAccountUuid", totalCommission: { $sum: "$commissionAmount" } } }
     ]);
 
     // Update depositState to 1 for the matched ibTradingAccountIds
@@ -284,14 +284,14 @@ const depositIBCommissions = async () => {
     BotController.errors(JSON.stringify(results));
     for (const result of results) {
         BotController.errors(JSON.stringify(result));
-        let rslt = await BalanceController._depositToTradingAccountId(result.totalCommission, result.totalCommission,
-            DepositMode.IB_COMMISSION, result._id, "USD", "IB commission", "System", "", 0, "");
 
-        if (rslt)
-            await IBCommission.updateMany(
-                { ibTradingAccountId: result._id, depositState: 0 },
-                { $set: { depositState: 1 } }
-            );
+        const user = await User.findOne({ accountUuid: result._id });
+        user.ibBalance =(user.ibBalance || 0) + (result.totalCommission || 0);
+        await user.save();
+        await IBCommission.updateMany(
+            { ibTradingAccountId: result._id, depositState: 0 },
+            { $set: { depositState: 1 } }
+        );
     }
 }
 

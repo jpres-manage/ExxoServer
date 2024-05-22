@@ -19,6 +19,7 @@ router.post("/user/:id/tradingAccount",[checkAdmin, (req, res, next)=>{
 router.get("/tradingAccount/:id",[authJwt.verifyToken ], AccountController.getTradingAccountByTradingAccountUuid);
 router.get("/freeMargin/:id",[authJwt.verifyToken ], AccountController.getFreeMargin);
 router.post("/transfer",[authJwt.verifyToken, userValidation.kycApproved ], BalanceController.internalTransfer);
+router.post("/ib-transfer",[authJwt.verifyToken, userValidation.kycApproved ], BalanceController.internalIBTransfer);
 router.get("/transaction",[authJwt.verifyToken ], AccountController.getTradingAccountTransactions);
 router.get("/active-orders/:id",[authJwt.verifyToken ], OrderController.getActiveOrdersByAccountUuid);
 router.get("/canceled-orders/:id",[authJwt.verifyToken ], OrderController.getAllOrdersByAccountUuid);

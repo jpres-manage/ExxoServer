@@ -2,6 +2,7 @@ const Deposit = require("../../models/report");
 const uuid = require('uuid');
 const { DepositMode, AccountRole, IBStatus } = require("../constant");
 const BotController = require("../Bot");
+const IBCommission = require("../../models/ib_commission");
 
 const getDepositHistoryByTradingAccountUuid = async (tradingAccountId) => {
 
@@ -162,46 +163,18 @@ const createDeposit = async (Deposit_info) => {
 
 const getIBCommissionHistory = async (adminUuid, role) => {
 
-    let match = {
-        depositMode: DepositMode.IB_COMMISSION
-    };
-    // if (role === AccountRole.ADMIN) {
-    //     match = {...match, adminUuid }
-    // }
     try {
-        const result = await Deposit.aggregate([
+        const result = await IBCommission.aggregate([
             {
                 $lookup: {
                     from: "users",
-                    foreignField: "accountuuid",
+                    foreignField: "accountUuid",
                     localField: "parentAccountUuid",
                     as: "user"
                 }
             },
             {
                 $unwind: "$user"
-            },
-            {
-                $lookup: {
-                    from: "branches",
-                    foreignField: "branchUuid",
-                    localField: "user.branchUuid",
-                    as: "branch"
-                }
-            },
-            {
-                $unwind: "$branch"
-            },
-            {
-                $lookup: {
-                    from: "admins",
-                    localField: "branch.adminUuid",
-                    foreignField: "adminUuid",
-                    as: "admin"
-                }
-            },
-            {
-                $unwind: "$admin"
             },
             {
                 $project: {
@@ -212,16 +185,10 @@ const getIBCommissionHistory = async (adminUuid, role) => {
                     "user.isEmailVerified": 1,
                     "user.accountUuid": 1,
                     "user._id": 1, 
-                    "adminUuid": "$admin.adminUuid",
                     "depositMode": 1,
                     "comment": 1, 
                     "dealer": 1, 
                     "from":1, 
-                }
-            },
-            {
-                $match: {
-                    ...match
                 }
             },
             {
@@ -230,8 +197,10 @@ const getIBCommissionHistory = async (adminUuid, role) => {
                 }
             }
         ])
+        console.log(result);
         return result;
     } catch (e) {
+        console.log(e)
         return false;
     }
 

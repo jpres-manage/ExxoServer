@@ -305,6 +305,7 @@ const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summar
     try {
         let ibUserTreeData = [];
         const affiliateUsers = await getIBOwnClients({ parentAccountUuid, verification_status: KYCStatus.APPROVED });
+
         let totalIbs = 0, totalQClients = 0, totalVolume = 0;
         for (let i = 0; i < affiliateUsers.length; i++) {
             let item = affiliateUsers[i];
@@ -318,7 +319,7 @@ const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summar
                         state: {
                             opened: true,
                         },
-                        children: ibDepth + 1 < end && await createIBClientTree(item.parentAccountUuid, ibDepth + 1, start, end, summary) || undefined
+                        children: ibDepth + 1 < end && await createIBClientTree(item.accountUuid, ibDepth + 1, start, end, summary) || undefined
                     };
                 } else {
                     data = {
@@ -332,8 +333,8 @@ const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summar
                 }
                 ibUserTreeData = [...ibUserTreeData, data]
             } else {
-                if (item.ibStatus === IBStatus.APPROVED) {
-                    data = await createIBClientTree(item.parentAccountUuid, ibDepth + 1, start, end, summary);
+                if (item.ibStatus === IBStatus.APPROVED && !!item.parentAccountUuid) {
+                    data = await createIBClientTree(item.accountUuid, ibDepth + 1, start, end, summary);
                     ibUserTreeData = [...ibUserTreeData, ...data]
                 }
             }
@@ -349,10 +350,11 @@ const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summar
         }
         summary.totalQClients += totalQClients;
         summary.totalIbs += totalIbs;
-        summary.totalVolume = parseFloat(summary.totalVolume) + parseFloat(Number(totalVolume));
+        summary.totalVolume = parseFloat(isNaN(summary.totalVolume) ? 0 : summary.totalVolume) + parseFloat(totalVolume || 0);
 
         return ibUserTreeData;
     } catch (e) {
+        console.log(e);
         return []
     }
 }

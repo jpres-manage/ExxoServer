@@ -478,6 +478,7 @@ const syncIBParent =async (req, res, next)=>{
     }catch(e){
         console.log(e); 
     }
+    return res.status(200).send("ok");
 }
 
 const AccountController = {

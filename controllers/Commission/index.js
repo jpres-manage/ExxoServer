@@ -14,6 +14,7 @@ const User = require('../../models/user');
 const IBCommission = require('../../models/ib_commission');
 const Wallet = require('../../models/wallet');
 const { exportJsonToExcel } = require('../../utils/helper');
+const Position = require('../../models/position');
 
 const commissionSetting = {
     setting: {}
@@ -46,8 +47,6 @@ const updateLastAccessTime = (time) => {
 }
 
 const startCommissionMonitor = async () => {
-    await CommissionController.depositIBCommissions();
-    await checkClosedPosition();
     cron.schedule('0 0 */1 * * *', async () => {
         await CommissionController.depositIBCommissions();
         await checkClosedPosition();
@@ -514,43 +513,29 @@ const resetIBBalanceByUser = async (ibUser) => {
                     ibTradingAccountId: parentTradingAccountId
                 }
             },
-            {
-                $lookup: {
-                    from: "positions",
-                    foreignField: "uid",
-                    localField: "positionId",
-                    as: "position"
-                }
-            },
-            {
-                $unwind: "$position"
-            },
-            {
-                $project: {
-                    commissionAmount: 1,
-                    closedVolume: 1,
-                    ibDepth: 1,
-                    tradingAccountId: "$from",
-                    positionId: 1,
-                    generatedTime: {$toDate:"$position.generatedTime"},
-                    generatingOrdId: "$position.generatingOrdId",
-                    instrument: "$position.instrument",
-                }
-            }, 
-            {
-                $limit: 1000
-            }
+           
         ])
 
         let totalAmount = 0, totalVolume = 0
-        ibCommissions.map(ibCommission => {
-            totalAmount += ibCommission.commissionAmount;
-            totalVolume += ibCommission.closedVolume;
-        })
 
-        ibCommissions = [{ commissionAmount: totalAmount, closedVolume: totalVolume }, ...ibCommissions];
-        exportJsonToExcel(ibCommissions, "export.xls")
-        return ibCommissions;
+        let _ibCommissions = []; 
+        for (let ibCommission of ibCommissions){
+            try{
+                totalAmount += ibCommission.commissionAmount;
+                totalVolume += ibCommission.closedVolume;
+                const position =await Position.findOne({uuid: ibCommission.positionId}); 
+                ibCommission.instrument =  position.instrument; 
+                ibCommission.generatingOrdId = position.generatingOrdId; 
+                ibCommission.generatedTime = new Date(Number(position.generatedTime)).toLocaleDateString(); 
+                _ibCommissions.push(ibCommission); 
+            }catch(e){
+                console.log
+            }
+        }
+       
+        _ibCommissions = [{ commissionAmount: totalAmount, closedVolume: totalVolume }, ..._ibCommissions];
+        exportJsonToExcel(_ibCommissions, "export.xls")
+        return _ibCommissions;
 
     } catch (e) {
         console.log(e)

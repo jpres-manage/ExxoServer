@@ -15,6 +15,7 @@ const IBCommission = require('../../models/ib_commission');
 const Wallet = require('../../models/wallet');
 const { exportJsonToExcel } = require('../../utils/helper');
 const Position = require('../../models/position');
+const { isNumber } = require('util');
 
 const commissionSetting = {
     setting: {}
@@ -521,13 +522,16 @@ const resetIBBalanceByUser = async (ibUser) => {
         let _ibCommissions = []; 
         for (let ibCommission of ibCommissions){
             try{
-                totalAmount += ibCommission.commissionAmount;
-                totalVolume += ibCommission.closedVolume;
+                totalAmount += isNumber(ibCommission.commissionAmount) ? ibCommission.commissionAmount :0  ;
+                totalVolume += isNumber(ibCommission.closedVolume) ?ibCommission.commissionAmount :0 ;
                 const position =await Position.findOne({uuid: ibCommission.positionId}); 
                 ibCommission.instrument =  position.instrument; 
                 ibCommission.generatingOrdId = position.generatingOrdId; 
-                ibCommission.generatedTime = new Date(Number(position.generatedTime)).toLocaleDateString(); 
+                ibCommission.generatedTime = position.generatedTime; 
+                ibCommission._v = undefined, 
+                ibCommission.ibTradingAccountId = undefined;
                 _ibCommissions.push(ibCommission); 
+
             }catch(e){
                 console.log
             }

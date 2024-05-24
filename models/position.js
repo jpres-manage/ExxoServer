@@ -4,7 +4,7 @@ const Position = mongoose.model(
   "Position",
   new mongoose.Schema({
     clientId: String, 
-    uid: String, 
+    uid: { type:String , index: true, unique: true}, 
     generatedTime: Number, 
     entryType: Number, 
     amount: Number, 

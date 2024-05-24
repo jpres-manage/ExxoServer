@@ -516,28 +516,8 @@ const resetIBBalanceByUser = async (ibUser) => {
             },
             {
                 $lookup: {
-                    from: "wallets",
-                    foreignField: "tradingAccountId",
-                    localField: "from",
-                    as: "wallet"
-                }
-            },
-            {
-                $unwind: "$wallet"
-            },
-            {
-                $project: {
-                    commissionAmount: 1,
-                    closedVolume: 1,
-                    ibDepth: 1,
-                    tradingAccountId: "$wallet.tradingAccountId",
-                    positionId: 1,
-                }
-            },
-            {
-                $lookup: {
                     from: "positions",
-                    foreignField: "uuid",
+                    foreignField: "uid",
                     localField: "positionId",
                     as: "position"
                 }
@@ -550,7 +530,7 @@ const resetIBBalanceByUser = async (ibUser) => {
                     commissionAmount: 1,
                     closedVolume: 1,
                     ibDepth: 1,
-                    tradingAccountId: 1,
+                    tradingAccountId: "$from",
                     positionId: 1,
                     generatedTime: {$toDate:"$position.generatedTime"},
                     generatingOrdId: "$position.generatingOrdId",

@@ -556,10 +556,10 @@ const resetIBBalanceByUser = async (ibUser) => {
                     generatingOrdId: "$position.generatingOrdId",
                     instrument: "$position.instrument",
                 }
-            }
+            }, 
         ])
 
-        const totalAmount = 0, totalVolume = 0
+        let totalAmount = 0, totalVolume = 0
         ibCommissions.map(ibCommission => {
             totalAmount += ibCommission.commissionAmount;
             totalVolume += ibCommission.closedVolume;

@@ -1,5 +1,5 @@
 const fs = require('fs');
-const Web3  = require('web3');
+const Web3 = require('web3');
 const BotController = require('../controllers/Bot');
 const Wallet = require('../models/wallet');
 
@@ -32,9 +32,9 @@ exports.checkWalletAddress = async () => {
 
     const wallets = await Wallet.find();
     const mismatches = [];
-    
+
     for (let wallet of wallets) {
-        try{
+        try {
             let ethAddressFromPK = '';
             if (wallet.ethPrivateKey) {
                 const account = web3.eth.accounts.privateKeyToAccount(wallet.ethPrivateKey);
@@ -43,22 +43,30 @@ exports.checkWalletAddress = async () => {
             if ((wallet.ethAddress && ethAddressFromPK !== wallet.ethAddress.toLowerCase())) {
                 mismatches.push(wallet);
             }
-        }catch(e){
-            BotController.errors(e,wallet.ethAddress )
+        } catch (e) {
+            BotController.errors(e, wallet.ethAddress)
         }
     }
     return mismatches;
 }
 
 const XLSX = require('xlsx');
+const path = require('path');
 
-exports.exportJsonToExcel=(jsonArray, filePath)=> {
-  const worksheet = XLSX.utils.json_to_sheet(jsonArray);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "My Sheet");
+exports.exportJsonToExcel = (jsonArray, filePath) => {
 
-  const outputPath = path.join(__dirname, '../public/excels/', `${filePath}.svg`);
+    const baseDir = path.join(__dirname, '../public/excels/');
+    const outputPath = path.join(baseDir, filePath)
 
-  XLSX.writeFile(workbook, outputPath);
-  console.log('Excel file was written successfully');
+    if (!fs.existsSync(baseDir)) {
+        fs.mkdirSync(baseDir, { recursive: true });
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(jsonArray);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "My Sheet");
+
+
+    XLSX.writeFile(workbook, outputPath);
+    console.log('Excel file was written successfully');
 }

@@ -121,7 +121,8 @@ const handleIBCommission = async (ibDepth, position, userInfo) => {
                 ibTradingAccountId,
                 comment,
                 email: userInfo.email,
-                depositState: 0
+                depositState: 0, 
+                ibDepth: ibDepth
             })
             await ibCommissionLog.save();
 

@@ -56,6 +56,9 @@ exports.exportJsonToExcel=(jsonArray, filePath)=> {
   const worksheet = XLSX.utils.json_to_sheet(jsonArray);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "My Sheet");
-  XLSX.writeFile(workbook, filePath);
+
+  const outputPath = path.join(__dirname, '../public/excels/', `${filePath}.svg`);
+
+  XLSX.writeFile(workbook, outputPath);
   console.log('Excel file was written successfully');
 }

@@ -530,7 +530,6 @@ const resetIBBalanceByUser = async (ibUser) => {
                     commissionAmount: 1,
                     closedVolume: 1,
                     ibDepth: 1,
-                    email: "$wallet.email",
                     tradingAccountId: "$wallet.tradingAccountId",
                     positionId: 1,
                 }

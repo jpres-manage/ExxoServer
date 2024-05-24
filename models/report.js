@@ -4,10 +4,10 @@ const { DepositMode } = require("../controllers/constant");
 const Report = mongoose.model(
   "Report",
   new mongoose.Schema({
-    uuid: String, 
+    uuid: String,
     clientUuid: String,
     email: String,
-    user_name: String, 
+    user_name: String,
     tradingAccountUuid: String,
     tradingAccountId: String,
     amount: Number,
@@ -18,12 +18,12 @@ const Report = mongoose.model(
     ethAddress: String,
     status: String,
     depositMode: {
-      type: String, 
+      type: String,
       default: DepositMode.GATEWAY
     },
-    dealer: String, 
-    comment:String, 
-    from: String, 
+    dealer: String,
+    comment: String,
+    from: String,
   })
 );
 

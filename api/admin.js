@@ -206,5 +206,7 @@ router.post("/check/wallet", async(req, res)=>{
 // router.delete("/commission-levels/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
 
 
+router.post("/sync/ib-depth", CommissionController.resetIBDepth); 
+
 module.exports = router;
 

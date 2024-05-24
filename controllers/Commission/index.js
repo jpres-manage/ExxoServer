@@ -12,6 +12,7 @@ const { commissionTypes, DepositMode, KYCStatus, IBStatus, PaymentGateway } = re
 const { userInfo } = require('os');
 const User = require('../../models/user');
 const IBCommission = require('../../models/ib_commission');
+const Wallet = require('../../models/wallet');
 
 const commissionSetting = {
     setting: {}
@@ -288,7 +289,7 @@ const depositIBCommissions = async () => {
         const amount = Math.floor(result.totalCommission * 100)
         const comment = "IB commission";
         const additionalType = 0
-        const clientId = result._id.trim(); 
+        const clientId = result._id?.trim();
 
         let rslt = await ManagerApi.Balance.depositMoney({
             amount, clientId, comment, additionalType
@@ -416,9 +417,75 @@ const getIBRankingName = (ibRanking) => {
     if (ibRanking > 0) rankingName = "IB_" + rankingName;
     return rankingName;
 }
+
+const resetIBDepth = async (req, res) => {
+
+    try {
+        const tradingAccounts = await Wallet.aggregate([
+            {
+                $match: {
+                    isDemo: false,
+                }
+            },
+            {
+                $lookup: {
+                    from: "offers",
+                    foreignField: "uuid",
+                    localField: "offerUuid",
+                    as: "offer"
+                }
+            },
+            {
+                $unwind: "$offer"
+            },
+            {
+                $match: {
+                    "offer.name": {
+                        $ne: "Exxo IB"
+                    }
+                }
+            },
+            {
+                $project: {
+                    email: 1,
+                    tradingAccountId: 1,
+                }
+            }
+        ])
+
+
+        tradingAccounts.map(async (tradingAccount) => {
+            const user = await Database.Account.getAccountDetailByEmail(tradingAccount.email);
+            await resetIBDepthByAccount(tradingAccount.tradingAccountId, user, 0);
+        })
+
+    } catch (e) {
+
+        console.log(e); 
+    }
+
+    return res.status(200).send("ok")
+
+}
+
+const resetIBDepthByAccount = async (tradingAccount, user, depth) => {
+    try{
+        const parentTradingAccountId = user.parentTradingAccountId;
+        if(!parentTradingAccountId) return; 
+        const  result =await IBCommission.updateMany({ from: tradingAccount, ibTradingAccountId: parentTradingAccountId },{ ibDepth:depth + 1});
+        const parent = await User.findOne({ ibParentTradingAccountId: parentTradingAccountId }).lean();
+        await resetIBDepthByAccount(tradingAccount, parent,  depth+1); 
+    }catch(e){
+
+    }
+}
+
 const CommissionController = {
     startCommissionMonitor, checkClosedPosition, _checkClosedPosition, startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking, getRankingTypes, getIBRankingName
-    , depositIBCommissions
+    , depositIBCommissions, resetIBDepth
 }
+
+
+
 
 module.exports = CommissionController; 

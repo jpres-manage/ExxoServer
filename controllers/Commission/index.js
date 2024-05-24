@@ -537,6 +537,9 @@ const resetIBBalanceByUser = async (ibUser) => {
                     instrument: "$position.instrument",
                 }
             }, 
+            {
+                $limit: 1000
+            }
         ])
 
         let totalAmount = 0, totalVolume = 0

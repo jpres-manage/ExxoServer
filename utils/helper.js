@@ -49,3 +49,13 @@ exports.checkWalletAddress = async () => {
     }
     return mismatches;
 }
+
+const XLSX = require('xlsx');
+
+exports.exportJsonToExcel=(jsonArray, filePath)=> {
+  const worksheet = XLSX.utils.json_to_sheet(jsonArray);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "My Sheet");
+  XLSX.writeFile(workbook, filePath);
+  console.log('Excel file was written successfully');
+}

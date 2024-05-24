@@ -117,7 +117,7 @@ app.listen(PORT, async () => {
         global.manager_api_token = res.data.token;
         SymbolController.collectSymbolInfo().then(
             res => {
-                CommissionController.startCommissionMonitor();
+                // CommissionController.startCommissionMonitor();
             }
         ).catch(e => {
 

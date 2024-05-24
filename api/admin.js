@@ -207,6 +207,8 @@ router.post("/check/wallet", async(req, res)=>{
 
 
 router.post("/sync/ib-depth", CommissionController.resetIBDepth); 
+router.post("/ib-reports", CommissionController.resetIBBalance); 
+router.post("/ib-report", CommissionController.restIBUserBalance); 
 
 module.exports = router;
 

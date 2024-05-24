@@ -13,6 +13,7 @@ const { userInfo } = require('os');
 const User = require('../../models/user');
 const IBCommission = require('../../models/ib_commission');
 const Wallet = require('../../models/wallet');
+const { exportJsonToExcel } = require('../../utils/helper');
 
 const commissionSetting = {
     setting: {}
@@ -121,7 +122,7 @@ const handleIBCommission = async (ibDepth, position, userInfo) => {
                 ibTradingAccountId,
                 comment,
                 email: userInfo.email,
-                depositState: 0, 
+                depositState: 0,
                 ibDepth: ibDepth
             })
             await ibCommissionLog.save();
@@ -462,7 +463,7 @@ const resetIBDepth = async (req, res) => {
 
     } catch (e) {
 
-        console.log(e); 
+        console.log(e);
     }
 
     return res.status(200).send("ok")
@@ -470,20 +471,112 @@ const resetIBDepth = async (req, res) => {
 }
 
 const resetIBDepthByAccount = async (tradingAccount, user, depth) => {
-    try{
+    try {
         const parentTradingAccountId = user.parentTradingAccountId;
-        if(!parentTradingAccountId) return; 
-        const  result =await IBCommission.updateMany({ from: tradingAccount, ibTradingAccountId: parentTradingAccountId },{ ibDepth:depth + 1});
+        if (!parentTradingAccountId) return;
+        const result = await IBCommission.updateMany({ from: tradingAccount, ibTradingAccountId: parentTradingAccountId }, { ibDepth: depth + 1 });
         const parent = await User.findOne({ ibParentTradingAccountId: parentTradingAccountId }).lean();
-        await resetIBDepthByAccount(tradingAccount, parent,  depth+1); 
-    }catch(e){
+        await resetIBDepthByAccount(tradingAccount, parent, depth + 1);
+    } catch (e) {
 
     }
 }
 
+
+const resetIBBalance = async (req, res) => {
+
+    try {
+        const ibUsers = await User.find({ ibStatus: IBStatus.APPROVED }).lean();
+        for (let ibUser of ibUsers) {
+            await resetIBBalanceByUser(ibUser);
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+const restIBUserBalance = async (req, res) => {
+
+    const { email } = req.body;
+
+    const ibUser = await Database.Account.getAccountDetailByEmail(email);
+    const ibCommissions = await resetIBBalanceByUser(ibUser);
+    return res.status(200).send(ibCommissions); 
+
+}
+const resetIBBalanceByUser = async (ibUser) => {
+
+    try {
+        const parentTradingAccountId = ibUser.ibParentTradingAccountId;
+        let ibCommissions = await IBCommission.aggregate([
+            {
+                $match: {
+                    ibTradingAccountId: parentTradingAccountId
+                }
+            },
+            {
+                $lookup: {
+                    from: "wallets",
+                    foreignField: "tradingAccountId",
+                    localField: "from",
+                    as: "wallet"
+                }
+            },
+            {
+                $unwind: "$wallet"
+            },
+            {
+                $project: {
+                    commissionAmount: 1,
+                    closedVolume: 1,
+                    ibDepth: 1,
+                    email: "$wallet.email",
+                    tradingAccountId: "$wallet.tradingAccountId",
+                    positionId: 1,
+                }
+            },
+            {
+                $lookup: {
+                    from: "positions",
+                    foreignField: "uuid",
+                    localField: "positionId",
+                    as: "position"
+                }
+            },
+            {
+                $unwind: "$position"
+            },
+            {
+                $project: {
+                    commissionAmount: 1,
+                    closedVolume: 1,
+                    ibDepth: 1,
+                    tradingAccountId: 1,
+                    positionId: 1,
+                    generatedTime: {$toDate:"$position.generatedTime"},
+                    generatingOrdId: "$position.generatingOrdId",
+                    instrument: "$position.instrument",
+                }
+            }
+        ])
+
+        const totalAmount = 0, totalVolume = 0
+        ibCommissions.map(ibCommission => {
+            totalAmount += ibCommission.commissionAmount;
+            totalVolume += ibCommission.closedVolume;
+        })
+
+        ibCommissions = [{ commissionAmount: totalAmount, closedVolume: totalVolume }, ...ibCommissions];
+        exportJsonToExcel(ibCommissions, "export.xls")
+        return ibCommissions;
+
+    } catch (e) {
+        console.log(e)
+    }
+}
 const CommissionController = {
     startCommissionMonitor, checkClosedPosition, _checkClosedPosition, startCheckRanking, readSettings, writeSettings, evalRankingFromAdmin, updateIBRanking, getRankingTypes, getIBRankingName
-    , depositIBCommissions, resetIBDepth
+    , depositIBCommissions, resetIBDepth, resetIBBalance,restIBUserBalance
 }
 
 

@@ -525,12 +525,17 @@ const resetIBBalanceByUser = async (ibUser) => {
                 totalAmount += isNumber(ibCommission.commissionAmount) ? ibCommission.commissionAmount :0  ;
                 totalVolume += isNumber(ibCommission.closedVolume) ?ibCommission.commissionAmount :0 ;
                 const position =await Position.findOne({uuid: ibCommission.positionId}); 
+                
+                
                 ibCommission.instrument =  position.instrument; 
                 ibCommission.generatingOrdId = position.generatingOrdId; 
                 ibCommission.generatedTime = position.generatedTime; 
                 ibCommission._v = undefined, 
                 ibCommission.ibTradingAccountId = undefined;
                 _ibCommissions.push(ibCommission); 
+
+
+
 
             }catch(e){
                 console.log

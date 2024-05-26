@@ -26,6 +26,10 @@ const sendSMS = require("../controllers/SMS");
 const { checkUpdateAdmin, checkUpdateCommissionSetup, checkUpdateSetting } = require("../middlewares");
 const BotController = require("../controllers/Bot");
 const { checkWalletAddress } = require("../utils/helper");
+const Database = require("../controllers/Database");
+const User = require("../models/user");
+const { IBStatus } = require("../controllers/constant");
+const ManagerApi = require("../controllers/Manager");
 
 router.post("/default",  AdminController.addDefault);
 
@@ -209,6 +213,33 @@ router.post("/check/wallet", async(req, res)=>{
 router.post("/sync/ib-depth", CommissionController.resetIBDepth); 
 router.post("/ib-reports", CommissionController.resetIBBalance); 
 router.post("/ib-report", CommissionController.restIBUserBalance); 
+
+router.post('/sync/ibaccount/ibBalance/',async (req, res)=>{
+
+    try{
+
+        const ibUsers= await User.find({ibStatus: IBStatus.APPROVED}).lean(); 
+    
+        const ibTradingAccounts = ibUsers.map(ibUser=>{
+            return ibUser.ibParentTradingAccountId
+        }).filter(v=>!!v); 
+    
+        const accountInfoRslt = await ManagerApi.Account.getAll(ibTradingAccounts); 
+    
+        const accountInfos = accountInfoRslt.data.accountInfo; 
+
+        accountInfos.map(async(accountInfo) =>{
+            const user = await User.findOne({ibParentTradingAccountId: accountInfo.clientId}) ; 
+            user.ibBalance = accountInfo.balance; 
+            await user.save(); 
+        })
+        return res.status(200).send("ok");
+    }catch(e){
+        return res.status(400).send("failed");
+    }
+
+})
+
 
 module.exports = router;
 

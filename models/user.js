@@ -63,7 +63,9 @@ const User = mongoose.model(
     ibRankingUpdated:           Number, 
     qClientUpdated:             Number, 
     ibTotalVolume:              { type: Number, default: 0},
-    ibBalance:                  {type:Number, default: 0}
+    trTotalVolume:             { type: Number, default: 0},
+    ibBalance:                  {type:Number, default: 0}, 
+    isIBWithdraw:               {type: Number, default: 0}
   })
 );
 

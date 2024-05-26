@@ -30,6 +30,8 @@ const Database = require("../controllers/Database");
 const User = require("../models/user");
 const { IBStatus } = require("../controllers/constant");
 const ManagerApi = require("../controllers/Manager");
+const IBCommission = require("../models/ib_commission");
+const Wallet = require("../models/wallet");
 
 router.post("/default",  AdminController.addDefault);
 
@@ -239,6 +241,46 @@ router.post('/sync/ibaccount/ibBalance/',async (req, res)=>{
     }
 
 })
+
+router.post('/sync/ibaccount/tr-volume/',async (req, res)=>{
+
+    try{
+
+        const ibCommissions = await IBCommission.aggregate([
+            {
+                $group: {
+                    _id: "$from", 
+                    trTotalVolume: {$sum: {
+                        $abs: "$closedVolume"
+                    }}, 
+                    from: {$first: "$from"}
+                }
+            }
+        ])
+
+        await User.updateMany({ibStatus: IBStatus.APPROVED}, {trTotalVolume: 0, isIBWithdraw:0}); 
+
+        ibCommissions.map(async(ibCommission)=>{
+            try{
+                const wallet = await Wallet.findOne({tradingAccountId: ibCommission.from}).lean(); 
+                const user = await User.findOne({email: wallet.email}); 
+                user.trTotalVolume =user.trTotalVolume+  ibCommission.trTotalVolume; 
+                if(user.trTotalVolume >1)
+                    user.isIBWithdraw = 1; 
+                await user.save(); 
+
+            }catch(e){
+
+            }
+        })
+
+        return res.status(200).send("ok");
+    }catch(e){
+        return res.status(400).send("failed");
+    }
+
+})
+
 
 
 module.exports = router;

@@ -230,7 +230,7 @@ router.post('/sync/ibaccount/ibBalance/',async (req, res)=>{
 
         accountInfos.map(async(accountInfo) =>{
             const user = await User.findOne({ibParentTradingAccountId: accountInfo.clientId}) ; 
-            user.ibBalance = accountInfo.balance; 
+            user.ibBalance =Number( accountInfo.balance) /100; 
             await user.save(); 
         })
         return res.status(200).send("ok");

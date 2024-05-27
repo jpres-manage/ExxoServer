@@ -269,7 +269,6 @@ router.post('/sync/ibaccount/tr-volume/',async (req, res)=>{
                 if(user.trTotalVolume >1)
                     user.isIBWithdraw = 1; 
                 await user.save(); 
-
             }catch(e){
 
             }

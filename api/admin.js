@@ -246,25 +246,25 @@ router.post('/sync/ibaccount/tr-volume/',async (req, res)=>{
 
     try{
 
-        const ibCommissions = await IBCommission.aggregate([
+        const positions = await position.aggregate([
             {
                 $group: {
-                    _id: "$from", 
+                    _id: "$clientId", 
                     trTotalVolume: {$sum: {
                         $abs: "$closedVolume"
                     }}, 
-                    from: {$first: "$from"}
+                    from: {$first: "$clientId"}
                 }
             }
         ])
 
         await User.updateMany({ibStatus: IBStatus.APPROVED}, {trTotalVolume: 0, isIBWithdraw:0}); 
 
-        ibCommissions.map(async(ibCommission)=>{
+        positions.map(async(position)=>{
             try{
-                const wallet = await Wallet.findOne({tradingAccountId: ibCommission.from}).lean(); 
+                const wallet = await Wallet.findOne({tradingAccountId: position.from}).lean(); 
                 const user = await User.findOne({email: wallet.email}); 
-                user.trTotalVolume =user.trTotalVolume+  ibCommission.trTotalVolume; 
+                user.trTotalVolume =user.trTotalVolume+  position.trTotalVolume; 
                 if(user.trTotalVolume >1)
                     user.isIBWithdraw = 1; 
                 await user.save(); 

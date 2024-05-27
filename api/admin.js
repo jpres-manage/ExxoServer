@@ -32,6 +32,7 @@ const { IBStatus } = require("../controllers/constant");
 const ManagerApi = require("../controllers/Manager");
 const IBCommission = require("../models/ib_commission");
 const Wallet = require("../models/wallet");
+const Position = require("../models/position");
 
 router.post("/default",  AdminController.addDefault);
 
@@ -246,7 +247,7 @@ router.post('/sync/ibaccount/tr-volume/',async (req, res)=>{
 
     try{
 
-        const positions = await position.aggregate([
+        const positions = await Position.aggregate([
             {
                 $group: {
                     _id: "$clientId", 

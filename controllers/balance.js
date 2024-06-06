@@ -2,7 +2,7 @@
 
 const Database = require('./Database');
 const ManagerAPI = require('./Manager');
-const { DepositMode, PaymentType, actionStatus, WithdrawMode, PaymentGateway, WithdrawStatus } = require('./constant');
+const { DepositMode, PaymentType, actionStatus, WithdrawMode, PaymentGateway, WithdrawStatus, IBStatus, IBWDAllowState } = require('./constant');
 const uuid = require('uuid');
 const session = require('express-session');
 var moment = require('moment');
@@ -10,6 +10,8 @@ const BotController = require('./Bot');
 const Web3Controller = require('./Web3');
 const { NUMBER } = require('sequelize');
 const EmailController = require('./Email');
+const User = require('../models/user');
+const IBCommission = require('../models/ib_commission');
 
 const OperationTypes = {
     OPERRATION_SUCCESS: "OPERATION_SUCCESS",
@@ -409,6 +411,42 @@ const internalTransfer = async (req, res, next) => {
 }
 
 
+const internalIBTransfer =async (req, res, next)=>{
+
+    const {email, accountUuid} = req; 
+    const {amount, targetTradingAccountUuid}= req.body; 
+
+    const _amount = Number(amount); 
+
+    const user =await Database.Account.getAccountDetailByEmail(email);
+
+    if(user.ibStatus !== IBStatus.APPROVED) {
+        return res.status(400).send({success: false, error: "Bad Reqquest"}); 
+    }
+
+    
+    if(!user.isIBWithdraw || user.isIBWithdraw== IBWDAllowState.DISABLED || user.isIBWithdraw == IBWDAllowState.PER_DISABLED){
+        return res.status(400).send({success: false, error: "Bad Reqquest"}); 
+    }
+
+    const tradingAccount =await Database.TradingAccount.getTradingAccountByTradingAccountUuid(targetTradingAccountUuid);
+    
+    if(tradingAccount.isDemo)
+        return res.status(400).send({success: false, error: "Bad Reqquest"}); 
+
+    if(user.ibBalance < _amount || _amount<50)
+        return res.status(400).send({success: false, error: "Insufficient Balance."}); 
+
+    const comment = "Internal Transfer from IB balance";
+    let result = await _depositToTradingAccountId(_amount, _amount, DepositMode.IB_INTERNAL, tradingAccount.tradingAccountId, "USD", comment, email, email );
+    if(result.status == "OPERATION_SUCCESS"){
+         await User.updateOne({accountUuid}, {ibBalance: user.ibBalance - _amount}); 
+    }
+
+    return res.status(200).send({success: true})
+
+}
+
 const _internalTransfer = async (data) => {
     const { tradingAccountId, toTradingAccountId, amount } = data;
     if (!tradingAccountId || !toTradingAccountId) {
@@ -440,7 +478,6 @@ const _withdrawToTradingAccountId = async (amount, netAmount, paymentGateway, tr
         });
         if (result.status === 200) {
             if (result.data.status === OperationTypes.OPERRATION_SUCCESS) {
-                let result_save = await Database.TradingAccount.updateBalance(tradingAccountId, -amount);
                 const withdrawInfo = {
                     ...result.data,
                     amount,
@@ -473,12 +510,12 @@ const _withdrawToTradingAccountId = async (amount, netAmount, paymentGateway, tr
 const _depositToTradingAccountId = async (amount, netAmount, depositMode, tradingAccountId, currency, comment, dealer, email, clientUuid, additionalType = 0, from="") => {
     try {
 
+        
         let result = await ManagerAPI.Balance.depositMoney({
             amount: Math.floor(Number(amount) * 100), clientId: tradingAccountId, comment, additionalType
         });
         if (result.status === 200) {
             if (result.data.status === OperationTypes.OPERRATION_SUCCESS) {
-                let result_save = await Database.TradingAccount.updateBalance(tradingAccountId, amount);
                 const depositInfo = {
                     ...result.data,
                     depositMode,
@@ -494,7 +531,6 @@ const _depositToTradingAccountId = async (amount, netAmount, depositMode, tradin
                     from
                 }
                 let result_depo_history = await Database.Deposit.createDeposit(depositInfo);
-                
                 return result.data;
             } else {
                 console.log("Failed to manager api")
@@ -533,6 +569,77 @@ const _depositCreditToTradingAccountId = async (amount, netAmount, paymentGatewa
     }
 }
 
+const syncIBBalance =async (req, res, next)=>{
+
+    try{
+        const ibUsers =await Database.Account.getIBClients()
+        const ibTradingAccountIds = ibUsers.map(ibUser=>{
+            if(ibUser.ibStatus === IBStatus.APPROVED){
+                return ibUser.ibParentTradingAccountId
+            }
+        }).filter(v=>!!v); 
+        
+        const accountInfoRslt =await ManagerAPI.Account.getAll(ibTradingAccountIds);
+        if(!accountInfoRslt) return res.status(400).send({success: false}); 
+        const accountInfos = accountInfoRslt.data.accountInfo; 
+
+        accountInfos.map(async(accountInfo)=>{
+            const { clientId, clientGroup, balance, equity, clientInfo: { email } } = accountInfo;
+            await User.findOneAndUpdate({ibStatus: IBStatus.APPROVED, ibParentTradingAccountId: clientId}, {ibBalance: balance}); 
+        })
+
+    }catch(e){
+
+
+    }
+}
+const syncIBBalanceFromCommissions =async (req, res, next)=>{
+
+    try{
+        const results = await IBCommission.aggregate([
+            {
+                $match:{
+                    depositState: 1
+                }
+            }, 
+            {
+                $group:{
+                    _id: "$parentAccountUuid", 
+                    ibBalance: {$sum: "$commissionAmount"}
+                }
+            }
+        ])
+        for(let result of results){
+            try{
+                const user = await User.findOne({accountUuid: result._id}) ; 
+                user.ibBalance = result.ibBalance
+                await user.save(); 
+            }catch(e){
+                console.log(e)
+            }
+        }
+        
+        return res.status(200).send("ok")
+    }catch(e){
+        return res.status(200).send("failed")
+    }
+}
+
+const resetCommissionState =async (req, res, next)=>{
+
+    try{
+        const results = await IBCommission.updateMany(
+            {depositState: 1}, 
+            {depositState: 0}
+        )
+
+        await User.updateMany({}, {ibBalance:0})
+        return res.status(200).send("ok")
+    }catch(e){
+        return res.status(200).send("failed")
+    }
+}
+
 const BalanceController = {
     cancelWithdrawall,
     confirmWithdrawall,
@@ -550,10 +657,14 @@ const BalanceController = {
     getWithdrawHistoryByUuid,
     getTotalDepositAmount,
     getBalanceInfoForUser,
+    internalIBTransfer,
     requestWithdrawalManual,
     requestWithdrawalAuto,
     _depositToTradingAccountId,
     _depositCreditToTradingAccountId,
     _withdrawToTradingAccountId,
+    syncIBBalance,
+    syncIBBalanceFromCommissions, 
+    resetCommissionState
 }
 module.exports = BalanceController; 

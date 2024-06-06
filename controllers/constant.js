@@ -89,6 +89,12 @@ exports.IBStatus = {
     PENDING: "PENDING",
     NEW: "NEW"
 }
+
+exports.IBWDAllowState={
+    DISABLED:0,
+    ENABLED: 1, 
+    PER_DISABLED:2
+}
 exports.SocialStatus = {
     APPROVED: "APPROVED", 
     DECLINED: "DECLINED",
@@ -106,6 +112,7 @@ exports.DepositMode ={
     GATEWAY: "Payment Gateway",
     MANUAL: "Manual",
     INTERNAL: "Internal",
+    IB_INTERNAL:"IB Internal Transfer", 
     IB_COMMISSION: "IB Commission",
     INITIAL: "INITIAL"
 }
@@ -125,7 +132,8 @@ exports.PaymentGateway = {
     NETELLER: "Net Eller", 
     STICKPAY: "STICPAY",
     INTER_BANKWIRE: "International Bankwire0", 
-    PAYPAL: "PAYPAL"
+    PAYPAL: "PAYPAL", 
+    IB_REG_FEE: "IB Register Fee"
 }
 
 exports.WithdrawMode ={
@@ -138,6 +146,12 @@ exports.WithdrawStatus ={
     WITHDRAWAL_APPROVED: "PROCESSING",
     WITHDRAWAL_FAILED: "FAILED", 
     WITHDRAWAL_NEW: "NEW"
+}
+
+exports.IBBalanceLogType = {
+    IB_COMMISSION: "IB Commission", 
+    IB_PAYOUT: "IB Payout", 
+    IB_REG_FEE: "IB Register Fee"
 }
 
 exports.PaymentType = {
@@ -204,4 +218,10 @@ exports.offerNames = {
     EXXO_COMMET: "Exxo Comet", 
     DEMO_CONDER:"Demo Conder", 
     DEMO_COMET: "Demo Comet"
+}
+
+
+exports.OperationTypes = {
+    OPERRATION_SUCCESS: "OPERATION_SUCCESS",
+    OPERATION_NONE: "OPERATION_FAILED"
 }

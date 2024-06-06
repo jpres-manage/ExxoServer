@@ -18,7 +18,7 @@ const speakeasy = require('speakeasy');
 const { KYCStatus } = require("./constant");
 const CommissionController = require("./Commission/index.js");
 
-const redisClient = require("./Redis"); 
+const redisClient = require("./Redis");
 /*
     Here we are configuring our SMTP Server details.
     STMP is mail server which is responsible for sending and recieving email.
@@ -34,9 +34,7 @@ let smtpTransport = nodemailer.createTransport({
 
 exports.signup = async (req, res) => {
    try {
-      let parentTradingAccountId = "";
-      let parentTradingAccountUuid = "";
-
+      let parentAccountUuid = '';
       const ibLinkCookie = req.body.ibLinkCookie || null;
       if (ibLinkCookie) {
          const cookieInfo = JSON.parse(ibLinkCookie);
@@ -44,8 +42,7 @@ exports.signup = async (req, res) => {
          if (parentAccount && parentAccount.ibStatus) {
 
             if ((cookieInfo.when + 30 * 24 * 3600 * 1000 > Date.now())) {
-               parentTradingAccountId = parentAccount?.ibParentTradingAccountId;
-               parentTradingAccountUuid = parentAccount?.ibParentTradingAccountUuid;
+               parentAccountUuid = parentAccount.accountUuid;
             }
          }
       }
@@ -57,8 +54,7 @@ exports.signup = async (req, res) => {
          countryCode: req.body.countryCode,
          phone: req.body.phone,
          password: bcrypt.hashSync(req.body.password, 8),
-         parentTradingAccountId: parentTradingAccountId,
-         parentTradingAccountUuid: parentTradingAccountUuid,
+         parentAccountUuid,
          branchInfo,
          branchUuid,
          accountUuid: uuid.v4()
@@ -240,18 +236,11 @@ exports.signin = async (req, res) => {
    try {
 
       let email = req.body.email;
-      email = email.toLowerCase(); 
+      email = email.toLowerCase();
 
-      let user = null; 
-      let key = `user_${email}`; 
-      let keyExist = await redisClient.exists(key); 
-      if(keyExist){
-        let  userData =await redisClient.get(key)
-        user = JSON.parse(userData); 
-      }else{
-         user = await Database.Account.getAccountDetailByEmail(email);
-         await redisClient.set(key, JSON.stringify(user), "EX", process.env.REDIS_EXPIRATION || 3600); 
-      }
+      let user = null;
+
+      user = await Database.Account.getAccountDetailByEmail(email);
 
       if (!user) {
          return res.status(200).send({
@@ -260,7 +249,7 @@ exports.signin = async (req, res) => {
          });
       } else {
          if (!user.isEmailVerified) {
-            let token = jwt.sign({ email: req.body.email, _id: user._id, accountUuid: user.accountUuid, isEmailVerified: user.isEmailVerified }, config.secret, {
+            let token = jwt.sign({ email, _id: user._id, accountUuid: user.accountUuid, isEmailVerified: user.isEmailVerified }, config.secret, {
                expiresIn: 3599 * 12 // 1 hours
             });
 
@@ -277,7 +266,7 @@ exports.signin = async (req, res) => {
             return res.status(200).send({
                success: true,
                body: {
-                 ...retData
+                  ...retData
                }
             }
             );
@@ -299,7 +288,7 @@ exports.signin = async (req, res) => {
                message: "Invalid Password!"
             });
          }
-         var token = jwt.sign({ email: req.body.email, _id: user._id, accountUuid: user.accountUuid, isEmailVerified: user.isEmailVerified }, config.secret, {
+         var token = jwt.sign({ email: email, _id: user._id, accountUuid: user.accountUuid, isEmailVerified: user.isEmailVerified }, config.secret, {
             expiresIn: 3599 // 1 hours
          });
          if (process.env.APP_MODE !== 'Local') {
@@ -325,9 +314,9 @@ exports.signin = async (req, res) => {
 
 };
 
- exports.getAdmins = (req, res) => {
+exports.getAdmins = (req, res) => {
 
-   
+
    Admin.find({}).exec((err, result) => {
       if (err) {
          console.log(err);
@@ -346,8 +335,8 @@ exports.updateAdmin = (req, res) => {
    const { name, email, role, subRole } = req.body;
    const password = bcrypt.hashSync(req.body.password, 8);
    const createdAt = new Date();
-   const {admin, remoteIp} = req;
-   if(admin){
+   const { admin, remoteIp } = req;
+   if (admin) {
       BotController.sendAdminLog(admin.email, remoteIp, `Created Admin ${name}  ${email}`)
    }
    Admin.findOne({ email }, async function (err, result) {
@@ -390,8 +379,8 @@ exports.deleteAdmin = (req, res) => {
    const email = req.body.email;
    const role = req.body.role;
    const createdAt = new Date();
-   
-   const {admin, remoteIp} = req;
+
+   const { admin, remoteIp } = req;
    BotController.sendAdminLog(admin.email, remoteIp, ` deleted admin ${email} `)
 
    Admin.findOneAndRemove({ email }, async function (err, result) {
@@ -408,15 +397,15 @@ exports.adminSignin = async (req, res) => {
 
    try {
 
-      let admin = null; 
+      let admin = null;
 
-      let key = `admin_${req.body.email}`; 
-      let keyExist = await redisClient.exists(key); 
+      let key = `admin_${req.body.email}`;
+      let keyExist = await redisClient.exists(key);
 
-      if(keyExist){
-         adminData = await redisClient.get(key); 
-         admin = JSON.parse(adminData); 
-      }else{
+      if (keyExist) {
+         adminData = await redisClient.get(key);
+         admin = JSON.parse(adminData);
+      } else {
          admin = await Admin.findOne({ email: req.body.email }).lean();
          redisClient.set(key, JSON.stringify(admin), "EX", process.env.REDIS_EXPIRATION || 3600)
       }
@@ -437,9 +426,9 @@ exports.adminSignin = async (req, res) => {
       }
 
       var token = jwt.sign({ email: req.body.email, role: admin.role, adminUuid: admin.adminUuid, enable2FA: admin.enable2FA, subRole: admin.subRole }, config.secret, {
-         expiresIn: 3599*12// 1 hours
+         expiresIn: 3599 * 12// 1 hours
       });
-      
+
       if (process.env.APP_MODE !== "Local") {
          BotController.sendAdminLogin(req.body.email);
       }
@@ -466,19 +455,19 @@ exports.adminSignin = async (req, res) => {
 
 exports.adminSigninWithToken = async (req, res) => {
 
-   const {email} = req;
+   const { email } = req;
 
-   let admin = null; 
+   let admin = null;
 
-   let key = `admin_${email}`; 
-   let keyExist = await redisClient.exists(key); 
-   if(keyExist){
-      let adminData = await redisClient.get(key); 
+   let key = `admin_${email}`;
+   let keyExist = await redisClient.exists(key);
+   if (keyExist) {
+      let adminData = await redisClient.get(key);
       admin = JSON.parse(adminData)
-   }else {
-      admin = await Database.Admin.findAdminByUuid(admin.adminUuid);
+   } else {
+      admin = await Database.Admin.findAdminByUuid(req.adminUuid);
       const user_role = await Database.Role.getRole({ roleUuid: admin.subRole });
-      admin.permissions = user_role.permissions; 
+      admin.permissions = user_role.permissions;
       await redisClient.set(key, JSON.stringify(admin), "EX", process.env.REDIS_EXPIRATION || 3600)
    }
 

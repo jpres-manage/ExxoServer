@@ -12,7 +12,7 @@ const Web3 = require("web3");
 const Common = require('ethereumjs-common');
 const Tx = require('ethereumjs-tx');
 // const web3 = new Web3(new Web3.providers.HttpProvider("https://bsc.getblock.io/5498f18d-9710-406a-9df9-851061d9465b/mainnet/"))
-const web3 = new Web3(new Web3.providers.HttpProvider("wss://bsc.getblock.io/d7f32d05-c742-4801-b6a6-27d02111f17e/mainnet/"))
+// const web3 = new Web3(new Web3.providers.HttpProvider("wss://bsc.getblock.io/d7f32d05-c742-4801-b6a6-27d02111f17e/mainnet/"))
 // token address
 require("dotenv").config();
 const ManagerApi = require('./controllers/Manager');
@@ -71,6 +71,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use('/api/static', express.static('public/images'));
 app.use('/api/qrcode', express.static('public/qrcode'));
+app.use('/api/qrcode', express.static('public/excels'));
 
 // Initialization
 
@@ -134,8 +135,6 @@ app.listen(PORT, async () => {
         })
     });
 
-  
-
     cron.schedule('0 0 0 *  * *', () => {
         CommissionController.startCheckRanking(); 
     });
@@ -148,9 +147,9 @@ app.listen(PORT, async () => {
     getAdminToken();
 
     BOController.Account.getOffers();
-    Moralis.initMoralis();
+    // Moralis.initMoralis();
 
     SocketController.initSecketServer();
-
+    
 
 }); 

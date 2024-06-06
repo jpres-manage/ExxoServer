@@ -79,9 +79,6 @@ router.get("/tradingAccount/:id",[checkAdmin ], AccountController.getTradingAcco
 router.post('/tradingAccounts/qrcode', generateAllQrcode);
 
 
-////// sync trading accounts from Oldbo
-router.post('/tradingAccounts/sync_bo', AccountController.syncTradingAccounts )
-router.post('/tradingAccounts/sync_missing_taccount', AccountController.syncMissingTradingAccounts )
 
 router.get("/active-orders/:id",[checkAdmin ], OrderController.getActiveOrdersByAccountUuid);
 router.get("/canceled-orders/:id",[checkAdmin ], OrderController.getCanceledOrdersByAccountUuid);
@@ -136,6 +133,7 @@ router.get("/ib-clients", [checkAdmin], IBCommissionCotroller.getIBClients );
 router.get("/ib-own-clients/:id", [checkAdmin], IBCommissionCotroller.getIBOwnClients );
 router.get("/ib-own-clients-tree/:id", [checkAdmin], IBCommissionCotroller.getIBOwnClientsTree );
 router.get("/ib-commissions", [checkAdmin],  IBCommissionCotroller.getIBCommissions);
+router.post("/ib/payout/:id", [checkAdmin], UserController.payoutIBFeeFromAdmin)
 
 router.get("/commission/:id", [checkAdmin],  IBCommissionCotroller.getCommissionDetail);
 router.delete("/commission/:id", [checkAdmin],  IBCommissionCotroller.deleteCommission);
@@ -151,12 +149,24 @@ router.delete("/commission-level/:id", [checkAdmin, checkUpdateCommissionSetup],
 router.put("/commission-level/:id", [checkAdmin, checkUpdateCommissionSetup],  IBCommissionCotroller.updateCommissionLevel);
 router.post("/commission", [checkAdmin, checkUpdateCommissionSetup],  IBCommissionCotroller.createCommission);
 router.get("/ib-commission-history", [checkAdmin],  IBCommissionCotroller.getIBCommissionHistory);
-router.post("/reset-ib-ranking", [checkAdmin], CommissionController.evalRankingFromAdmin );   /// reset ib ranking from admin
-router.patch("/ib-ranking", [checkAdmin], CommissionController.updateIBRanking)
+
+router.get("/ib/payment/user/:id", [checkAdmin],  IBCommissionCotroller.getIBPaymentHistory);
+router.get("/ib/payments/all", [checkAdmin],  IBCommissionCotroller.getIBAllPaymentHistory);
+
+router.post("/ib/rankings/reset", [checkAdmin], CommissionController.evalRankingFromAdmin );   /// reset ib ranking from admin
+router.patch("/ib/user/ranking/:id", [checkAdmin], CommissionController.updateIBRanking)
+router.patch("/ib/withdraw", [checkAdmin], AccountController.updateIBWithdrawStatus)
+router.post('/ib/reports',[checkAdmin],  CommissionController.getAdminIBReports); 
+router.post('/ib/report/commission',[checkAdmin],  CommissionController.getAdminIBReportsByUser); 
+router.post('/ib/report/balance',[checkAdmin],  CommissionController.getAdminIBBalanceReportsByUser); 
+
+// router.get("/ib-reports", [checkAdmin],  IBCommissionCotroller.getIBCommissionReports);
+// router.get("/ib-report/:id", [checkAdmin],  IBCommissionCotroller.getIBReport);
+
 router.get("/ranking-types", [checkAdmin], CommissionController.getRankingTypes)
 
-router.get("/default/commission-type", [checkAdmin, checkUpdateSetting], SettingController.getDefaultCommissionType );
-router.put("/default/commission-type", [checkAdmin, checkUpdateSetting], SettingController.updateDefaultCommissionType );
+router.get("/commission/type/default", [checkAdmin, checkUpdateSetting], SettingController.getDefaultCommissionType );
+router.put("/commission/type/default", [checkAdmin, checkUpdateSetting], SettingController.updateDefaultCommissionType );
 
 router.get("/social-account-all",[ checkAdmin ], SocialAccountController.getSocialTradingAccountInfoAll);
 router.get("/social-account-info-with-id",[ checkAdmin ], SocialAccountController.getSocialTradingAccountInfoWithId);
@@ -186,15 +196,15 @@ router.put("/profile", [checkAdmin], AdminController.updateAdminProfile);
 
 router.post("/resend-email",[checkAdmin], UserController.resendVerifyEmail);
 
-router.post("/check/wallet", async(req, res)=>{
-    try{
-        let mismatches = await checkWalletAddress(); 
-        return res.status(200).send(mismatches);
-    }catch(e){
-        BotController.errors(e, "check wallet");
-        res.status(500).send("no exist");
-    }
-})
+// router.post("/check/wallet", async(req, res)=>{
+//     try{
+//         let mismatches = await checkWalletAddress(); 
+//         return res.status(200).send(mismatches);
+//     }catch(e){
+//         BotController.errors(e, "check wallet");
+//         res.status(500).send("no exist");
+//     }
+// })
 
 // router.get("/commissions", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
 // router.put("/commission/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
@@ -204,6 +214,19 @@ router.post("/check/wallet", async(req, res)=>{
 // router.post("/commission-levels/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
 // router.put("/commission-levels/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
 // router.delete("/commission-levels/:id", [checkSuperAdmin],  IBCommissionCotroller.getSystemLogs);
+
+////// sync trading accounts from Oldbo
+router.post('/tradingAccounts/sync_bo', AccountController.syncTradingAccounts )
+router.post('/tradingAccounts/sync_missing_taccount', AccountController.syncMissingTradingAccounts )
+
+// router.post('/sync/ib/balance', BalanceController.syncIBBalance )
+// router.post('/sync/ib/comm-balance', BalanceController.syncIBBalanceFromCommissions)
+// router.post('/reset/ib/commission/state', BalanceController.resetCommissionState)
+
+// router.post('/sync-ib-parent', AccountController.syncIBParent)
+// router.post('/sync/ib-position', CommissionController.syncIBCommissionGenTimeOrderID)
+
+// router.post("/sync/ib-depth", CommissionController.resetIBDepth); 
 
 
 module.exports = router;

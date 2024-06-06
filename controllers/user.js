@@ -587,112 +587,7 @@ exports.getTradingAccountTransactions = async (req, res, next) => {
         });
 };
 
-exports.getIBParentTradingAccountDeposits = async (req, res, next) => {
-    const clientEmail = req.query.email;
-    const MANAGER_ID = process.env.MANAGER_ID;
-    let authInfo = {
-        password: "stalowa88rura",
-        managerID: 904,
-    };
-    const date_ = new Date();
-    let time = date_.getTime();
-    let ledgerInfo = {
-        auth: {
-            managerID: 904,
-            token: "",
-        },
-        rangeStart: 0,
-        rangeEnd: new Date().getTime(),
-        clientIds: [],
-        ledgerTypes: [4],
-    };
-    let headers = {
-        "Content-Type": "application/json",
-    };
-    const user = await User.findOne({ email: clientEmail });
-    const ibParentTradingAccountId = user.ibParentTradingAccountId;
 
-    if (!ibParentTradingAccountId) {
-        return res.status(200).send([user]);
-    }
-
-    ledgerInfo = { ...ledgerInfo, clientIds: [ibParentTradingAccountId] };
-
-    axios
-        .post(`${process.env.MANAGE_API_SERVER}/v1/register/register`, authInfo, {
-            headers,
-        })
-        .then(async (auth) => {
-            let token = auth?.data?.token || "";
-            if (!!token) {
-                ledgerInfo.auth.token = token;
-                axios
-                    .post(
-                        `${process.env.MANAGE_API_SERVER}/v1/ledger/getEntries`,
-                        ledgerInfo,
-                        { headers }
-                    )
-                    .then(async (result) => {
-                        const ledgerEntry = result?.data?.ledgerEntry;
-                        res.status(200).send(ledgerEntry);
-                    })
-                    .catch((e) => {
-                        console.log(e);
-                        res.status(500).send("Axios request for getting commissions");
-                    });
-            }
-        })
-        .catch((e) => {
-            console.log(e);
-            res.status(500).send("Axios request for getting manager's token");
-        });
-};
-exports.changePassword = async (req, res, next) => {
-    const email = req.body.email;
-    const currentPassword = req.body.currentPassword;
-    const newPassword = req.body.newPassword;
-    User.findOne({
-        email: req.body.email,
-    }).exec(async (err, user) => {
-        if (err) {
-            res.status(500).send({ message: err });
-            return;
-        }
-        if (!user) {
-            return res.status(200).send({
-                success: false,
-                error: "User Not found.",
-            });
-        }
-        var passwordIsValid = bcrypt.compareSync(currentPassword, user.password);
-
-        if (!passwordIsValid) {
-            return res.status(200).send({
-                success: false,
-                error: "Invalid Password!",
-            });
-        }
-        user.password = bcrypt.hashSync(newPassword, 8);
-        await user.save();
-        const data = {
-            email,
-            partnerId,
-            newValue: newPassword,
-        };
-    });
-};
-exports.getOffers = async (req, res, next) => {
-    let headers = global.mySpecialVariable;
-    const email = req.query.email;
-    const partnerId = global.partnerId;
-    Offer.find({})
-        .then((offerResult) => {
-            res.status(200).send(offerResult);
-        })
-        .catch((e) => {
-            res.status(500).send("Issue on Database!");
-        });
-};
 exports.verifyProfile = async (req, res, next) => {
     const email = req.body.email;
     User.findOne({
@@ -1022,27 +917,16 @@ exports.webhook = async (req, res, next) => {
 };
 
 exports.requestIB = async (req, res, next) => {
-    const accountUuid = req.accountUuid;
-    User.findOneAndUpdate(
-        { accountUuid: accountUuid },
-        {
-            ibStatus: IBStatus.PENDING,
-        }
-    ).exec((err, result) => {
-        if (err) {
-            console.log(err);
-            return res.status(200).send({ success: false, error: "Server Error" });
-        } else {
-            if (result === null) {
-                return res
-                    .status(500)
-                    .send({ success: false, error: "There is an error!" });
-            }
-            BotController.ibUserRequest(result.email)
-            return res.status(200).send({ success: true });
-        }
-    });
-};
+    try{
+        const email = req.email;
+        const result =await User.findOneAndUpdate({ email},{ibStatus: IBStatus.PENDING, ibSubmittedAt:new Date}); 
+        BotController.ibUserRequest(email)
+        
+        return res.status(200).send({ success: true });
+    }catch(e){
+        res.status(500).send({ success: false, error: "There is an error!" });
+    }
+}
 
 exports.cancelIB = async (req, res, next) => {
     const accountUuid = req.body.data.accountUuid;
@@ -1089,16 +973,6 @@ exports.IBClients = async (req, res, next) => {
 exports.updateIBStatus = async (req, res, next) => {
     const reqbody = req.body;
     const ibStatus = reqbody?.ibStatus;
-    const ibParentTradingAccountUuid = reqbody?.ibParentTradingAccountUuid;
-    let ibParentTradingAccountId = "";
-    if (ibStatus === IBStatus.APPROVED) {
-        let headers = global.mySpecialVariable;
-        let wallet = await axios.get(
-            `${process.env.API_SERVER}/documentation/account/trading-accounts/search/by-uuid?uuid=${ibParentTradingAccountUuid}`,
-            { headers }
-        );
-        ibParentTradingAccountId = wallet.data?.tradingAccountId;
-    }
 
     let lastIbClient = await User.findOne({}).sort({ ibNumber: -1 }).limit(1);
     const iblink_number = (lastIbClient?.ibNumber || 100000) + 1;
@@ -1108,8 +982,6 @@ exports.updateIBStatus = async (req, res, next) => {
         { _id: reqbody?.id },
         {
             ibStatus: ibStatus,
-            ibParentTradingAccountId: ibParentTradingAccountId,
-            ibParentTradingAccountUuid: ibParentTradingAccountUuid,
             IBLink: ibStatus === IBStatus.APPROVED ? IBLink : "",
             IBDeclineReason: reqbody?.decline_reason,
             ibNumber: iblink_number,

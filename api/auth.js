@@ -9,52 +9,41 @@ const BOController = require("../controllers/BO");
 const User = require("../models/user");
 const redisClient = require("../controllers/Redis");
 
-router.get("/admins",[checkSuperAdmin] ,controller.getAdmins);
-router.post("/admin",  [checkAdmin, checkSuperAdmin, verifySignUp.checkDuplicateAdminNameOrEmail],  controller.updateAdmin);
-router.delete("/admin",[checkAdmin, checkSuperAdmin],  controller.deleteAdmin);
+router.get("/admins", [checkSuperAdmin], controller.getAdmins);
+router.post("/admin", [checkAdmin, checkSuperAdmin, verifySignUp.checkDuplicateAdminNameOrEmail], controller.updateAdmin);
+router.delete("/admin", [checkAdmin, checkSuperAdmin], controller.deleteAdmin);
 router.post("/admin-signin", controller.adminSignin);
-router.post("/admin-signin-with-token",[checkAdmin], controller.adminSigninWithToken);
-router.post("/signup",[verifySignUp.checkDuplicateUsernameOrEmail] ,UserController.createUser);
-router.post("/google-signup", [verifySignUp.checkDuplicateUsernameOrEmail],UserController.createUserFromGoogle);
+router.post("/admin-signin-with-token", [checkAdmin], controller.adminSigninWithToken);
+router.post("/signup", [verifySignUp.checkDuplicateUsernameOrEmail], UserController.createUser);
+router.post("/google-signup", [verifySignUp.checkDuplicateUsernameOrEmail], UserController.createUserFromGoogle);
 router.post("/signin", controller.signin);
 router.post("/google-signin", UserController.googleSignIn);
 router.get("/verify", UserController.verifyEmail);
 router.post("/reset-link", controller.resetLink);
-router.post("/resend-email",[authJwt.verifyToken] ,controller.resendEmail);
-router.get("/resend-email-point",[authJwt.verifyToken] ,controller.getResetEmailPoint);
+router.post("/resend-email", [authJwt.verifyToken], controller.resendEmail);
+router.get("/resend-email-point", [authJwt.verifyToken], controller.getResetEmailPoint);
 router.post("/resend-all-email", controller.resendAllEmail);
 router.get("/reset-password", controller.resetPasswordPage);
 router.post("/reset-password", UserController.changePasswordFP);
 // router.post("/reset-password", controller.resetPassword);
-router.post("/send-verify-code", [authJwt.verifyToken] ,controller.sendWithdrawVerifyCode);
+router.post("/send-verify-code", [authJwt.verifyToken], controller.sendWithdrawVerifyCode);
 router.get("/verify-withdraw-code", controller.verifyWithdrawCode);
 
-router.post('/start-2fa', controller.startAdmin2FA); 
-router.post('/start-2fa', controller.verifyAdmin2FA )
-router.get('/get-2fa', controller.getAdmin2FA); 
-router.post("/verify-2fa", [checkAdminWithout2FA], controller.verifyAdmin2FA );
-router.post("/signinWithToken",[authJwt.verifyToken], async (req, res, next)=>{
+router.post('/start-2fa', controller.startAdmin2FA);
+router.post('/start-2fa', controller.verifyAdmin2FA)
+router.get('/get-2fa', controller.getAdmin2FA);
+router.post("/verify-2fa", [checkAdminWithout2FA], controller.verifyAdmin2FA);
+router.post("/signinWithToken", [authJwt.verifyToken], async (req, res, next) => {
 
-    let user = null; 
-
-    let key = `user_${req.email}`; 
-    let keyExist = await redisClient.exists(key); 
-
-    if(keyExist){
-        let userData = await redisClient.get(key); 
-        user = JSON.parse(userData); 
-    }else {
-        user =await Database.Account.getAccountDetailByUuid(req.accountUuid); 
-        redisClient.set(key, JSON.stringify(user), "EX", process.env.REDIS_EXPIRATION || 3600); 
-    }
-
+    let user = null;
+    user = await Database.Account.getAccountDetailById(req._id);
     res.status(200).send({
-        success: true, 
+        success: true,
         body: {
-         ...user,
-         password: undefined, 
-         oneTimeToken: undefined, 
-         ibRanking: CommissionController.getIBRankingName(user.ibRanking)
+            ...user,
+            password: undefined,
+            oneTimeToken: undefined,
+            ibRanking: CommissionController.getIBRankingName(user.ibRanking)
         }
     });
 });

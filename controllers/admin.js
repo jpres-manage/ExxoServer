@@ -184,8 +184,18 @@ const updateAdminProfile = async (req, res)=>{
     }
 }
 const AdminController = {
-    getAdmins, getAdminInfoByEmail, getAdminById, createAdmin,
-     updateAdmin, reset2FA, getRoles, getRole, updateRole, deleteRole, addDefault, 
-     getAdminProfile, updateAdminProfile
+    getAdmins, 
+    getAdminInfoByEmail, 
+    getAdminById, 
+    createAdmin,
+    updateAdmin, 
+    reset2FA, 
+    getRoles, 
+    getRole, 
+    updateRole, 
+    deleteRole, 
+    addDefault, 
+    getAdminProfile, 
+    updateAdminProfile
 }
 module.exports = AdminController;

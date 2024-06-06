@@ -2,6 +2,7 @@ const Deposit = require("../../models/report");
 const uuid = require('uuid');
 const { DepositMode, AccountRole, IBStatus } = require("../constant");
 const BotController = require("../Bot");
+const IBCommission = require("../../models/ib_commission");
 
 const getDepositHistoryByTradingAccountUuid = async (tradingAccountId) => {
 
@@ -108,7 +109,7 @@ const getDepositHistoryAll = async (adminUuid, role) => {
             {
                 $project: {
                     clientUuid: 1,
-                    "user._id": 1, 
+                    "user._id": 1,
                     email: 1,
                     tradingAccountId: 1,
                     amount: 1,
@@ -148,7 +149,7 @@ const createDeposit = async (Deposit_info) => {
     const Uuid = uuid.v4();
     let Deposit_request = new Deposit({
         ...Deposit_info,
-        createdAt: new Date(), 
+        createdAt: new Date(),
         Uuid,
     });
     try {
@@ -159,22 +160,23 @@ const createDeposit = async (Deposit_info) => {
         return false;
     }
 }
-
-const getIBCommissionHistory = async (adminUuid, role) => {
-
-    let match = {
-        depositMode: DepositMode.IB_COMMISSION
-    };
-    // if (role === AccountRole.ADMIN) {
-    //     match = {...match, adminUuid }
-    // }
+const exportIBCommissionHistory = async (adminUuid, role, from = 0, to = new Date) => {
+    const match = {
+        createdAt: {
+            $gte: new Date(from),
+            $lte: new Date(to)
+        }
+    }
     try {
-        const result = await Deposit.aggregate([
+        const result = await IBCommission.aggregate([
+            {
+                $match: { ...match }
+            },
             {
                 $lookup: {
                     from: "users",
-                    foreignField: "ibParentTradingAccountId",
-                    localField: "tradingAccountId",
+                    foreignField: "accountUuid",
+                    localField: "parentAccountUuid",
                     as: "user"
                 }
             },
@@ -182,47 +184,86 @@ const getIBCommissionHistory = async (adminUuid, role) => {
                 $unwind: "$user"
             },
             {
-                $lookup: {
-                    from: "branches",
-                    foreignField: "branchUuid",
-                    localField: "user.branchUuid",
-                    as: "branch"
+                $group: {
+                    _id: "$user._id",  // Group by user ID
+                    email: { $first: "$user.email" },  // Assumes email is the same for all entries of the user
+                    fullname: { $first: "$user.fullname" },
+                    isEmailVerified: { $first: "$user.isEmailVerified" },
+                    accountUuid: { $first: "$user.accountUuid" },
+                    ibRanking: { $first: "$user.ibRanking" },
+                    ibBalance: { $first: "$user.ibBalance" },
+                    closedVolume: { $sum: "$closedVolume" },  // Sum of closedVolume for each user
+                    amount: { $sum: "$commissionAmount" },  // Sum of commissionAmount for each user
+                    count: { $sum: 1 }  // Optional: count of records for each user
                 }
             },
             {
-                $unwind: "$branch"
-            },
-            {
-                $lookup: {
-                    from: "admins",
-                    localField: "branch.adminUuid",
-                    foreignField: "adminUuid",
-                    as: "admin"
+                $project: {
+                    "email": 1,
+                    "fullname": 1,
+                    "isEmailVerified": 1,
+                    "accountUuid": 1,
+                    "ibRanking": 1,
+                    "ibBalance": 1,
+                    "closedVolume": 1,
+                    "amount": 1,
+                    "count": 1
                 }
             },
             {
-                $unwind: "$admin"
+                $sort: {
+                    "totalAmount": -1  // Sort by totalAmount in descending order
+                }
+            }
+        ]);
+
+        return result;
+    } catch (e) {
+
+        return false
+    }
+}
+const getIBCommissionHistory = async (adminUuid, role, from = 0, to = new Date) => {
+
+    const match = {
+        createdAt: {
+            $gte: new Date(from),
+            $lte: new Date(to)
+        }
+    }
+
+    try {
+        const result = await IBCommission.aggregate([
+            {
+                $match: { ...match }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    foreignField: "accountUuid",
+                    localField: "parentAccountUuid",
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
             },
             {
                 $project: {
                     "email": 1,
                     "createdAt": 1,
-                    "amount": 1,
-                    "user.ibParentTradingAccountId": 1,
-                    "user.fullname": 1,
+                    "amount": "$commissionAmount",
+                    "closedVolume": 1,
+                    "fullname": "$user.fullname",
                     "user.isEmailVerified": 1,
                     "user.accountUuid": 1,
-                    "user._id": 1, 
-                    "adminUuid": "$admin.adminUuid",
+                    "user._id": 1,
                     "depositMode": 1,
-                    "comment": 1, 
-                    "dealer": 1, 
-                    "from":1, 
-                }
-            },
-            {
-                $match: {
-                    ...match
+                    "comment": 1,
+                    "dealer": 1,
+                    "from": 1,
+                    "ibRanking": "$user.ibRanking",
+                    "ibBalance": "$user.ibBalance",
                 }
             },
             {
@@ -244,7 +285,7 @@ const getDepositAnalytics = async (start, end, adminUuid, role) => {
     const _end = new Date(end);
     let match = {};
     // if (role === AccountRole.ADMIN) {
-    //     match = {
+    //     match = {`
     //         adminUuid
     //     }
     // }
@@ -277,8 +318,8 @@ const getDepositAnalytics = async (start, end, adminUuid, role) => {
                 tradingAccountId: 1,
                 createdAt: 1,
                 amount: 1,
-                adminUuid: "$branch.adminUuid", 
-                ibStatus: "$user.ibStatus", 
+                adminUuid: "$branch.adminUuid",
+                ibStatus: "$user.ibStatus",
                 ibCreatedAt: "$user.ibCreatedAt"
             }
         },
@@ -341,8 +382,8 @@ const getDepositAnalytics = async (start, end, adminUuid, role) => {
                                 $gte: _start,
                                 $lt: _end
                             },
-                            ibStatus: IBStatus.APPROVED, 
-                            ibCreatedAt:{
+                            ibStatus: IBStatus.APPROVED,
+                            ibCreatedAt: {
                                 $gte: _start,
                                 $lt: _end
                             }
@@ -491,20 +532,40 @@ const getTotalDepositAmount = async () => {
     }
 }
 
-const getData = async (query)=>{
-    try{
-        let result = await Deposit.aggregate([
+const getData = async (query, sort) => {
+
+    let _query
+    if (sort) {
+        _query = [
             {
-                $match:{
+                $match: {
+                    ...query
+                }
+            }, 
+            {
+                $sort:{
+                    ...sort
+                }
+            }
+        ]
+    }else{
+        _query = [
+            {
+                $match: {
                     ...query
                 }
             }
-        ])
-        return result; 
-    }catch(e){
-        return false; 
+        ]
+    }
+    try {
+        let result = await Deposit.aggregate(_query)
+        return result;
+    } catch (e) {
+        return false;
     }
 }
+
+
 const DepositModel = {
     createDeposit,
     getDepositHistoryByTradingAccountUuid,
@@ -513,7 +574,8 @@ const DepositModel = {
     getDepositHistoryAll,
     getDepositAmountByUserId,
     getIBCommissionHistory,
-    getTotalDepositAmount, 
+    exportIBCommissionHistory,
+    getTotalDepositAmount,
     getData
 }
 

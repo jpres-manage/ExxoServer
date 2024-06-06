@@ -20,6 +20,7 @@ const session = require('express-session');
 const User = require('../models/user');
 const MissedWallet = require('../models/misingWallet');
 const redisClient = require('./Redis');
+const IBCommission = require('../models/ib_commission');
 
 const createTradingAccount = async (req, res, next) => {
     try {
@@ -35,12 +36,13 @@ const createTradingAccount = async (req, res, next) => {
                 error: "Bad Request"
             })
         }
-        const tradingAccount = await Database.TradingAccount.createTradingAccount(offerUuid, accountUuid, email, offer.demo, user.ibParentTradingAccountUuid);
+        const tradingAccount = await Database.TradingAccount.createTradingAccount(offerUuid, user.accountUuid, email, offer.demo);
         if (tradingAccount) {
             BotController.createTradingAccount(email, tradingAccount.tradingAccountId);
             SysLogController.logUserCreateTradingAccount({ email, accountUuid }, actionStatus.SUCCESS);
-            if (!offer.demo)
-                Moralis.addAddress(tradingAccount.ethAddress);
+
+            // if (!offer.demo)
+            //     Moralis.addAddress(tradingAccount.ethAddress);
             // EmailController.sendAccountCreated(email); 
 
             return res.status(200).send({
@@ -48,7 +50,7 @@ const createTradingAccount = async (req, res, next) => {
                 body: tradingAccount
             })
         } else {
-            cnosole.log('CreateTradingAccount failed ', email); 
+            cnosole.log('CreateTradingAccount failed ', email);
             SysLogController.logUserCreateTradingAccount({ email, accountUuid }, actionStatus.FAILED);
         }
     } catch (e) {
@@ -79,7 +81,7 @@ const _createTradingAccount = async (req, res, next) => {
     const data = {
         clientUuid: user.accountUuid,
         offerUuid,
-        commissionUuid: user.ibParentTradingAccountUuid
+        commissionUuid: ""
     }
 
     try {
@@ -294,26 +296,27 @@ const updateTradingAccountInfo = async (req, res, next) => {
 const getTradingAccountsForAdmin = async (req, res, next) => {
 
     const { adminUuid, adminEmail, role } = req;
+    const { refresh } = req.query;
 
-    let admin_tradingaccounts = null; 
-    let key = `admin_tradingaccounts`; 
+    let admin_tradingaccounts = null;
+    let key = `admin_tradingaccounts`;
 
-    let keyExist = await redisClient.exists(key); 
-    if(keyExist){
-        let admin_tradingaccounts_data = await redisClient.get(key); 
-        admin_tradingaccounts = JSON.parse(admin_tradingaccounts_data); 
-    }else{
-        const admin_tradingaccounts = await Database.TradingAccount.getTradingAccountsByAdminUuid(adminUuid, role);
+    let keyExist = await redisClient.exists(key);
+    if (keyExist && refresh == 'false') {
+        let admin_tradingaccounts_data = await redisClient.get(key);
+        admin_tradingaccounts = JSON.parse(admin_tradingaccounts_data);
+    } else {
+        admin_tradingaccounts = await Database.TradingAccount.getTradingAccountsByAdminUuid(adminUuid, role);
         redisClient.set(key, JSON.stringify(admin_tradingaccounts), 'EX', 3600)
     }
-    
+
     try {
         return res.status(200).send({
             success: true,
             body: admin_tradingaccounts
         })
     } catch (e) {
-        console.log(e) 
+        console.log(e)
     }
 
 }
@@ -373,23 +376,23 @@ const syncMissingTradingAccounts = async (req, res, next) => {
 
     const mTradingAccounts = await MissedWallet.find({});
 
-    let num =0; 
+    let num = 0;
     for (const mTradingAccount of mTradingAccounts) {
-        const wallet =await  Wallet.findOne({tradingAccountId: mTradingAccount.tradingAccountId});
-        if(!!wallet) continue; 
+        const wallet = await Wallet.findOne({ tradingAccountId: mTradingAccount.tradingAccountId });
+        if (!!wallet) continue;
 
         const tradingAccount = new Wallet({
             clientUuid: mTradingAccount.clientUuid,
-            email:mTradingAccount.email,
-            tradingAccountUuid:mTradingAccount.tradingAccountUuid,
-            tradingAccountId:mTradingAccount.tradingAccountId,
-            ethAddress:mTradingAccount.ethAddress,
-            ethPrivateKey:mTradingAccount.ethPrivateKey,
-            tronAddress:mTradingAccount.tronAddress,
-            tronPrivateKey:mTradingAccount.tronPrivateKey,
-            offerUuid:mTradingAccount.offerUuid,
-            isDemo:mTradingAccount.isDemo,
-         });
+            email: mTradingAccount.email,
+            tradingAccountUuid: mTradingAccount.tradingAccountUuid,
+            tradingAccountId: mTradingAccount.tradingAccountId,
+            ethAddress: mTradingAccount.ethAddress,
+            ethPrivateKey: mTradingAccount.ethPrivateKey,
+            tronAddress: mTradingAccount.tronAddress,
+            tronPrivateKey: mTradingAccount.tronPrivateKey,
+            offerUuid: mTradingAccount.offerUuid,
+            isDemo: mTradingAccount.isDemo,
+        });
         try {
             await tradingAccount.save();
             num++;
@@ -399,7 +402,7 @@ const syncMissingTradingAccounts = async (req, res, next) => {
         }
     }
 
-    return res.status(200).send({mTradingAccounts, num}); 
+    return res.status(200).send({ mTradingAccounts, num });
 
 }
 const syncTradingAccounts = async (req, res, next) => {
@@ -425,48 +428,50 @@ const syncTradingAccounts = async (req, res, next) => {
         const offer = await Database.Offer.getOfferByGName(clientGroup);
         if (!offer) return;
 
-        if (!offer.demo) {
+        let account = new MissedWallet({
+            clientUuid: user.accountUuid,
+            email: email,
+            tradingAccountUuid: uuid.v4(),
+            tradingAccountId: clientId,
+            offerUuid: offer.uuid,
+            isDemo: offer.demo,
+        });
 
-            let addressData = ethWallet.generate();
-            const eth_privateKey = addressData.getPrivateKeyString();
-            // addresses
-            const eth_address = addressData.getAddressString();
-            //Tron
-            const { address, privateKey } = generateAccount();
-
-            let account = new MissedWallet({
-                clientUuid: user.accountUuid,
-                email: email,
-                tradingAccountUuid: uuid.v4(),
-                tradingAccountId: clientId,
-                ethAddress: eth_address,
-                ethPrivateKey: eth_privateKey,
-                tronAddress: address,
-                tronPrivateKey: privateKey,
-                offerUuid: offer.uuid,
-                isDemo: offer.demo,
-            });
-
-            await account.save();
-        } else {
-
-            let account = new MissedWallet({
-                clientUuid: user.accountUuid,
-                email: email,
-                tradingAccountUuid: uuid.v4(),
-                tradingAccountId: clientId,
-                offerUuid: offer.uuid,
-                isDemo: true,
-            });
-
-            await account.save();
-        }
+        await account.save();
     })
 
     return res.status(200).send("Success");
 
 }
 
+const syncIBParent = async (req, res, next) => {
+    try {
+        const users = await User.find({ parentTradingAccountUuid: { $ne: null }, parentAccountUuid: null });
+        users.map(async (user) => {
+            const wallet = await Wallet.findOne({ tradingAccountUuid: user.parentTradingAccountUuid });
+            user.parentAccountUuid = wallet?.clientUuid;
+            await user.save();
+        })
+
+        const ibCommissions = await IBCommission.find();
+        ibCommissions.map(async (ibCommission) => {
+            const wallet = await Wallet.findOne({ tradingAccountId: ibCommission.ibTradingAccountId });
+            ibCommission.parentAccountUuid = wallet?.clientUuid;
+            await ibCommission.save();
+        })
+
+
+    } catch (e) {
+        console.log(e);
+    }
+    return res.status(200).send("ok");
+}
+
+const updateIBWithdrawStatus = async (req, res) => {
+    const { accountUuid, isIBWithdraw } = req.body;
+    await Database.Account.updateAccountProfile(accountUuid, { isIBWithdraw });
+    return res.status(200).send("Ok");
+}
 const AccountController = {
     createTradingAccount,
     getTradingAccounts,
@@ -481,7 +486,9 @@ const AccountController = {
     requestSMS,
     validateSMSNumber,
     syncTradingAccounts,
-    syncMissingTradingAccounts
+    syncMissingTradingAccounts,
+    syncIBParent,
+    updateIBWithdrawStatus
 }
 
 module.exports = AccountController;

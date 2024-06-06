@@ -4,7 +4,7 @@ const { templateNames, templateKeys } = require("./Email/constant");
 const jwt = require("jsonwebtoken");
 const config = require("../config/auth");
 const bcrypt = require("bcryptjs");
-const { IBStatus, KYCStatus } = require("./constant");
+const { IBStatus, KYCStatus, PaymentGateway, WithdrawMode, OperationTypes, IBBalanceLogType } = require("./constant");
 const BOController = require("./BO");
 const BotController = require("./Bot");
 const PositionController = require("./position");
@@ -13,19 +13,26 @@ const { generatePassword } = require("../utils/helper");
 const { readSettings } = require("./Commission");
 const User = require("../models/user");
 const redisClient = require("./Redis");
+const { default: mongoose } = require("mongoose");
+const BalanceController = require("./balance");
+const { OperationType } = require("moralis/common-core");
+const IBFeeLog = require("../models/ib_fee_log");
+const IBBalanceLog = require("../models/ib_balance_logs");
+const ManagerApi = require("./Manager");
 const client = new OAuth2Client(`${process.env.GOOGLE_CLIENT_ID}`);
 
 const getUsers = async (req, res, next) => {
     const { adminUuid, role } = req;
+    const { refresh } = req.query;
 
-    let admin_users = null; 
-    let key = `admin_users`; 
+    let admin_users = null;
+    let key = `admin_users`;
 
-    let keyExist = await redisClient.exists(key); 
-    if(keyExist){
-        let admin_users_data = await redisClient.get(key); 
-        admin_users = JSON.parse(admin_users_data); 
-    }else{
+    let keyExist = await redisClient.exists(key);
+    if (keyExist && refresh == 'false') {
+        let admin_users_data = await redisClient.get(key);
+        admin_users = JSON.parse(admin_users_data);
+    } else {
         admin_users = await Database.Account.getUsers(adminUuid, role);
         redisClient.set(key, JSON.stringify(admin_users), "EX", process.env.REDIS_EXPIRATION || 3600)
     }
@@ -141,15 +148,13 @@ const saveUserProfileImage = async (req, res, next) => {
 
 const createUser = async (req, res, next) => {
     const _data = req.body;
-    let parentTradingAccountUuid = null, parentTradingAccountId = null, parentAccountUuid = null;
+    let parentAccountUuid = null;
 
     let branchUuid = await Database.Setting.getDefaultBranch();
     const { ibLinkCookie } = _data;
     if (!!ibLinkCookie) {
         const IBUser = await Database.Account.getAccountDetailByIblink(Number(ibLinkCookie));
         if (!!IBUser) {
-            parentTradingAccountId = IBUser.ibParentTradingAccountId;
-            parentTradingAccountUuid = IBUser.ibParentTradingAccountUuid;
             branchUuid = IBUser.branchUuid;
             parentAccountUuid = IBUser.accountUuid;
         }
@@ -162,8 +167,6 @@ const createUser = async (req, res, next) => {
         ...req.body,
         email,
         branchUuid,
-        parentTradingAccountId,
-        parentTradingAccountUuid,
         parentAccountUuid,
         password: bcrypt.hashSync(password, 8)
     };
@@ -176,6 +179,7 @@ const createUser = async (req, res, next) => {
         })
     } else {
         try {
+
             BotController.userSignup(email);
             let info = { id: result._id, accountUuid: result.accountUuid, email, fullname: result.fullname, countryCode: result.countryCode, password };
             const token = jwt.sign(info, config.secret, { expiresIn: 3600 * 24 * 365 });
@@ -236,7 +240,7 @@ const updateStatus = async (req, res, next) => {
     if (admin) {
         BotController.sendAdminLog(admin?.email, remoteIp, `updateStatus user  ${_id}  to ${req.body.verification_status}`);
     }
-    
+
     try {
         let status = req.body.verification_status;
         let place = await Database.Account.updateVerifyStatus({ _id, status });
@@ -271,14 +275,14 @@ const verifyEmail = async (req, res, next) => {
     try {
         let decoded = jwt.verify(req.query.token, config.secret);
 
-        let key = `user_${decoded.email}`; 
-        let keyExist = await redisClient.exists(key); 
-        let user = null; 
-        if(keyExist){
-            let userData = await redisClient.get(key); 
-            user = JSON.parse(userData); 
+        let key = `user_${decoded.email}`;
+        let keyExist = await redisClient.exists(key);
+        let user = null;
+        if (keyExist) {
+            let userData = await redisClient.get(key);
+            user = JSON.parse(userData);
 
-        }else {
+        } else {
             user = await Database.Account.getAccountDetailByEmail(decoded.email);
         }
 
@@ -291,8 +295,8 @@ const verifyEmail = async (req, res, next) => {
             }
             let branchUuid = await Database.Setting.getDefaultBranch();
             await Database.Account.updateAccountProfileByEmail(decoded.email, { ...result.data, isEmailVerified: true, password: user.password, branchUuid });
-            
-            await redisClient.set(key, JSON.stringify({...result.data, isEmailVerified: true, password:user.password , branchUuid}), "EX", process.env.REDIS_EXPIRATION || 3600)
+
+            await redisClient.set(key, JSON.stringify({ ...result.data, isEmailVerified: true, password: user.password, branchUuid }), "EX", process.env.REDIS_EXPIRATION || 3600)
 
             BotController.emailVerified(decoded.email);
             return res.redirect(`${process.env.FRONT_ENTRY}/login`);
@@ -366,10 +370,121 @@ const updateIBCommissionType = async (req, res, next) => {
         })
     }
 }
+const payoutIBFeeFromAdmin = async (req, res) => {
+
+    const { id } = req.params;
+    const _user = await Database.Account.getAccountDetailByUuid(id);
+
+    if (!!_user.ibFeePaied || _user.ibStatus !== IBStatus.APPROVED) {
+        return res.status(200).send({ success: false, error: "Bad request" });
+    }
+
+    const user_tradingAccounts = await Database.TradingAccount.getTradingAccountByEmail(_user.email);
+    const _tradingAccounts = [];
+    for (let account of user_tradingAccounts) {
+        try {
+            if (account.isDemo) continue;
+            const result_account = await ManagerApi.Account.getInfo(account.tradingAccountId);
+            let accountInfo = result_account.data.accountInfo;
+            _tradingAccounts.push({
+                ...account,
+                balance: accountInfo.balance / 100,
+                equity: accountInfo.equity / 100,
+                ethPrivateKey: undefined
+            })
+        } catch (e) {
+            console.log(e)
+        }
+    };
+
+    const tradingAccounts = _tradingAccounts.filter(v => !!v);
+    let isValid = false, sTradingAccount = null;
+
+    tradingAccounts.map(tradingAccount => {
+        if (tradingAccount.equity > 100) {
+            isValid = true;
+            sTradingAccount = tradingAccount
+        }
+    })
+
+    if (!isValid) {
+        return res.status(200).send({
+            success: false,
+            error: "This user has no enough balance."
+        })
+    }
+
+    const rsltPayout = await payoutIBFee(sTradingAccount, _user);
+
+    if (!rsltPayout) {
+        return res.status(200).send({
+            success: false,
+            error: "Failed to payout IB Fee."
+        })
+    }
+    return res.status(200).send({
+        success: true,
+    })
+}
+
+const payoutIBFee = async (tradingAccount, user) => {
+    const comment = "IB register fee 100"
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        const opts = { session, new: true };
+        const level_fees = [50, 10, 10, 10, 10, 10];
+        let rest = 100;
+        let parentUser = null, _user = user;
+        for (let i = 0; i < 6; i++) {
+            if (!_user.parentAccountUuid || rest < 0) break;
+            parentUser = await User.findOneAndUpdate({ accountUuid: _user.parentAccountUuid }, { $inc: { ibBalance: level_fees[i] } }, opts)
+            if (!parentUser) break;
+            const _date = new Date
+            const ibFeeLog = new IBFeeLog({
+                clientUuid: parentUser.accountUuid,
+                amount: level_fees[i],
+                from: user.email,   /// payout , ibcommission, ibFeeLog, 
+                ibDepth: i + 1,
+                cteatedAt: _date
+            })
+            const result = await ibFeeLog.save({ session });
+            const ibBalanceLog = new IBBalanceLog({
+                clientUuid: parentUser.accountUuid,
+                amount: level_fees[i],
+                newBalance: parentUser.ibBalance,
+                logType: IBBalanceLogType.IB_REG_FEE,
+                from: result._id,
+                cteatedAt: _date
+            })
+            await ibBalanceLog.save({ session });
+            rest -= level_fees[i];
+            _user = parentUser;
+        }
+        if (rest > 0) {
+            const rsltDeposit = await BalanceController._depositToTradingAccountId(rest, rest, PaymentGateway.IB_REG_FEE, `${process.env.IBFEE_PAYOUT_ACCOUNT}`, "USD", comment,
+                "System", "System", "System", 0, tradingAccount.tradingAccountid)
+            if (rsltDeposit.status !== OperationTypes.OPERRATION_SUCCESS) {
+                throw new Error("Deposit Failed")
+            }
+        }
+        const rsltWithdraw = await BalanceController._withdrawToTradingAccountId(100, 100, PaymentGateway.INTERNAL_TRANSFER, tradingAccount.tradingAccountId, "usd", comment, user.email, user.accountUuid, WithdrawMode.AUTO)
+        if (rsltWithdraw.status !== OperationTypes.OPERRATION_SUCCESS) {
+            throw new Error("Withdraw Failed")
+        }
+        await session.commitTransaction();
+        session.endSession();
+        return true;
+    } catch (e) {
+        await session.abortTransaction();
+        session.endSession();
+        return false;
+    }
+}
+
 const updateIBStatus = async (req, res, next) => {
     const reqbody = req.body;
     const { id, ibStatus } = reqbody;
-    let tradingAccount = null;
 
     const { admin, remoteIp } = req;
     const _user = await Database.Account.getAccountDetailById(id);
@@ -384,29 +499,58 @@ const updateIBStatus = async (req, res, next) => {
             error: "Already in " + ibStatus
         })
     }
+    const user_tradingAccounts = await Database.TradingAccount.getTradingAccountByEmail(_user.email);
+    const _tradingAccounts = [];
+    for (let account of user_tradingAccounts) {
+        try {
+            if (account.isDemo) continue;
+            const result_account = await ManagerApi.Account.getInfo(account.tradingAccountId);
+            let accountInfo = result_account.data.accountInfo;
 
-    if (ibStatus === IBStatus.APPROVED) {
-        tradingAccount = await Database.TradingAccount.getIBTradingAccountByAccountUuid(_user.accountUuid);
-        if (!tradingAccount)
-            tradingAccount = await Database.TradingAccount.createIBTradingAccount(id);
-        if (!tradingAccount) {
-            return res.status(200).send({
-                success: false,
-                error: "Can't create trading account for IB Account"
+            _tradingAccounts.push({
+                ...account,
+                balance: accountInfo.balance / 100,
+                equity: accountInfo.equity / 100,
+                ethPrivateKey: undefined
             })
+        } catch (e) {
+
         }
+    };
+
+    const tradingAccounts = _tradingAccounts.filter(v => !!v);
+    let isValid = false, sTradingAccount = null;
+
+    tradingAccounts.map(tradingAccount => {
+        if (tradingAccount.equity > 100) {
+            isValid = true;
+            sTradingAccount = tradingAccount
+        }
+    })
+
+    if (!isValid) {
+        return res.status(200).send({
+            success: false,
+            error: "This user has no enough balance."
+        })
     }
+
+    const rsltPayout = await payoutIBFee(sTradingAccount, _user)
+
+    if (!rsltPayout) return res.status(200).send({ success: false, error: "Failed payout IB fee" });
+
     let user_result = null;
     if (ibStatus === IBStatus.APPROVED) {
         let commissionType = await Database.Setting.getCommissionType();
-        user_result = await Database.Account.updateIBStatus(req.body, tradingAccount.tradingAccountId, tradingAccount.tradingAccountUuid );
-        if (user_result.parentTradingAccountId) {
-            let parentAccount = await Database.Account.findOneAccountByQuery({ ibParentTradingAccountId: user_result.parentTradingAccountId });
+        user_result = await Database.Account.updateIBStatus(req.body);
+        if (user_result.parentAccountUuid) {
+            let parentAccount = await Database.Account.findOneAccountByQuery({ accountUuid: user_result.parentAccountUuid });
             user_result.ibCommissionType = parentAccount.ibCommissionType || commissionType || 'Lot';
         } else {
             user_result.ibCommissionType = commissionType || 'Lot'
         }
-        user_result.ibRanking = 0; 
+        user_result.ibRanking = 0;
+        user_result.isIBWithdraw = 1;
         await user_result.save();
     } else {
         user_result = await Database.Account.updateIBStatus(req.body, null, null);
@@ -430,11 +574,10 @@ const updateIBStatus = async (req, res, next) => {
 const getIBClients = async (req, res, next) => {
 
     const { eamil, accountUuid } = req;
-    const account = await Database.Account.getAccountDetailByUuid(accountUuid);
     if (account) {
-        const parentTradingAccountId = account.ibParentTradingAccountId;
+        const parentAccountUuid = accountUuid;
         const verification_status = KYCStatus.APPROVED;
-        const _ibClients = await Database.Account.getIBOwnClients({ parentTradingAccountId, verification_status });
+        const _ibClients = await Database.Account.getIBOwnClients({ parentAccountUuid, verification_status });
         return res.status(200).send({
             success: true,
             body: _ibClients
@@ -448,19 +591,22 @@ const getIBClients = async (req, res, next) => {
 }
 
 const getIBOwnClients = async (req, res, next) => {
-    const { eamil, accountUuid } = req;
-    const user = await Database.Account.getAccountDetailByUuid(accountUuid);
+    const { email, accountUuid } = req;
 
-    if (user && user.ibStatus == IBStatus.APPROVED && user.ibParentTradingAccountId) {
+
+
+
+    const user = await Database.Account.getAccountDetailByEmail(email);
+    if (user && user.ibStatus == IBStatus.APPROVED) {
         let start = 0, end = 10;
         const commissionSetting = readSettings();
-        const index = commissionSetting.rankingLabels.findIndex(item => item == user.ibRanking);
-        if (index == 0 || index == -1) {
+
+        if (user.ibRanking == 0 || user.ibRanking == 1) {
             start = 0;
             end = commissionSetting.rankingCommissionLevels[0];
         } else {
-            start = commissionSetting.rankingCommissionLevels[index - 1];
-            end = commissionSetting.rankingCommissionLevels[index];
+            start = commissionSetting.rankingCommissionLevels[user.ibRanking - 1];
+            end = commissionSetting.rankingCommissionLevels[user.ibRanking];
         }
 
         /////// get tree and summary info 
@@ -470,7 +616,7 @@ const getIBOwnClients = async (req, res, next) => {
             totalVolume: 0
         }
 
-        let result = await Database.Account.createIBClientTree(user.ibParentTradingAccountId, 0, start, end, summary);
+        let result = await Database.Account.createIBClientTree(user.accountUuid, 0, start, end, summary);
         return res.status(200).send({
             success: true,
             body: result,
@@ -605,7 +751,7 @@ const changeEmail = async (req, res, next) => {
 
         const { admin, remoteIp } = req;
 
-        if(admin){
+        if (admin) {
             BotController.sendAdminLog(admin.email, remoteIp, `Changed email from user ${_user.email} to ${newEmail}`)
         }
 
@@ -754,12 +900,12 @@ const rejectBulkKYCStatus = async (req, res, next) => {
 }
 const deleteBulkKYCStatus = async (req, res, next) => {
     const { ids, remark } = req.body;
-    
+
     const { admin, remoteIp } = req;
     if (admin) {
         BotController.sendAdminLog(admin.email, remoteIp, `approveBulkKYCStatus  ${JSON.stringify(ids)}`)
     }
-    
+
     try {
         for (let index = 0; index < ids.length; index++) {
             let result = await Database.Account.updateVerifyStatus({ _id: ids[index], status: KYCStatus.DELETED, remark });
@@ -903,7 +1049,9 @@ const UserController = {
     getIBUser,
     updateIBStatus,
     updateIBUser,
-    resendVerifyEmail
+    resendVerifyEmail,
+    payoutIBFee,
+    payoutIBFeeFromAdmin
 }
 
 module.exports = UserController; 

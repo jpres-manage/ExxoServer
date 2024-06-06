@@ -18,6 +18,8 @@ const MailController = require("../controllers/mail");
 const SettingController = require("../controllers/setting");
 const IBCommissionCotroller = require("../controllers/ibcommission");
 const AnalyticsController = require("../controllers/analytics");
+const BalanceController = require("../controllers/balance");
+const CommissionController = require("../controllers/Commission");
 
 router.get("/offers", [ authJwt.verifyToken ], BranchController.getOffersByUser);
 router.get("/tradingAccounts", [authJwt.verifyToken], getTradingAccounts);
@@ -30,33 +32,30 @@ router.get("/telegram",  SettingController.getTelegram );
 
 router.post("/profile", [authJwt.verifyToken], updateUsers);
 router.post("/verify-profile", upload.fields([{ name: "frontImg", maxCount: 1 }, { name: "backImg", maxCount: 1 }, { name: "proofOfResident", maxCount: 1 }]), verifyProfile);
+router.post("/profile/password", [authJwt.verifyToken], UserController.changePassword);
 router.post("/checkDuplicateUsernameOrEmail", verifySignUp.checkDuplicateUsernameOrEmail, (req, res) => { res.status(200).send(true) });
-router.post("/update-password", [authJwt.verifyToken], UserController.changePassword);
 
 router.post("/webhook", webhook);
 
-router.post("/internal-transfer", [authJwt.verifyToken], internalTransfer);
+router.post("/balance/transfer", [authJwt.verifyToken], internalTransfer);
 
-router.post("/request-ib", [authJwt.verifyToken, userValidation.kycApproved], requestIB);
-router.post("/cancel-ib", [authJwt.verifyToken], cancelIB);
+router.post("/ib/balance/transfer", [authJwt.verifyToken], BalanceController.internalIBTransfer);
+router.post("/ib/request", [authJwt.verifyToken, userValidation.kycApproved], requestIB);
+router.post("/ib/cancel", [authJwt.verifyToken], cancelIB);
 router.get("/ib-client-detail", [authJwt.verifyToken], IBClientDetail);
+router.get("/ib/clients", [authJwt.verifyToken], UserController.getIBOwnClients);
+router.post('/ib/reports', [authJwt.verifyToken], CommissionController.getIBUserReport)
+router.get('/ib/payment-history', [authJwt.verifyToken], IBCommissionCotroller.getIBPaymentHistoryForUser)
+router.get("/ib/commission", [authJwt.verifyToken], IBCommissionCotroller.getIBCommissionInfoForUser);
 
-router.get("/ib-clients", [authJwt.verifyToken], UserController.getIBOwnClients);
-router.get("/ib-commissions", [authJwt.verifyToken], IBCommissionCotroller.getIBCommissionsForUser);
-
-
-router.get("/social-account-info", [authJwt.verifyToken], getSocialTradingAccountInfo);
-router.get("/social-account-info-with-id", [authJwt.verifyToken], getSocialTradingAccountInfoWithId);
-// router.put("/social-account-info", [authJwt.verifyToken], registerSocialTradingFeed);
-router.post("/social-account-info", [authJwt.verifyToken], updateSocialAccountStatus);
-
-router.put("/social-account-info", registerSocialTradingFeed);
-
+router.get("/account/social", [authJwt.verifyToken], getSocialTradingAccountInfo);
+router.post("/account/social", [authJwt.verifyToken], updateSocialAccountStatus);
+router.put("/account/social", registerSocialTradingFeed);
 
 ///////
 router.get("/profile/:id", [authJwt.verifyToken], UserController.getUserProfileByUuid);
 router.put("/profile", [authJwt.verifyToken], UserController.saveUserProfile);
-router.post("/profile-image", [authJwt.verifyToken, upload.single('image')], UserController.saveUserProfileImage);
+router.post("/profile/avatar", [authJwt.verifyToken, upload.single('image')], UserController.saveUserProfileImage);
 router.get("/account-info", [authJwt.verifyToken], UserController.getAccountInfo);
 router.get("/orders", [authJwt.verifyToken], OrderController.getAllOrdersFromUser);
 router.get("/positions", [authJwt.verifyToken, (req, res, next) => {
@@ -81,5 +80,4 @@ router.get("/email-notification", [authJwt.verifyToken, (req, res, next)=>{
 }], MailController.getMailAndNotifications);
 
 router.get("/balance-analytics", [authJwt.verifyToken], AnalyticsController.getBalanceAnalytics);
-
 module.exports = router;

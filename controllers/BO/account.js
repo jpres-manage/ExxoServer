@@ -176,7 +176,6 @@ const checkEmailFromBO = async (email) => {
             return false;
         }
     } catch (e) {
-        BotController.errors("User does not exist ", "Check Email from BO 167");
         return false;
     }
 }
@@ -202,7 +201,6 @@ const GetAllUsers = async () => {
             return false;
         }
     } catch (e) {
-        BotController.errors("Error GetAllUsers", "Check Email from BO 167");
         return false;
     }
 }

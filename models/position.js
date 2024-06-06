@@ -4,7 +4,10 @@ const Position = mongoose.model(
   "Position",
   new mongoose.Schema({
     clientId: String, 
-    uid: String, 
+    uid: {
+      type:String, 
+      unique: true, 
+    }, 
     generatedTime: Number, 
     entryType: Number, 
     amount: Number, 
@@ -24,6 +27,7 @@ const Position = mongoose.model(
     tpPrice: Number,
     slPrice: Number,
     additionalType: Number
+    
   })
 );
 module.exports = Position;

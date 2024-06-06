@@ -15,9 +15,12 @@ const createClosedPosition = async (closedPosition) => {
 
 const insertManyClosedPositions = async (closedPositions) => {
     try {
-        let result = await Position.insertMany(closedPositions);
-        return true;
+        let result = await Position.insertMany(closedPositions, {ordered: false});
+        return result;
     } catch (e) {
+        if(e.insertedCount){
+            return e.insertedDocs
+        }
         return e;
     }
 }

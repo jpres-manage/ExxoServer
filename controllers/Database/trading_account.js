@@ -11,12 +11,11 @@ const { AccountRole, DepositMode, KYCStatus } = require('../constant');
 const createAccount = async (data) => {
     try {
         let _walletInfo = {};
-        if (!data.demo) {
-            _walletInfo = getWalletAddress();
-        }
+        // if (!data.demo) {
+        //     _walletInfo = getWalletAddress();
+        // }
         const tradingAccount = new Wallet({
             ...data,
-            ..._walletInfo,
             createdAt: new Date, 
             isDemo: data.demo
         });
@@ -51,14 +50,14 @@ const createIBTradingAccount = async (_id) => {
         return false;
     }
 }
-const createTradingAccount = async (offerUuid, accountUuid, email, demo, parentTradingAccountId, commissionUuid) => {
+const createTradingAccount = async (offerUuid, accountUuid, email, demo) => {
 
     try {
         let offer = await OfferModel.getOfferbyUuid(offerUuid);
         const data = {
             clientUuid: accountUuid,
             offerUuid,
-            commissionUuid
+            commissionUuid:""
         }
         const accountRes = await BOController.TradingAccount.createTradingAccount(data);
         if (accountRes === false) {
@@ -130,7 +129,10 @@ const getTradingAccountsByUserId = async (clientUuid) => {
             },
             {
                 $match: {
-                    "clientUuid": clientUuid
+                    "clientUuid": clientUuid, 
+                    "offer.name": {
+                        $ne: "Exxo IB"
+                    }
                 }
             },
             {
@@ -145,7 +147,8 @@ const getTradingAccountsByUserId = async (clientUuid) => {
                     "ethPrivateKey": 1,
                     "ethAddress": 1,
                     "offer.demo": 1,
-                    "offer.currency": 1
+                    "offer.currency": 1, 
+                    "isDemo":1, 
                 }
             },
         ]);
@@ -164,17 +167,7 @@ const getTradingAccountsByAdminUuid = async (adminUuid, role) => {
 
     try {
         let result = await Wallet.aggregate([
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "clientUuid",
-                    foreignField: "accountUuid",
-                    as: "user"
-                }
-            },
-            {
-                $unwind: "$user"
-            },
+           
             {
                 $lookup: {
                     from: "offers",
@@ -187,18 +180,22 @@ const getTradingAccountsByAdminUuid = async (adminUuid, role) => {
                 $unwind: "$offer"
             },
             {
-                $project: {
-                    "tradingAccountUuid": 1,
-                    "tradingAccountId": 1,
-                    "user.email": 1,
-                    "user.fullname": 1,
-                    "user.accountUuid": 1,
-                    "user._id":1,
-                    "offer.name": 1,
-                    "offer.demo": 1,
-                    "createdAt": 1, 
-                    "verification_status": "$user.verification_status"
-                },
+                $match: {
+                    "offer.name" : {
+                        $ne: "Exxo IB"
+                    }
+                }
+            }, 
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "clientUuid",
+                    foreignField: "accountUuid",
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
             },
             {
                 $match:{
@@ -206,6 +203,23 @@ const getTradingAccountsByAdminUuid = async (adminUuid, role) => {
                     "verification_status": {
                         $ne: KYCStatus.DELETED
                     }
+                }
+            },
+            {
+                $project: {
+                    "tradingAccountUuid": 1,
+                    "tradingAccountId": 1,
+                    "email": "$user.email", 
+                    "fullname":"$user.fullname", 
+                    "userId":"$user._id",
+                    "offerName":"$offer.name",
+                    "demo": "$offer.demo",
+                    "createdAt": 1, 
+                    "verification_status": "$user.verification_status"
+                },
+            },{
+                $sort: {
+                    createdAt: 1
                 }
             }
         ]);
@@ -218,7 +232,7 @@ const getTradingAccountsByAdminUuid = async (adminUuid, role) => {
 
 const getTradingAccountByEmail = async (email) => {
     try {
-        let result = await Wallet.find({ email });
+        let result = await Wallet.find({ email }).lean();
         if (result.length) {
             return result;
         } else {

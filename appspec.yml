@@ -1,0 +1,28 @@
+
+version: 0.0
+os: linux 
+files:
+  - source: /
+    destination: /var/www/backend
+hooks:
+  BeforeInstall:
+    - location: deploy_scripts/before_install.sh
+      timeout: 300
+      runas: root
+  AfterInstall:
+    - location: deploy_scripts/after_install.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: deploy_scripts/application_start.sh
+      timeout: 300
+      runas: root
+  ApplicationStop:
+    - location: deploy_scripts/stop_server.sh
+      timeout: 300
+      runas: root
+  ValidateService:
+    - location: deploy_scripts/validate.sh
+      timeout: 300
+      runas: root
+

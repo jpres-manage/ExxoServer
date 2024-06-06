@@ -7,28 +7,30 @@ const botUrl = `https://api.telegram.org/bot${token}/sendMessage`
 
 const bot = {
     sendMessage: (chatid, message) => {
+        try{
+            const postData = JSON.stringify({ chat_id: chatid, text: message });
+    
+            // Splitting the command into base command and arguments for safer execution
+            const curlCommand = 'curl';
+            const args = [
+                '-X', 'POST',
+                '-H', 'Content-Type: application/json',
+                '-d', postData,
+                botUrl
+            ];
+    
+            execFile(curlCommand, args, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Error: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    return;
+                }
+            });
+        }catch(e){
 
-        const postData = JSON.stringify({ chat_id: chatid, text: message });
-
-        // Splitting the command into base command and arguments for safer execution
-        const curlCommand = 'curl';
-        const args = [
-            '-X', 'POST',
-            '-H', 'Content-Type: application/json',
-            '-d', postData,
-            botUrl
-        ];
-
-        execFile(curlCommand, args, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Error: ${error.message}`);
-                return;
-            }
-            if (stderr) {
-                console.error(`Stderr: ${stderr}`);
-                return;
-            }
-        });
+        }
     }
 }
 

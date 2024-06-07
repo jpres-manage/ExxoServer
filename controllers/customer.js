@@ -446,7 +446,7 @@ const payoutIBFee = async (tradingAccount, user) => {
                 amount: level_fees[i],
                 from: user.email,   /// payout , ibcommission, ibFeeLog, 
                 ibDepth: i + 1,
-                cteatedAt: _date
+                createdAt: _date
             })
             const result = await ibFeeLog.save({ session });
             const ibBalanceLog = new IBBalanceLog({
@@ -455,12 +455,15 @@ const payoutIBFee = async (tradingAccount, user) => {
                 newBalance: parentUser.ibBalance,
                 logType: IBBalanceLogType.IB_REG_FEE,
                 from: result._id,
-                cteatedAt: _date
+                createdAt: _date
             })
             await ibBalanceLog.save({ session });
             rest -= level_fees[i];
             _user = parentUser;
         }
+
+        await User.findOneAndUpdate({email:user.email}, {ibFeePaied: true}, opts); 
+
         if (rest > 0) {
             const rsltDeposit = await BalanceController._depositToTradingAccountId(rest, rest, PaymentGateway.IB_REG_FEE, `${process.env.IBFEE_PAYOUT_ACCOUNT}`, "USD", comment,
                 "System", "System", "System", 0, tradingAccount.tradingAccountid)

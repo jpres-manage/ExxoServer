@@ -44,7 +44,8 @@ router.post("/ib/request", [authJwt.verifyToken, userValidation.kycApproved], re
 router.post("/ib/cancel", [authJwt.verifyToken], cancelIB);
 router.get("/ib-client-detail", [authJwt.verifyToken], IBClientDetail);
 router.get("/ib/clients", [authJwt.verifyToken], UserController.getIBOwnClients);
-router.post('/ib/reports', [authJwt.verifyToken], CommissionController.getIBUserReport)
+router.post('/ib/reports/commission', [authJwt.verifyToken], CommissionController.getIBUserReport)
+router.post('/ib/reports/regfee', [authJwt.verifyToken], CommissionController.getIBUserRegFeeReport)
 router.get('/ib/payment-history', [authJwt.verifyToken], IBCommissionCotroller.getIBPaymentHistoryForUser)
 router.get("/ib/commission", [authJwt.verifyToken], IBCommissionCotroller.getIBCommissionInfoForUser);
 

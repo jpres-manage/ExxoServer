@@ -594,6 +594,8 @@ const getIBUserReport = async (req, res, next) => {
     }
 }
 
+
+
 const getIBReportByUser = async (ibUser, start, end) => {
 
     try {
@@ -650,8 +652,81 @@ const getIBReportByUser = async (ibUser, start, end) => {
     }
 }
 
+/// for user request
+const getIBUserRegFeeReport = async (req, res, next) => {
+    try {
 
+        const email = req.email;
+        const { start, end } = req.body;
 
+        const ibUser = await Database.Account.getAccountDetailByEmail(email);
+
+        if (ibUser.ibStatus !== IBStatus.APPROVED) return res.status(400).send("Bad Request: No valid ib user");
+
+        const fileName = await getIBFeeReportByUser(ibUser, start, end);
+
+        const filePath = path.join(__dirname, `../../public/excels/${fileName}`);
+
+        res.download(filePath, fileName, (err) => {
+            if (err) {
+                // Handle error, but don't expose to the user
+                console.error('Error downloading file:', err);
+                res.status(500).send('Error downloading file');
+            }
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(400).send("Invalid requrest");
+    }
+}
+
+const getIBFeeReportByUser = async (ibUser, start, end) => {
+
+    try {
+        let ibFeeLogs = await IBFeeLog.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(start),
+                        $lte: new Date(end)
+                    },
+                    clientUuid: ibUser.accountUuid
+                }
+            },
+            {
+                $sort: {
+                    createdAt: 1
+                }
+            }
+        ])
+
+        let totalAmount = 0;
+
+        let _ibFeeLogs = [];
+        for (let ibFeeLog of ibFeeLogs) {
+            try {
+                let _ibFeeLog = {};
+                _ibFeeLog.email = ibFeeLog.email;
+                _ibFeeLog.amont = ibFeeLog.amount;
+                _ibFeeLog.from = ibFeeLog.from;
+
+                _ibFeeLogs.push(_ibFeeLog);
+                totalAmount += ibFeeLog.amount
+
+            } catch (e) {
+                console.log(e)
+            }
+        }
+        _ibFeeLogs = [{ amount: totalAmount }, ..._ibFeeLogs];
+        const fileName = `${(new Date()).getTime()}_export.xls`;
+        exportJsonToExcel(_ibFeeLogs, fileName);
+        const filePath = path.join(__dirname, `../../public/excels/${fileName}`);
+        return filePath;
+
+    } catch (e) {
+        console.log(e)
+    }
+}
 const getAdminIBReports = async (req, res) => {
 
     const { start, end } = req.body;
@@ -885,6 +960,7 @@ const CommissionController = {
     getAdminIBRegFeeReports,
     resetIBDepth,
     getIBUserReport,
+    getIBUserRegFeeReport, 
     getAdminIBReportsByUser,
     getAdminIBBalanceReportsByUser,
     syncIBCommissionGenTimeOrderID

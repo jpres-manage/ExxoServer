@@ -525,6 +525,7 @@ const updateIBStatus = async (req, res, next) => {
     let isValid = false, sTradingAccount = null;
 
     tradingAccounts.map(tradingAccount => {
+        BotController.errors(tradingAccount, "tradingAccount"); 
         if (tradingAccount.equity > 100) {
             isValid = true;
             sTradingAccount = tradingAccount

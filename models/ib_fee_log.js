@@ -6,7 +6,7 @@ const IBFeeLog = mongoose.model(
     new mongoose.Schema({
         clientUuid: String, 
         amount: Number, 
-        from: String,   /// payout , ibcommission, ibFeeLog, 
+        from: String,   /// from email 
         ibDepth: Number, 
         createdAt: Date, 
     })

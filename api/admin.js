@@ -156,7 +156,8 @@ router.get("/ib/payments/all", [checkAdmin],  IBCommissionCotroller.getIBAllPaym
 router.post("/ib/rankings/reset", [checkAdmin], CommissionController.evalRankingFromAdmin );   /// reset ib ranking from admin
 router.patch("/ib/user/ranking/:id", [checkAdmin], CommissionController.updateIBRanking)
 router.patch("/ib/withdraw", [checkAdmin], AccountController.updateIBWithdrawStatus)
-router.post('/ib/reports',[checkAdmin],  CommissionController.getAdminIBReports); 
+router.post('/ib/reports/commission',[checkAdmin],  CommissionController.getAdminIBReports); 
+router.post('/ib/reports/regfee',[checkAdmin],  CommissionController.getAdminIBRegFeeReports); 
 router.post('/ib/report/commission',[checkAdmin],  CommissionController.getAdminIBReportsByUser); 
 router.post('/ib/report/balance',[checkAdmin],  CommissionController.getAdminIBBalanceReportsByUser); 
 

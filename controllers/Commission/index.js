@@ -17,6 +17,7 @@ const { exportJsonToExcel } = require('../../utils/helper');
 const Wallet = require('../../models/wallet');
 const { default: mongoose } = require('mongoose');
 const IBBalanceLog = require('../../models/ib_balance_logs');
+const IBFeeLog = require('../../models/ib_fee_log');
 
 const commissionSetting = {
     setting: {}
@@ -354,13 +355,13 @@ const depositIBCommissions = async () => {
 
             const ibBlanaceLog = new IBBalanceLog({
                 clientUuid: user.accountUuid,
-                amount: ibCommission.commissionAmount, 
-                newBalance: user.ibBalance, 
-                logType: IBBalanceLogType.IB_COMMISSION, 
-                createdAt: new Date, 
+                amount: ibCommission.commissionAmount,
+                newBalance: user.ibBalance,
+                logType: IBBalanceLogType.IB_COMMISSION,
+                createdAt: new Date,
                 from: ibCommission._id
             })
-            await ibBlanaceLog.save({session})
+            await ibBlanaceLog.save({ session })
 
             await session.commitTransaction();
         } catch (e) {
@@ -449,7 +450,7 @@ const checkIBRankingLevel = async (prevLevel, curLevel, minVolume, ownNumber) =>
 
 const updateIBRanking = async (req, res) => {
     const { ibRanking } = req.body;
-    const {id:accountUuid} = req.params;
+    const { id: accountUuid } = req.params;
     const { admin, remoteIp } = req;
 
     if (admin) {
@@ -749,6 +750,71 @@ const getAdminIBReports = async (req, res) => {
     }
 }
 
+
+const getAdminIBRegFeeReports = async (req, res) => {
+
+    const { start, end } = req.body;
+
+    try {
+        let ibFeeLogs = await IBFeeLog.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(start),
+                        $lte: new Date(end)
+                    },
+                }
+            },
+            {
+                $sort: {
+                    createdAt: 1
+                }
+            },
+            {
+                $group: {
+                    _id: "$clientUuid",
+                    amount: { $sum: "$amount" },
+                }
+            },
+        ])
+
+        let totalAmount = 0;
+
+        let _ibFeeLogs = [];
+        for (let ibFeeLog of ibFeeLogs) {
+            try {
+                const user = await Database.Account.getAccountDetailByEmail(ibFeeLog._id);
+                let _ibFeeLog = {};
+                _ibFeeLog.email = user.email;
+                _ibFeeLog.amont = ibFeeLog.amount;
+                _ibFeeLog.CurBalance = user.ibBalance;
+                _ibFeeLogs.push(_ibFeeLog);
+                totalAmount += ibFeeLog.amount
+
+            } catch (e) {
+                console.log(e)
+            }
+        }
+        _ibFeeLogs = [{ amount: totalAmount }, ..._ibFeeLogs];
+        const fileName = `${(new Date()).getTime()}_export.xls`;
+        exportJsonToExcel(_ibFeeLogs, fileName);
+        const filePath = path.join(__dirname, `../../public/excels/${fileName}`);
+
+        res.download(filePath, fileName, (err) => {
+            if (err) {
+                // Handle error, but don't expose to the user
+                console.error('Error downloading file:', err);
+                res.status(500).send('Error downloading file');
+            }
+        });
+        return filePath;
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+
+
 const getAdminIBReportsByUser = async (req, res) => {
 
     const { email, startDate, endDate } = req.body;
@@ -775,14 +841,14 @@ const getAdminIBBalanceReportsByUser = async (req, res) => {
 
     const ibBalanceLogs = await IBBalanceLog.aggregate([
         {
-            $match:{
+            $match: {
                 createdAt: {
-                    $gte: new Date(startDate), 
+                    $gte: new Date(startDate),
                     $lte: new Date(endDate)
-                }, 
+                },
                 clientUuid: ibUser.accountUuid
-            }, 
-        }, 
+            },
+        },
         {
             $sort: {
                 createdAt: -1
@@ -816,10 +882,11 @@ const CommissionController = {
     depositIBCommissions,
     getIBReportByUser,
     getAdminIBReports,
+    getAdminIBRegFeeReports,
     resetIBDepth,
     getIBUserReport,
     getAdminIBReportsByUser,
-    getAdminIBBalanceReportsByUser, 
+    getAdminIBBalanceReportsByUser,
     syncIBCommissionGenTimeOrderID
 }
 

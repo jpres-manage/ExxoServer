@@ -428,7 +428,7 @@ const payoutIBFeeFromAdmin = async (req, res) => {
 }
 
 const payoutIBFee = async (tradingAccount, user) => {
-    const comment = "IB register fee 100"
+    const comment = `IB register fee from ${tradingAccount.tradingAccountId}`
     const session = await mongoose.startSession();
     session.startTransaction();
     try {

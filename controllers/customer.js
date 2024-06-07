@@ -525,8 +525,7 @@ const updateIBStatus = async (req, res, next) => {
     let isValid = false, sTradingAccount = null;
 
     tradingAccounts.map(tradingAccount => {
-        BotController.errors(tradingAccount, "tradingAccount"); 
-        if (tradingAccount.equity > 100) {
+        if (tradingAccount.equity >= 100) {
             isValid = true;
             sTradingAccount = tradingAccount
         }
@@ -541,7 +540,10 @@ const updateIBStatus = async (req, res, next) => {
 
     const rsltPayout = await payoutIBFee(sTradingAccount, _user)
 
-    if (!rsltPayout) return res.status(200).send({ success: false, error: "Failed payout IB fee" });
+    if (!rsltPayout) {
+        BotController.errors("Failed to payout reg fee"); 
+        return res.status(200).send({ success: false, error: "Failed payout IB fee" });
+    }
 
     let user_result = null;
     if (ibStatus === IBStatus.APPROVED) {
@@ -555,6 +557,7 @@ const updateIBStatus = async (req, res, next) => {
         }
         user_result.ibRanking = 0;
         user_result.isIBWithdraw = 1;
+        user_result.ibFeePaied = true; 
         await user_result.save();
     } else {
         user_result = await Database.Account.updateIBStatus(req.body, null, null);

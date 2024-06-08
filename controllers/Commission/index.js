@@ -709,7 +709,6 @@ const getIBFeeReportByUser = async (ibUser, start, end) => {
                 _ibFeeLog.email = ibFeeLog.email;
                 _ibFeeLog.amont = ibFeeLog.amount;
                 _ibFeeLog.from = ibFeeLog.from;
-
                 _ibFeeLogs.push(_ibFeeLog);
                 totalAmount += ibFeeLog.amount
 
@@ -861,7 +860,7 @@ const getAdminIBRegFeeReports = async (req, res) => {
                 const user = await Database.Account.getAccountDetailByEmail(ibFeeLog._id);
                 let _ibFeeLog = {};
                 _ibFeeLog.email = user.email;
-                _ibFeeLog.amont = ibFeeLog.amount;
+                _ibFeeLog.amount = ibFeeLog.amount;
                 _ibFeeLog.CurBalance = user.ibBalance;
                 _ibFeeLogs.push(_ibFeeLog);
                 totalAmount += ibFeeLog.amount
@@ -893,13 +892,9 @@ const getAdminIBRegFeeReports = async (req, res) => {
 const getAdminIBReportsByUser = async (req, res) => {
 
     const { email, startDate, endDate } = req.body;
-
     const ibUser = await Database.Account.getAccountDetailByEmail(email);
-
     const fileName = await getIBReportByUser(ibUser, startDate, endDate);
-
     const filePath = path.join(__dirname, `../../public/excels/${fileName}`);
-
     res.download(filePath, fileName, (err) => {
         if (err) {
             // Handle error, but don't expose to the user
@@ -911,9 +906,7 @@ const getAdminIBReportsByUser = async (req, res) => {
 const getAdminIBBalanceReportsByUser = async (req, res) => {
 
     const { email, startDate, endDate } = req.body;
-
     const ibUser = await Database.Account.getAccountDetailByEmail(email);
-
     const ibBalanceLogs = await IBBalanceLog.aggregate([
         {
             $match: {
@@ -930,8 +923,21 @@ const getAdminIBBalanceReportsByUser = async (req, res) => {
             }
         }
     ])
+
+    let _ibBalanceLogs= []; 
+    ibBalanceLogs.map(ibBalanceLog=>{
+        let _ibBalanceLog = {}; 
+        _ibBalanceLog.amount = ibBalanceLog.amount; 
+        _ibBalanceLog.lastIBBalance = ibBalanceLog.newBalance - ibBalanceLog.amount; 
+        _ibBalanceLog.newBalance = ibBalanceLog.newBalance; 
+        _ibBalanceLog.type = ibBalanceLog.logType; 
+        _ibBalanceLog.when = ibBalanceLog.createdAt;
+
+        _ibBalanceLogs.push(_ibBalanceLog); 
+    })
+
     const fileName = `${(new Date()).getTime()}_export.xls`;
-    exportJsonToExcel(ibBalanceLogs, fileName);
+    exportJsonToExcel(_ibBalanceLogs, fileName);
     const filePath = path.join(__dirname, `../../public/excels/${fileName}`);
 
     res.download(filePath, fileName, (err) => {

@@ -10,7 +10,7 @@ const IBBalanceLog = mongoose.model(
         logType: String, 
         from: String,   /// payout , ibcommission, ibFeeLog, 
         createdAt: Date, 
-        tradingAccount: string, 
+        tradingAccount: String, 
     })
 );
 module.exports = IBBalanceLog;

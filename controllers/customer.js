@@ -455,7 +455,8 @@ const payoutIBFee = async (tradingAccount, user) => {
                 newBalance: parentUser.ibBalance,
                 logType: IBBalanceLogType.IB_REG_FEE,
                 from: result._id,
-                createdAt: _date
+                createdAt: _date, 
+                tradingAccount: tradingAccount.tradingAccountId
             })
             await ibBalanceLog.save({ session });
             rest -= level_fees[i];

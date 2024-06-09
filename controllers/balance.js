@@ -2,7 +2,7 @@
 
 const Database = require('./Database');
 const ManagerAPI = require('./Manager');
-const { DepositMode, PaymentType, actionStatus, WithdrawMode, PaymentGateway, WithdrawStatus, IBStatus, IBWDAllowState } = require('./constant');
+const { DepositMode, PaymentType, actionStatus, WithdrawMode, PaymentGateway, WithdrawStatus, IBStatus, IBWDAllowState, IBBalanceLogType } = require('./constant');
 const uuid = require('uuid');
 const session = require('express-session');
 var moment = require('moment');
@@ -12,6 +12,7 @@ const { NUMBER } = require('sequelize');
 const EmailController = require('./Email');
 const User = require('../models/user');
 const IBCommission = require('../models/ib_commission');
+const IBBalanceLog = require('../models/ib_balance_logs');
 
 const OperationTypes = {
     OPERRATION_SUCCESS: "OPERATION_SUCCESS",
@@ -439,8 +440,19 @@ const internalIBTransfer =async (req, res, next)=>{
 
     const comment = "Internal Transfer from IB balance";
     let result = await _depositToTradingAccountId(_amount, _amount, DepositMode.IB_INTERNAL, tradingAccount.tradingAccountId, "USD", comment, email, email );
+
     if(result.status == "OPERATION_SUCCESS"){
-         await User.updateOne({accountUuid}, {ibBalance: user.ibBalance - _amount}); 
+        const _userRslt = await User.updateOne({accountUuid}, {ibBalance: user.ibBalance - _amount}); 
+        const ibBalanceLog = new IBBalanceLog({
+            clientUuid: user.accountUuid, 
+            amount:_amount, 
+            newBalance: _userRslt.ibBalance, 
+            tradingAccount: tradingAccount.tradingAccountId, 
+            from: result._id, 
+            createdAt: new Date, 
+            logType: IBBalanceLogType.IB_PAYOUT
+        })
+        await ibBalanceLog.save();
     }
 
     return res.status(200).send({success: true})

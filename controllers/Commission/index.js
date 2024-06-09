@@ -359,7 +359,8 @@ const depositIBCommissions = async () => {
                 newBalance: user.ibBalance,
                 logType: IBBalanceLogType.IB_COMMISSION,
                 createdAt: new Date,
-                from: ibCommission._id
+                from: ibCommission._id, 
+                tradingAccount: ibCommission.from
             })
             await ibBlanaceLog.save({ session })
 

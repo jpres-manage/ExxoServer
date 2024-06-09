@@ -445,8 +445,8 @@ const internalIBTransfer =async (req, res, next)=>{
         const _userRslt = await User.updateOne({accountUuid}, {ibBalance: user.ibBalance - _amount}); 
         const ibBalanceLog = new IBBalanceLog({
             clientUuid: user.accountUuid, 
-            amount:_amount, 
-            newBalance: _userRslt.ibBalance, 
+            amount:-_amount, 
+            newBalance: user.ibBalance - _amount, 
             tradingAccount: tradingAccount.tradingAccountId, 
             from: result._id, 
             createdAt: new Date, 

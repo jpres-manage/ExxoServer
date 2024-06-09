@@ -11,6 +11,7 @@ const Position = require('../../models/position');
 const Wallet = require('../../models/wallet');
 const IBCommission = require('../../models/ib_commission');
 
+const rankingLabels = ["IB","Q","S1","S2","S3","S4"]
 const createAccountSync = async (data) => {
     try {
         let account = new Account({
@@ -296,7 +297,7 @@ const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summar
                 if (ibDepth >= start) {
                     if (item.ibStatus === IBStatus.APPROVED) {
                         data = {
-                            text:`${MakeSimpleEmail(item.email) } ${totalVolume && "-"+ Math.floor(totalVolume*100)/100  || ""} `,
+                            text: ibDepth==1 && `${MakeSimpleEmail(item.email) } | ${rankingLabels[item.ibRanking]} | ${item.trTotalVolume || 0} | ${totalVolume && "-"+ Math.floor(totalVolume*100)/100  || ""} ` || `${MakeSimpleEmail(item.email)}`,
                             id: item.accountUuid,
                             ...item,
                             state: {
@@ -306,7 +307,7 @@ const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summar
                         };
                     } else {
                         data = {
-                            text: MakeSimpleEmail(item.email),
+                            text: ibDepth==1 && `${MakeSimpleEmail(item.email)} | ${item.ibRanking}|${item.trTotalVolume || 0}` || `${MakeSimpleEmail(item.email)}` ,
                             id: item.accountUuid,
                             ...item,
                             state: {
@@ -321,7 +322,6 @@ const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summar
                         ibUserTreeData = [...ibUserTreeData, ...data]
                     }
                 }
-               
                
             } catch (e) {
                 console.log(e);

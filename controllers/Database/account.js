@@ -297,7 +297,7 @@ const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summar
                 if (ibDepth >= start) {
                     if (item.ibStatus === IBStatus.APPROVED) {
                         data = {
-                            text: ibDepth==1 && `${MakeSimpleEmail(item.email) } | ${rankingLabels[item.ibRanking]} | ${item.trTotalVolume || 0} | ${totalVolume && "-"+ Math.floor(totalVolume*100)/100  || ""} ` || `${MakeSimpleEmail(item.email)}`,
+                            text: ibDepth==0 && `${MakeSimpleEmail(item.email) } | ${rankingLabels[item.ibRanking]} | ${item.trTotalVolume || 0} | ${totalVolume && "-"+ Math.floor(totalVolume*100)/100  || ""} ` || `${MakeSimpleEmail(item.email)}`,
                             id: item.accountUuid,
                             ...item,
                             state: {
@@ -307,7 +307,7 @@ const createIBClientTree = async (parentAccountUuid, ibDepth, start, end, summar
                         };
                     } else {
                         data = {
-                            text: ibDepth==1 && `${MakeSimpleEmail(item.email)} | ${item.ibRanking}|${item.trTotalVolume || 0}` || `${MakeSimpleEmail(item.email)}` ,
+                            text: ibDepth==0 && `${MakeSimpleEmail(item.email)} | ${item.ibRanking}|${item.trTotalVolume || 0}` || `${MakeSimpleEmail(item.email)}` ,
                             id: item.accountUuid,
                             ...item,
                             state: {
